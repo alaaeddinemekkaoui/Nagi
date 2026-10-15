@@ -1,0 +1,52 @@
+using Pulse.Core;
+using Pulse.Core.Motion;
+using Xunit;
+
+namespace Pulse.Tests;
+
+public sealed class MediaDesignTests
+{
+    [Fact] public void AkenoThemeSurvivesSettingsNormalization() => Assert.Equal("Akeno", (new PulseSettings { Theme = "Akeno" }).Normalize().Theme);
+    [Fact] public void AudioEnvelopeNeverInventsActivityAndReleasesToSilence()
+    {
+        var envelope = new AudioEnvelope();
+        Assert.Equal(0, envelope.Update(null, .05));
+        var attack = envelope.Update(.8, .05);
+        Assert.InRange(attack, .1, .8);
+        var release = envelope.Update(0, .05);
+        Assert.InRange(release, .001, attack);
+        for (var i = 0; i < 40; i++) envelope.Update(0, .05);
+        Assert.Equal(0, envelope.Value);
+        Assert.Equal(0, envelope.Update(double.NaN, .05));
+    }
+    [Fact] public void AudioSmoothingDoesNotDependOnFrameRate()
+    {
+        var slow = new AudioEnvelope(); var fast = new AudioEnvelope();
+        for (var i = 0; i < 20; i++) slow.Update(.7, .05);
+        for (var i = 0; i < 100; i++) fast.Update(.7, .01);
+        Assert.Equal(slow.Value, fast.Value, 8);
+    }
+    [Theory]
+    [InlineData(480, 1.0, 240, 380)]
+    [InlineData(720, 1.5, 360, 380)]
+    [InlineData(1080, 1.25, 540, 380)]
+    [InlineData(2160, 2.0, 1700, 380)]
+    [InlineData(600, 2.0, 150, 336)]
+    public void PreviewFitsResolutionAndRetainsCompactStrip(double height, double scale, double center, double requested)
+    {
+        var fitted = EdgePreviewSizing.Fit(0, height, center, scale, requested);
+        var y = fitted.Above ? center + 42 * scale - fitted.Height : center - 42 * scale;
+        Assert.True(y >= 0 && y + fitted.Height <= height);
+        var stripY = fitted.Above ? y + fitted.Height - 84 * scale : y;
+        Assert.Equal(center - 42 * scale, stripY, 8);
+    }
+    [Fact] public void ContourSpringDoesNotSnapWhileShapeDifferenceIsStillVisible()
+    {
+        var contour = new SpringValue(1, .0005) { Target = 0 };
+        contour.Advance(.15, 30);
+        Assert.InRange(contour.Value, .01, .1);
+        Assert.False(contour.IsSettled);
+        for (var i = 0; i < 120; i++) contour.Advance(1d / 120, 30);
+        Assert.True(contour.IsSettled); Assert.Equal(0, contour.Value);
+    }
+}

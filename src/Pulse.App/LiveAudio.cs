@@ -1,0 +1,61 @@
+using System.Diagnostics;
+using Microsoft.UI.Xaml.Controls;
+using Pulse.Core;
+
+namespace Pulse.App;
+
+public sealed partial class MainWindow
+{
+    private Task? _audioPolling;
+    private AudioSnapshot _latestAudio = new(null, false, "Checking audio…");
+    private int _audioFrameQueued;
+    private long _audioFrameCount;
+    private bool _volumeWriteInFlight;
+    private readonly AudioEnvelope _audioEnvelope = new();
+    private long _audioRenderedAt = Stopwatch.GetTimestamp();
+
+    private async Task PollAudioAsync()
+    {
+        var token = _shutdown.Token;
+        while (!token.IsCancellationRequested)
+        {
+            Volatile.Write(ref _latestAudio, _audio.Sample());
+            if (Interlocked.Exchange(ref _audioFrameQueued, 1) == 0)
+            {
+                if (!DispatcherQueue.TryEnqueue(() =>
+                {
+                    Interlocked.Exchange(ref _audioFrameQueued, 0);
+                    if (_closed) return;
+                    var current = Volatile.Read(ref _latestAudio);
+                    ViewModel.ApplyAudio(current); RenderAudio(current);
+                })) Interlocked.Exchange(ref _audioFrameQueued, 0);
+            }
+            try { await Task.Delay(50, token); } catch (OperationCanceledException) { break; }
+        }
+    }
+
+    private void RenderAudio(AudioSnapshot audio)
+    {
+        if (_closed) return;
+        _audioFrameCount++;
+        _lastAudio = audio;
+        var previous = _updating; _updating = true;
+        foreach (var slider in new[] { VolumeSlider, PeekVolumeSlider })
+        {
+            slider.IsEnabled = audio.Volume.HasValue;
+            if (!_volumeTimer.IsEnabled && !_volumeWriteInFlight && !(_windowManager.IsPrimaryButtonPressed && PointerOver(slider))
+                && Math.Abs(slider.Value - (audio.Volume ?? 0)) > .1) slider.Value = audio.Volume ?? 0;
+        }
+        _updating = previous;
+        MuteButton.IsEnabled = PeekMuteButton.IsEnabled = audio.Volume.HasValue;
+        VolumeValue.Text = PeekVolumeValue.Text = audio.Volume is { } volume ? audio.Muted ? "Muted" : $"{volume:0}%" : "Unavailable";
+        CompactAudioValue.Text = audio.Volume is { } v ? audio.Muted ? "Muted" : $"{v:0}% vol" : "No audio";
+        MuteIcon.Glyph = PeekMuteIcon.Glyph = audio.Muted ? "\uE74F" : "\uE767";
+        var now = Stopwatch.GetTimestamp();
+        var level = _audioEnvelope.Update(audio.Muted ? 0 : audio.Peak, Stopwatch.GetElapsedTime(_audioRenderedAt, now).TotalSeconds);
+        _audioRenderedAt = now;
+        var accent = ThemeBrush("PulseAccentBrush");
+        OutputAudioMeter.Update(level, audio.Peak.HasValue, accent);
+        PeekAudioMeter.Update(level, audio.Peak.HasValue, accent);
+    }
+}

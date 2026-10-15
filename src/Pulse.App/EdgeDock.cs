@@ -1,0 +1,78 @@
+using System.Diagnostics;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Pulse.Core;
+using Pulse.Windows;
+
+namespace Pulse.App;
+
+public sealed partial class MainWindow
+{
+    private long _dockEnteredAt;
+    private bool _dockSuppressed;
+    private double _dockDismissX, _dockDismissY;
+
+    private bool ObserveDockPointer()
+    {
+        if (ObserveLogoDrag()) return true;
+        if (_dockSuppressed && _dock.Stage == DockStage.Resting
+            && _windowManager.TryGetPointerScreenPosition(out var pointerX, out var pointerY)
+            && (Math.Abs(pointerX - _dockDismissX) > 4 || Math.Abs(pointerY - _dockDismissY) > 4)
+            && !PointerInsideHalo()) _dockSuppressed = false;
+        if (_motion.IsMoving) return true;
+        var inside = PointerInsideHalo();
+        if (_dock.Stage == DockStage.Resting)
+        {
+            if (_dockSuppressed)
+            {
+                if (!inside) _dockSuppressed = false;
+                _dockEnteredAt = 0; return true;
+            }
+            if (!inside) _dockEnteredAt = 0;
+            else if (_dockEnteredAt == 0) _dockEnteredAt = Stopwatch.GetTimestamp();
+            else if (Stopwatch.GetElapsedTime(_dockEnteredAt).TotalMilliseconds >= 180)
+            {
+                _dockEnteredAt = 0; _dock.Hover(); _previewSuppressed = false; Layout(true);
+            }
+            return true;
+        }
+        if (!inside && !_dock.Pinned)
+        {
+            if (!_previewClose.IsEnabled) _previewClose.Start();
+            return true;
+        }
+        if (inside) _previewClose.Stop();
+        // Revealing the compact view must not immediately open the media card under the old tab.
+        return inside && PointerOnEdgeLip();
+    }
+    private bool PointerOnEdgeLip()
+    {
+        if (!_windowManager.TryGetPointerPosition(out var x, out _)) return false;
+        var frame = _windowManager.CurrentFrame;
+        return ViewModel.Settings.Position.Anchor == "Left edge" ? x < 12 : x > frame.Width / frame.Scale - 12;
+    }
+    private void Dock_Click(object sender, RoutedEventArgs e)
+    {
+        if (_closed || _userHidden) return;
+        if (ReferenceEquals(sender, CompactBrand) && _suppressLogoClick) return;
+        _dockSuppressed = _previewSuppressed = false; _dockEnteredAt = 0;
+        _previewOpen.Stop(); _previewClose.Stop();
+        _dock.Click();
+        if (_expanded) { Navigate("Overview"); Reveal(); }
+        else Layout(true);
+    }
+    private void Compact_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (_suppressLogoClick) { e.Handled = true; return; }
+        // Buttons handle their own clicks. Bare padding at the edge follows the same two clicks.
+        var source = e.OriginalSource as DependencyObject;
+        while (source is not null && source != Compact)
+        {
+            if (source is Button) return;
+            source = VisualTreeHelper.GetParent(source);
+        }
+        if (_dock.Stage == DockStage.Compact) { Dock_Click(sender, e); e.Handled = true; }
+    }
+}

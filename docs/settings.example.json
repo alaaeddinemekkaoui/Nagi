@@ -1,0 +1,34 @@
+{
+  "SchemaVersion": 1,
+  "Theme": "Dark",
+  "Position": { "Monitor": "", "Anchor": "Right edge", "OffsetX": 0, "OffsetY": 0 },
+  "StartExpanded": false,
+  "Hotkey": { "Modifiers": 3, "Key": 32 },
+  "HideHotkey": { "Modifiers": 3, "Key": 72 },
+  "SearchHotkey": { "Modifiers": 1, "Key": 32 },
+  "IndexFiles": true,
+  "SearchFolders": [],
+  "FpsEnabled": false,
+  "ObsEnabled": false,
+  "ObsPort": 4455,
+  "GlassEnabled": true,
+  "LuaUiEnabled": false,
+  "PollingIntervalMs": 1500,
+  "DefaultProfile": "Work",
+  "LockedProfile": null,
+  "AutomaticSwitching": true,
+  "CloseOnDeactivate": true,
+  "HideInFullscreen": true,
+  "Notifications": true,
+  "ShowMedia": true,
+  "ReducedMotion": false,
+  "StartWithWindows": false,
+  "Rules": [
+    { "Identity": "devenv.exe", "Profile": "Work", "Priority": 100, "Enabled": true },
+    { "Identity": "Code.exe", "Profile": "Work", "Priority": 100, "Enabled": true }
+  ],
+  "QuickActions": [
+    { "Label": "Focus", "Kind": "Profile", "Target": "Focus", "Profile": null },
+    { "Label": "Work", "Kind": "Profile", "Target": "Work", "Profile": null }
+  ]
+}

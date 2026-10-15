@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+.vs/
+artifacts/
+TestResults/
+*.user
+*.log
+.codex/
+graphify-out/
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pfx
+*.p12
+*.key

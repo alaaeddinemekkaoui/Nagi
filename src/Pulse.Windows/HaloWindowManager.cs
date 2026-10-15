@@ -1,0 +1,233 @@
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using Pulse.Core;
+
+namespace Pulse.Windows;
+
+public sealed record DisplayMonitor(string Device, string Label);
+public readonly record struct HaloFrame(double X, double Y, double Width, double Height, double Radius, double Scale = 1, double DropAmount = 0);
+public sealed class HaloWindowManager : IWindowManager
+{
+    private readonly nint _hwnd;
+    private readonly Native.SubclassProc _callback;
+    private HaloPosition _position = new();
+    private bool _expanded, _dashboard, _disposed, _layout, _dragging;
+    private int _hotkeyId, _hideHotkeyId, _searchHotkeyId;
+    private bool? _visible;
+    private double _dropAmount;
+    private bool _hasFrame;
+    public bool PreviewAbove { get; private set; }
+    public event Action? ToggleRequested;
+    public event Action? HideRequested;
+    public event Action? SearchRequested;
+    public event Action? DisplayChanged;
+    public event Action<HaloPosition>? PositionChanged;
+    public event Action? EscapeRequested;
+
+    public HaloWindowManager(nint hwnd)
+    {
+        _hwnd = hwnd; _callback = WindowProcedure;
+        if (!Native.SetWindowSubclass(hwnd, _callback, 1, 0)) throw new Win32Exception(Marshal.GetLastWin32Error());
+        var style = Native.GetWindowLongPtr(hwnd, -20).ToInt64();
+        Native.SetWindowLongPtr(hwnd, -20, (nint)((style | 0x80) & ~0x60300L)); // Tool window, never click-through.
+        // WinUI leaves WS_DLGFRAME behind even when the presenter hides its border.
+        // Remove the native frame as well, so the client content meets the screen exactly.
+        var windowStyle = Native.GetWindowLongPtr(hwnd, -16).ToInt64();
+        Native.SetWindowLongPtr(hwnd, -16, (nint)(windowStyle & ~0x00C40000L));
+        Native.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0037); // FRAMECHANGED, NOMOVE/NOSIZE/NOZORDER/NOACTIVATE.
+        var corners = 2; Native.DwmSetWindowAttribute(hwnd, 33, ref corners, sizeof(int));
+        var dark = 1; Native.DwmSetWindowAttribute(hwnd, 20, ref dark, sizeof(int));
+        var noSystemBorder = -2; Native.DwmSetWindowAttribute(hwnd, 34, ref noSystemBorder, sizeof(int));
+    }
+    private static List<(nint Handle, Native.MonitorInfo Info)> Monitors()
+    {
+        var monitors = new List<(nint, Native.MonitorInfo)>();
+        Native.EnumDisplayMonitors(0, 0, (monitor, _, _, _) =>
+        {
+            var info = new Native.MonitorInfo { Size = Marshal.SizeOf<Native.MonitorInfo>() };
+            if (Native.GetMonitorInfo(monitor, ref info)) monitors.Add((monitor, info));
+            return true;
+        }, 0);
+        return monitors;
+    }
+    public static IReadOnlyList<DisplayMonitor> GetMonitors() => Monitors().Select((m, index) =>
+        new DisplayMonitor(m.Info.Device, "Display " + (index + 1) + ((m.Info.Flags & 1) != 0 ? " · primary" : ""))).ToArray();
+
+    public void SetLayout(bool expanded, bool dashboard, HaloPosition position)
+    {
+        ApplyFrame(PrepareLayout(expanded, dashboard, position));
+    }
+    public HaloFrame CurrentFrame
+    {
+        get
+        {
+            Native.GetWindowRect(_hwnd, out var rect);
+            var scale = Math.Max(96, Native.GetDpiForWindow(_hwnd)) / 96d;
+            return new(rect.Left, rect.Top, rect.Width, rect.Height, 26 * scale, scale, _dropAmount);
+        }
+    }
+    public bool OwnsForeground
+    {
+        get { Native.GetWindowThreadProcessId(Native.GetForegroundWindow(), out var pid); return pid == Environment.ProcessId; }
+    }
+    public bool IsVisible => Native.IsWindowVisible(_hwnd);
+    public bool TryGetPointerScreenPosition(out double x, out double y)
+    {
+        var available = Native.GetCursorPos(out var point);
+        x = point.X; y = point.Y;
+        return available;
+    }
+    public bool TryGetPointerPosition(out double x, out double y)
+    {
+        x = y = 0;
+        if (!Native.GetCursorPos(out var point) || !Native.ScreenToClient(_hwnd, ref point)) return false;
+        var scale = Math.Max(96, Native.GetDpiForWindow(_hwnd)) / 96d;
+        x = point.X / scale; y = point.Y / scale;
+        return true;
+    }
+    public HaloFrame PrepareLayout(bool expanded, bool dashboard, HaloPosition position, double compactHeight = 54, bool edgeResting = false)
+    {
+            _expanded = expanded; _dashboard = dashboard; _position = position;
+            var monitors = Monitors();
+            if (monitors.Count == 0) return CurrentFrame;
+            var selected = monitors.FirstOrDefault(m => m.Info.Device == position.Monitor);
+            if (selected.Handle == 0) selected = monitors.FirstOrDefault(m => (m.Info.Flags & 1) != 0);
+            if (selected.Handle == 0) selected = monitors[0];
+            Native.GetDpiForMonitor(selected.Handle, 0, out var dpi, out _);
+            var scale = (dpi == 0 ? 96 : dpi) / 96d;
+            var work = selected.Info.Work;
+            var edge = position.Anchor is "Left edge" or "Right edge";
+            if (edge)
+            {
+                var screen = selected.Info.Monitor;
+                var preview = !expanded && !edgeResting && compactHeight > 84;
+                var edgeWidth = Math.Min(work.Width - 16, (int)Math.Round((expanded ? dashboard ? 720 : 580 : edgeResting ? 18 : preview ? 430 : 80) * scale));
+                var railHeight = Math.Min(420 * scale, work.Height - 16);
+                var center = Math.Clamp(work.Top + work.Height / 2d + position.OffsetY * scale, work.Top + railHeight / 2 + 8, Math.Max(work.Top + railHeight / 2 + 8, work.Bottom - railHeight / 2 - 8));
+                var edgeHeight = Math.Min(work.Height - 16, (int)Math.Round(expanded ? (dashboard ? 800 : 780) * scale : edgeResting ? 132 * scale : railHeight));
+                PreviewAbove = false;
+                var edgeY = Math.Clamp(center - edgeHeight / 2d, work.Top + 8, Math.Max(work.Top + 8, work.Bottom - edgeHeight - 8));
+                return new(position.Anchor == "Left edge" ? screen.Left : screen.Right - edgeWidth, Math.Round(edgeY), edgeWidth, edgeHeight,
+                    22 * scale, scale, edgeResting && !expanded ? 1 : 0);
+            }
+            var width = Math.Min(work.Width - 16, (int)Math.Round((expanded ? (dashboard ? 680 : 500) : 326) * scale));
+            var height = Math.Min(work.Height - 16, (int)Math.Round((expanded ? (dashboard ? 760 : 740) : Math.Clamp(compactHeight, 54, 306)) * scale));
+            var x = work.Left + (work.Width - width) / 2;
+            var y = work.Bottom - height - (int)(16 * scale);
+            if (position.Anchor == "Top center") y = work.Top + (int)(16 * scale);
+            if (position.Anchor == "Bottom right") x = work.Right - width - (int)(16 * scale);
+            if (position.Anchor == "Bottom left") x = work.Left + (int)(16 * scale);
+            x = Math.Clamp(x + (int)(position.OffsetX * scale), work.Left + 8, Math.Max(work.Left + 8, work.Right - width - 8));
+            y = Math.Clamp(y + (int)(position.OffsetY * scale), work.Top + 8, Math.Max(work.Top + 8, work.Bottom - height - 8));
+            return new(x, y, width, height, (expanded ? 28 : 27) * scale, scale);
+    }
+    public void ApplyFrame(HaloFrame frame)
+    {
+        if (_disposed || _layout) return;
+        _layout = true;
+        try
+        {
+            var width = Math.Max(16, (int)Math.Round(frame.Width));
+            var height = Math.Max(16, (int)Math.Round(frame.Height));
+            var x = (int)Math.Round(frame.X); var y = (int)Math.Round(frame.Y);
+            if (!_hasFrame || !Native.GetWindowRect(_hwnd, out var current) || current.Left != x || current.Top != y || current.Width != width || current.Height != height)
+                Native.SetWindowPos(_hwnd, -1, x, y, width, height, 0x0010);
+            _dropAmount = Math.Clamp(frame.DropAmount, 0, 1);
+            if (!_hasFrame) Native.SetWindowRgn(_hwnd, 0, true);
+            _hasFrame = true; // DWM rounds the window; Win2D draws the surface.
+
+        }
+        finally { _layout = false; }
+    }
+    public void SetVisible(bool visible)
+    {
+        if (_visible == visible && Native.IsWindowVisible(_hwnd) == visible) return;
+        _visible = visible;
+        Native.ShowWindow(_hwnd, visible ? 4 : 0);
+    }
+    public void Drag()
+    {
+        Native.ReleaseCapture();
+        Native.SendMessage(_hwnd, 0x00A1, 2, 0);
+    }
+    public void MoveDockDrag(HaloFrame frame)
+    {
+        _dragging = true;
+        ApplyFrame(frame);
+    }
+    public bool IsPrimaryButtonPressed => (Native.GetAsyncKeyState(1) & 0x8000) != 0;
+    public void CancelDockDrag() => _dragging = false;
+    public void FinishDockDrag()
+    {
+        _dragging = false;
+        if (!Native.GetWindowRect(_hwnd, out var rect)) return;
+        var monitor = new Native.MonitorInfo { Size = Marshal.SizeOf<Native.MonitorInfo>() };
+        if (!Native.GetMonitorInfo(Native.MonitorFromWindow(_hwnd, 2), ref monitor)) return;
+        var scale = Native.GetDpiForWindow(_hwnd) / 96d;
+        var anchor = rect.Left + rect.Width / 2d < (monitor.Monitor.Left + monitor.Monitor.Right) / 2d ? "Left edge" : "Right edge";
+        _position = _position with { Monitor = monitor.Device, Anchor = anchor, OffsetX = 0,
+            OffsetY = (rect.Top + rect.Height / 2d - (monitor.Work.Top + monitor.Work.Height / 2d)) / scale };
+        PositionChanged?.Invoke(_position);
+    }
+    public OperationResult RegisterHotkey(Hotkey hotkey)
+    {
+        return RegisterShortcut(hotkey, ref _hotkeyId, 0x5055);
+    }
+    public OperationResult RegisterHideHotkey(Hotkey hotkey)
+    {
+        return RegisterShortcut(hotkey, ref _hideHotkeyId, 0x5057);
+    }
+    public OperationResult RegisterSearchHotkey(Hotkey hotkey) => RegisterShortcut(hotkey, ref _searchHotkeyId, 0x5059);
+    private OperationResult RegisterShortcut(Hotkey hotkey, ref int registeredId, int firstId)
+    {
+        var newId = registeredId == firstId ? firstId + 1 : firstId;
+        if (!Native.RegisterHotKey(_hwnd, newId, hotkey.Modifiers | 0x4000, hotkey.Key))
+            return OperationResult.Fail("That shortcut is already in use. The previous shortcut remains active.");
+        if (registeredId != 0) Native.UnregisterHotKey(_hwnd, registeredId);
+        registeredId = newId;
+        return OperationResult.Ok("Global shortcut registered.");
+    }
+    private nint WindowProcedure(nint hwnd, uint message, nuint wParam, nint lParam, nuint id, nuint data)
+    {
+        if (message == 0x0312 && (int)wParam == _hotkeyId) { ToggleRequested?.Invoke(); return 0; }
+        if (message == 0x0312 && (int)wParam == _hideHotkeyId) { HideRequested?.Invoke(); return 0; }
+        if (message == 0x0312 && (int)wParam == _searchHotkeyId) { SearchRequested?.Invoke(); return 0; }
+        if (message == 0x0021 && !_expanded) return 3; // Compact clicks do not activate until explicitly expanded.
+        if (message == 0x0100 && wParam == 0x1B) EscapeRequested?.Invoke();
+        if (message == 0x0231) _dragging = true;
+        if (message == 0x007E || (message == 0x02E0 && !_dragging) || (message == 0x001A && wParam == 0x002F)) DisplayChanged?.Invoke();
+        if (message == 0x0232 && Native.GetWindowRect(hwnd, out var rect))
+        {
+            _dragging = false;
+            var monitorHandle = Native.MonitorFromWindow(hwnd, 2);
+            var monitor = new Native.MonitorInfo { Size = Marshal.SizeOf<Native.MonitorInfo>() };
+            if (Native.GetMonitorInfo(monitorHandle, ref monitor))
+            {
+                var scale = Native.GetDpiForWindow(hwnd) / 96d;
+                var work = monitor.Work;
+                // Persist displacement from the chosen anchor in logical pixels.
+                if (_position.Anchor is "Left edge" or "Right edge")
+                {
+                    var anchor = (rect.Left + rect.Width / 2d) < (monitor.Monitor.Left + monitor.Monitor.Right) / 2d ? "Left edge" : "Right edge";
+                    _position = _position with { Monitor = monitor.Device, Anchor = anchor, OffsetX = 0, OffsetY = (rect.Top + rect.Height / 2d - (work.Top + work.Height / 2d)) / scale };
+                    PositionChanged?.Invoke(_position);
+                    return Native.DefSubclassProc(hwnd, message, wParam, lParam);
+                }
+                var baseX = _position.Anchor == "Bottom right" ? work.Right - rect.Width - 16 * scale
+                    : _position.Anchor == "Bottom left" ? work.Left + 16 * scale : work.Left + (work.Width - rect.Width) / 2d;
+                var baseY = _position.Anchor == "Top center" ? work.Top + 16 * scale : work.Bottom - rect.Height - 16 * scale;
+                _position = _position with { Monitor = monitor.Device, OffsetX = (rect.Left - baseX) / scale, OffsetY = (rect.Top - baseY) / scale };
+                PositionChanged?.Invoke(_position);
+            }
+        }
+        return Native.DefSubclassProc(hwnd, message, wParam, lParam);
+    }
+    public void Dispose()
+    {
+        if (_disposed) return; _disposed = true;
+        if (_hotkeyId != 0) Native.UnregisterHotKey(_hwnd, _hotkeyId);
+        if (_hideHotkeyId != 0) Native.UnregisterHotKey(_hwnd, _hideHotkeyId);
+        if (_searchHotkeyId != 0) Native.UnregisterHotKey(_hwnd, _searchHotkeyId);
+        Native.RemoveWindowSubclass(_hwnd, _callback, 1);
+    }
+}
