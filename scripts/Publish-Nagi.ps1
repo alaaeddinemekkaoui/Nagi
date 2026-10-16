@@ -2,7 +2,8 @@ param([switch]$NoRestore)
 $ErrorActionPreference = 'Stop'
 $pulseRoot = Split-Path $PSScriptRoot -Parent
 $pulseOutput = Join-Path $pulseRoot 'artifacts/Nagi-win-x64'
-$nagiRestoreArguments = if ($NoRestore) { @('--no-restore') } else { @() }
+[string[]]$nagiRestoreArguments = @()
+if ($NoRestore) { $nagiRestoreArguments += '--no-restore' }
 dotnet publish @nagiRestoreArguments (Join-Path $pulseRoot 'src/Pulse.App/Pulse.App.csproj') -c Release -r win-x64 --self-contained true -o $pulseOutput
 if ($LASTEXITCODE -ne 0) { throw 'Nagi publish failed.' }
 foreach ($pulseRequired in @('Nagi.exe','Nagi.pri','App.xbf','MainWindow.xbf','Themes/Tokens.xbf','Controls/PulseMark.xbf','Assets/Nagi.Tray.ico','Assets/Nagi.Logo.png','Assets/Nagi.ico','Assets/Akeno.Samurai.png','Microsoft.Graphics.Canvas.dll','Microsoft.Graphics.Canvas.Interop.dll','Assets/Tools/PresentMon.exe','Assets/Tools/PresentMon-LICENSE.txt')) {
