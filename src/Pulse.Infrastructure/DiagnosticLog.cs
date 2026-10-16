@@ -3,10 +3,10 @@ using Pulse.Core;
 
 namespace Pulse.Infrastructure;
 
-public sealed class DiagnosticLog : IDiagnosticLog
+public sealed class DiagnosticLog(string? directory = null) : IDiagnosticLog
 {
     private readonly object _sync = new();
-    public string FilePath { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Pulse", "logs", "pulse.jsonl");
+    public string FilePath { get; } = Path.Combine(directory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Pulse"), "logs", "pulse.jsonl");
     public void Write(string category, string message, Exception? exception = null)
     {
         lock (_sync)

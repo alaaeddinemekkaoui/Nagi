@@ -156,7 +156,11 @@ public sealed class HaloWindowManager : IWindowManager
                 if (region != 0 && Native.SetWindowRgn(_hwnd, region, true) == 0) Native.DeleteObject(region);
                 _dropRegion = true;
             }
-            else if (!_hasFrame || _dropRegion) { Native.SetWindowRgn(_hwnd, 0, true); _dropRegion = false; }
+            else if (!_hasFrame || _dropRegion)
+            {
+                Native.SetWindowRgn(_hwnd, 0, true); _dropRegion = false;
+                var corners = 2; Native.DwmSetWindowAttribute(_hwnd, 33, ref corners, sizeof(int));
+            }
             _hasFrame = true;
             FrameApplied?.Invoke(frame);
 

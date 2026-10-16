@@ -27,6 +27,7 @@ VIAddVersionKey /LANG=1033 "LegalCopyright" "Nagi contributors"
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_INSTFILES
 !define MUI_FINISHPAGE_RUN "$INSTDIR\Nagi.exe"
+!define MUI_FINISHPAGE_RUN_PARAMETERS "--setup"
 !define MUI_FINISHPAGE_RUN_TEXT "Open Nagi and personalize your space"
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM

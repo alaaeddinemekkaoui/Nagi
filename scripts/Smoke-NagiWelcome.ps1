@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$ExecutablePath,[switch]$SkipWeather,[int]$ObsPort=0,[string]$ObsPassword='')
+param([Parameter(Mandatory)][string]$ExecutablePath,[switch]$SkipWeather,[int]$ObsPort=0,[string]$ObsPassword='',[string]$DataDirectory='',[switch]$ShowSetup,[ValidateSet('Vertical','Horizontal')][string]$Orientation='Horizontal')
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -14,7 +14,17 @@ public static class NagiWelcomeNative {
 }
 '@}
 [NagiWelcomeNative]::SetProcessDpiAwarenessContext([IntPtr](-4))|Out-Null
-$nagiProcess=Start-Process -FilePath $ExecutablePath -PassThru
+$nagiStart=[Diagnostics.ProcessStartInfo]::new($ExecutablePath);$nagiStart.UseShellExecute=$false
+$nagiActivationName='Local\Pulse.Desktop.Activate.v1'
+$nagiSettingsPath=Join-Path $env:LOCALAPPDATA 'Pulse/settings.json'
+if($DataDirectory){
+ $DataDirectory=[IO.Path]::TrimEndingDirectorySeparator([IO.Path]::GetFullPath($DataDirectory))
+ $nagiStart.ArgumentList.Add('--data-dir');$nagiStart.ArgumentList.Add($DataDirectory)
+ $nagiHash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($DataDirectory.ToUpperInvariant()))).Substring(0,16)
+ $nagiActivationName+='.'+$nagiHash;$nagiSettingsPath=Join-Path $DataDirectory 'settings.json'
+}
+if($ShowSetup){$nagiStart.ArgumentList.Add('--setup')}
+$nagiProcess=[Diagnostics.Process]::Start($nagiStart)
 function Get-NagiRoot {
  for($nagiAttempt=0;$nagiAttempt -lt 100;$nagiAttempt++){
   $nagiWindow=[Windows.Automation.AutomationElement]::RootElement.FindFirst([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$nagiProcess.Id))
@@ -36,12 +46,12 @@ function Select-Nagi([string]$Id,[string]$Value){
  if(!$nagiChoice){throw ('Missing choice '+$Value)};$nagiChoice.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 250
 }
 function Save-NagiImage([string]$Name){
- if($script:nagiRoot.Current.Name -like '*Welcome*'){$nagiActivate=[Threading.EventWaitHandle]::OpenExisting('Local\Pulse.Desktop.Activate.v1');$nagiActivate.Set()|Out-Null;$nagiActivate.Dispose();Start-Sleep -Milliseconds 400}
+ if($script:nagiRoot.Current.Name -like '*Welcome*'){$nagiActivate=[Threading.EventWaitHandle]::OpenExisting($nagiActivationName);$nagiActivate.Set()|Out-Null;$nagiActivate.Dispose();Start-Sleep -Milliseconds 400}
  $nagiRect=[NagiWelcomeNative+Rect]::new();[NagiWelcomeNative]::GetWindowRect([IntPtr]$script:nagiRoot.Current.NativeWindowHandle,[ref]$nagiRect)|Out-Null
  $nagiBitmap=[Drawing.Bitmap]::new($nagiRect.Right-$nagiRect.Left,$nagiRect.Bottom-$nagiRect.Top);$nagiGraphics=[Drawing.Graphics]::FromImage($nagiBitmap)
  try{$nagiGraphics.CopyFromScreen($nagiRect.Left,$nagiRect.Top,0,0,$nagiBitmap.Size);$nagiFolder=Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/validation';[IO.Directory]::CreateDirectory($nagiFolder)|Out-Null;$nagiBitmap.Save((Join-Path $nagiFolder ($Name+'.png')))}finally{$nagiGraphics.Dispose();$nagiBitmap.Dispose()}
 }
-if($nagiRoot.Current.Name -notlike '*Welcome*'){throw 'Back up preferences and set WelcomeCompleted=false before running this development check.'}
+if($nagiRoot.Current.Name -notlike '*Welcome*'){throw 'Use a fresh -DataDirectory or pass -ShowSetup to reopen welcome.'}
 Set-NagiText 'WelcomeName' ''
 Invoke-Nagi 'WelcomeNext'
 Find-Nagi 'WelcomeName'|Out-Null
@@ -52,6 +62,7 @@ Select-Nagi 'WelcomeTheme' 'Akeno'
 Select-Nagi 'WelcomeOrientation' 'Horizontal'
 Select-Nagi 'WelcomeEdge' 'Top edge'
 Select-Nagi 'WelcomeEdge' 'Bottom edge'
+if($Orientation -eq 'Vertical'){Select-Nagi 'WelcomeOrientation' 'Vertical';Select-Nagi 'WelcomeEdge' 'Right edge';Select-Nagi 'WelcomeEdge' 'Left edge'}
 Save-NagiImage 'welcome-theme-layout'
 Invoke-Nagi 'WelcomeNext'
 if($ObsPort -gt 0){
@@ -85,18 +96,21 @@ if($nagiRoot.Current.Name -ne 'Nagi'){throw 'Welcome did not open the dock.'}
 $nagiHandle=[IntPtr]$nagiRoot.Current.NativeWindowHandle;$nagiScale=[NagiWelcomeNative]::GetDpiForWindow($nagiHandle)/96.0
 [NagiWelcomeNative]::SetPhysicalCursorPos(400,250)|Out-Null;Start-Sleep -Seconds 1
 $nagiRect=[NagiWelcomeNative+Rect]::new();[NagiWelcomeNative]::GetWindowRect($nagiHandle,[ref]$nagiRect)|Out-Null
-if([Math]::Abs(($nagiRect.Bottom-$nagiRect.Top)/$nagiScale-18) -gt 2){throw 'Horizontal drop is not 18 DIP deep.'}
-Save-NagiImage 'horizontal-water-drop'
+$nagiDepth=if($Orientation -eq 'Horizontal'){$nagiRect.Bottom-$nagiRect.Top}else{$nagiRect.Right-$nagiRect.Left}
+if([Math]::Abs($nagiDepth/$nagiScale-18) -gt 2){throw 'Resting drop is not 18 DIP deep.'}
+Save-NagiImage ($Orientation.ToLowerInvariant()+'-water-drop')
 [NagiWelcomeNative]::SetPhysicalCursorPos(($nagiRect.Left+$nagiRect.Right)/2,($nagiRect.Top+$nagiRect.Bottom)/2)|Out-Null;Start-Sleep -Seconds 2
 [NagiWelcomeNative]::GetWindowRect($nagiHandle,[ref]$nagiRect)|Out-Null
-if([Math]::Abs(($nagiRect.Bottom-$nagiRect.Top)/$nagiScale-76) -gt 2){throw 'Horizontal hover did not reveal the rail.'}
-Save-NagiImage 'horizontal-rail'
-$nagiEvent=[Threading.EventWaitHandle]::OpenExisting('Local\Pulse.Desktop.Activate.v1');$nagiEvent.Set()|Out-Null;$nagiEvent.Dispose();Start-Sleep -Seconds 1
-Invoke-Nagi 'Choose speaker' -Name
+$nagiDepth=if($Orientation -eq 'Horizontal'){$nagiRect.Bottom-$nagiRect.Top}else{$nagiRect.Right-$nagiRect.Left}
+$nagiRailDepth=if($Orientation -eq 'Horizontal'){76}else{80}
+if([Math]::Abs($nagiDepth/$nagiScale-$nagiRailDepth) -gt 2){throw 'Hover did not reveal the rail.'}
+Save-NagiImage ($Orientation.ToLowerInvariant()+'-rail')
+$nagiEvent=[Threading.EventWaitHandle]::OpenExisting($nagiActivationName);$nagiEvent.Set()|Out-Null;$nagiEvent.Dispose();Start-Sleep -Seconds 1
+Invoke-Nagi 'Overview' -Name;Invoke-Nagi 'Choose speaker' -Name
 Find-Nagi 'SpeakerDevices'|Out-Null
 Save-NagiImage 'speaker-selector'
 Invoke-Nagi 'Cancel' -Name
 Save-NagiImage 'horizontal-overview'
-$nagiSettings=Get-Content -LiteralPath (Join-Path $env:LOCALAPPDATA 'Pulse/settings.json') -Raw | ConvertFrom-Json
-if(!$nagiSettings.WelcomeCompleted -or $nagiSettings.UserName -ne 'Nagi QA' -or $nagiSettings.Position.Orientation -ne 'Horizontal'){throw 'Welcome preferences were not persisted.'}
-Write-Output ('Welcome validation / theme / horizontal hover / speaker UI / persistence: PASS; process '+$nagiProcess.Id)
+$nagiSettings=Get-Content -LiteralPath $nagiSettingsPath -Raw | ConvertFrom-Json
+if(!$nagiSettings.WelcomeCompleted -or $nagiSettings.UserName -ne 'Nagi QA' -or $nagiSettings.Position.Orientation -ne $Orientation){throw 'Welcome preferences were not persisted.'}
+Write-Output ('Welcome validation / theme / '+$Orientation+' hover / speaker UI / persistence: PASS; process '+$nagiProcess.Id)

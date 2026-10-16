@@ -56,6 +56,8 @@ public sealed partial class MainWindow
         profile.Children.Add(name);
         profile.Children.Add(Button("Save name", async (_, _) => await CommitAsync(s => s with { UserName = name.Text })));
         profile.Children.Add(Note("Your display name stays on this PC."));
+        profile.Children.Add(Button("Run welcome setup", (_, _) => RestartWelcome()));
+        profile.Children.Add(Note("Revisit your name, theme, layout, OBS and city. Existing choices stay filled in; canceling keeps your saved settings."));
         SettingsPage.Children.Add(Card(profile));
         var weather = Stack(); weather.Children.Add(Heading("Weather"));
         weather.Children.Add(Note(ViewModel.Settings.WeatherLocation?.Label ?? "Choose a city to show weather."));

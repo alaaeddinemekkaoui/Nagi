@@ -6,7 +6,7 @@ using Windows.UI;
 
 namespace Pulse.App.Controls;
 
-// Win2D/Direct2D owns the antialiased surface. No polygon window region or outline stroke.
+// Paint the complete client surface; native clipping owns the outer silhouette.
 public sealed class HaloSurface : UserControl
 {
     private readonly CanvasControl _canvas = new() { ClearColor = Microsoft.UI.Colors.Transparent };
@@ -30,7 +30,7 @@ public sealed class HaloSurface : UserControl
     public void SetShape(double drop, string edge) { _drop = drop; _edge = edge; _canvas.Invalidate(); }
     private CanvasGeometry Geometry(float width, float height, float radius)
     {
-        if (_drop <= .001) return CanvasGeometry.CreateRoundedRectangle(_canvas, 0, 0, width, height, radius, radius);
+        if (_drop <= .001) return CanvasGeometry.CreateRectangle(_canvas, 0, 0, width, height);
         var points = Pulse.Core.Motion.EdgeDropContour.Create(width, height, _edge, _drop);
         using var path = new CanvasPathBuilder(_canvas);
         path.BeginFigure(points[0]);

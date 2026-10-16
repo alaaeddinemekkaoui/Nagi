@@ -1,8 +1,10 @@
-# Nagi 1.9.0
+# Nagi 1.9.1
 
-Nagi now includes a native installer and a welcome flow: choose your local name, theme, vertical/horizontal layout and edge, optional OBS connection, and optional weather city.
+This update fixes dark corner patches, the clipped red decoration and horizontal media spacing. Installer Finish now opens welcome on upgrades, and Settings → Run welcome setup reopens it with existing choices prefilled.
 
-Download the [installer](https://github.com/alaaeddinemekkaoui/Nagi/releases/download/v1.9.0/Nagi-Setup-1.9.0.exe) from the [1.9.0 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.9.0). Run **Nagi-Setup-1.9.0.exe**, then open Nagi from Start. Windows 11 x64 22H2+ is required. Setup installs for your Windows account without administrator rights. The app and installer are unsigned. Verify the adjacent SHA256 file using Get-FileHash.
+Nagi includes a native installer and a welcome flow: choose your local name, theme, vertical/horizontal layout and edge, optional OBS connection, and optional weather city.
+
+Download the [installer](https://github.com/alaaeddinemekkaoui/Nagi/releases/download/v1.9.1/Nagi-Setup-1.9.1.exe) from the [1.9.1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.9.1). Run **Nagi-Setup-1.9.1.exe**, then open Nagi from Start. Windows 11 x64 22H2+ is required. Setup installs for your Windows account without administrator rights. The app and installer are unsigned. Verify the adjacent SHA256 file using Get-FileHash.
 
 Nagi starts as a water drop touching the selected edge. Hover reveals the rail, click pins it, and the next click expands details inward. Vertical attaches left/right; horizontal attaches top/bottom. Settings can change these choices later.
 

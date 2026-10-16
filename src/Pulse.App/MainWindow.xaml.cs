@@ -152,6 +152,7 @@ public sealed partial class MainWindow : Window
     }
     private void Layout(bool animate = false)
     {
+        AkenoDecor.Visibility = _expanded && ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast ? Visibility.Visible : Visibility.Collapsed;
         if (!_closed && !_expanded && !_userHidden) _previewWatch.Start(); else _previewWatch.Stop();
         var wasExpanded = Expanded.Visibility == Visibility.Visible;
         var wasPreview = PeekHost.Visibility == Visibility.Visible;

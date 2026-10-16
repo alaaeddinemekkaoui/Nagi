@@ -16,13 +16,29 @@ public sealed partial class MainWindow
         for (var i = 0; i < buttons.Length; i++)
         {
             Grid.SetRow(buttons[i], horizontal ? 0 : i); Grid.SetColumn(buttons[i], horizontal ? i : 0);
-            if (horizontal) Compact.ColumnDefinitions.Add(new() { Width = i == 4 ? new(1, GridUnitType.Star) : new(new[] { 44d, 44, 62, 62, 0, 66, 44, 58 }[i]) });
+            if (horizontal) Compact.ColumnDefinitions.Add(new() { Width = i == 4 ? new(1, GridUnitType.Star) : i == 5 ? GridLength.Auto : new(new[] { 44d, 44, 62, 62, 0, 0, 44, 58 }[i]) });
             else Compact.RowDefinitions.Add(new() { Height = i == 4 ? new(1, GridUnitType.Star) : GridLength.Auto });
         }
         Compact.RowSpacing = horizontal ? 0 : 5; Compact.ColumnSpacing = horizontal ? 7 : 0;
         Compact.Padding = horizontal ? new(10, 5, 10, 5) : new(7, 10, 7, 10);
-        CompactMediaContents.Orientation = horizontal ? Orientation.Horizontal : Orientation.Vertical;
-        CompactMediaContents.Spacing = horizontal ? 8 : 3;
+        CompactMediaContents.RowDefinitions.Clear(); CompactMediaContents.ColumnDefinitions.Clear();
+        var mediaParts = new FrameworkElement[] { CompactArtworkHost, CompactMediaStatus, CompactMusicVisualizer, CompactAudioValue };
+        for (var i = 0; i < mediaParts.Length; i++)
+        {
+            Grid.SetRow(mediaParts[i], horizontal ? 0 : i); Grid.SetColumn(mediaParts[i], horizontal ? i : 0);
+            if (horizontal) CompactMediaContents.ColumnDefinitions.Add(new() { Width = i == 1 ? new(1, GridUnitType.Star) : GridLength.Auto });
+            else CompactMediaContents.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        }
+        CompactMediaContents.ColumnSpacing = horizontal ? 8 : 0;
+        CompactMediaContents.RowSpacing = horizontal ? 0 : 3;
+        CompactMediaContents.HorizontalAlignment = horizontal ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
+        CompactMediaButton.HorizontalContentAlignment = horizontal ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
+        CompactMediaStatus.HorizontalAlignment = horizontal ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
+        CompactSecondaryLabel.HorizontalAlignment = CompactSecondaryValue.HorizontalAlignment = horizontal ? HorizontalAlignment.Left : HorizontalAlignment.Center;
+        CompactTrackTitle.Visibility = horizontal ? Visibility.Visible : Visibility.Collapsed;
+        CompactTrackTitle.MaxWidth = horizontal ? 220 : 54;
+        CompactMusicVisualizer.Width = horizontal ? 48 : 36;
+        RailWeatherButton.Width = horizontal ? 54 : double.NaN;
         RailViewport.HorizontalScrollBarVisibility = horizontal ? ScrollBarVisibility.Hidden : ScrollBarVisibility.Disabled;
         RailViewport.VerticalScrollBarVisibility = horizontal ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Hidden;
         RailViewport.HorizontalScrollMode = horizontal ? ScrollMode.Enabled : ScrollMode.Disabled;

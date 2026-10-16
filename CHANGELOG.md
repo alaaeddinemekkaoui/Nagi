@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.1 — 2026-10-16
+
+- Fixed dark corner patches by painting the full client area inside the native rounded window.
+- Removed the clipped Japanese decorative arc from the compact rail.
+- Reflowed horizontal media artwork, title, measured visualizer and volume; hidden weather no longer reserves a column.
+- Installer Finish opens welcome even after an upgrade. Settings → Run welcome setup revisits all four steps with saved choices prefilled; cancel preserves preferences.
+- Added isolated development profiles and independent activation events for UI checks.
+
 ## 1.9.0 — 2026-10-16
 
 - Added a native per-user NSIS installer and Apps & features removal, preserving preferences and scripts.

@@ -89,7 +89,7 @@ public sealed partial class MainWindow
         }
         // Leave the system's HighContrast palette intact.
         var ak = ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast;
-        AkenoDecor.Visibility = ak ? Visibility.Visible : Visibility.Collapsed;
+        AkenoDecor.Visibility = ak && _expanded ? Visibility.Visible : Visibility.Collapsed;
         AkenoSeal.Visibility = Visibility.Collapsed;
         HeaderMark.Visibility = Visibility.Visible;
         BrandSubtitle.Text = (ak ? "凪 · " : "") + (string.IsNullOrWhiteSpace(ViewModel.Settings.UserName) ? "Calm, within reach." : "Welcome, " + ViewModel.Settings.UserName + ".");

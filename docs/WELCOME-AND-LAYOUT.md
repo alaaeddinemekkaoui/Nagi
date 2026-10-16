@@ -1,13 +1,13 @@
 # Welcome, layout, weather and speakers
 
-Nagi 1.9 adds a native setup executable and a four-step welcome window. Run **Nagi-Setup-1.9.0.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
+Nagi 1.9 adds a native setup executable and a four-step welcome window. Run **Nagi-Setup-1.9.1.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
 
 1. Enter a local display name. No account is created.
 2. Choose Akeno, Dark, Light or System. Choose Vertical with left/right edge, or Horizontal with top/bottom edge.
 3. Enable Tools → WebSocket Server Settings in OBS and enter its local port/password. Connect checks status and enables Continue after success. Alternatively choose Skip OBS. Setup never starts recording. A newly entered password is protected for your Windows account when you finish.
 4. Search for a weather city and select a result, then Start Nagi. Or choose Skip weather. Celsius and Fahrenheit are supported. No device location permission is requested.
 
-The water drop touches the selected edge before hovering. Hover reveals controls, click pins them, and the next click expands details inward. Horizontal docking follows the work area so the taskbar remains accessible. Layout, edge, name and city can be changed in Settings. Closing welcome saves no draft; the next launch starts setup again. Once completed, later launches go straight to the dock.
+The water drop touches the selected edge before hovering. Hover reveals controls, click pins them, and the next click expands details inward. Horizontal docking follows the work area so the taskbar remains accessible. Layout, edge, name and city can be changed in Settings. Closing welcome saves no draft; the next launch starts setup again. Once completed, ordinary launches go straight to the dock. Installer Finish opens welcome again. To revisit it later, choose **Settings → Run welcome setup**, or run `Nagi.exe --setup`. Existing choices are prefilled; closing a replay keeps the saved configuration.
 
 ## Weather
 
@@ -33,4 +33,4 @@ Remove through Windows Settings → Apps → Installed apps → Nagi, or run Uni
 
 WelcomeWindow persists the normalized draft only on Finish. Future read-only settings schemas bypass setup. DockLayout reuses the same controls for both orientations; HaloWindowManager clamps them to monitor work area and DPI. EdgeDropContour supplies a shared liquid silhouette: Win2D draws the surface while a matching native region clips the complete window during the spring transition. Expanded controls retain DWM rounding.
 
-Use [build instructions](BUILD.md) for NSIS setup creation and the welcome smoke helper. Back up preferences and credentials before automated UI checks; the helper deliberately uses a test name and city. See [validation](VALIDATION.md) for verified results and remaining limits.
+Use [build instructions](BUILD.md) for NSIS setup creation and the welcome smoke helper. Use `--data-dir` with an absolute scratch directory for automated UI checks; the helper deliberately uses a test name and city. Each scratch profile has separate settings, logs and activation events. See [validation](VALIDATION.md) for verified results and remaining limits.
