@@ -1,4 +1,6 @@
-# Nagi v1
+# Archived development release: Nagi v1
+
+These are the original development release notes. Current downloads and updated documentation are in the [Nagi version 1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) and [README](../README.md). Earlier Git tags are retained; the old release pages have been consolidated.
 
 <img src="images/nagi-logo.png" width="96" alt="Nagi logo">
 

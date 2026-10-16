@@ -1,5 +1,14 @@
 # Validation record
 
+## Nagi version 1: first launch and consolidated release — 2026-10-16
+
+- The aggregate automated checks pass 221 cases: 174 core/infrastructure and 47 Windows. The new spotlight test checks an actual native region with a hole around the dock, a dimmed surrounding monitor region, hidden test creation, and native window cleanup.
+- Welcome Finish persists preferences before showing a friendly dock-position introduction. UI checks passed Okay dismissal and physical-pointer hover dismissal, including removal of both the card and dimmer. Escape, hiding, shutdown and display changes also use the shared cleanup path.
+- A normal restart with the same completed scratch profile opened the dock without welcome or introduction, preserving the exact settings hash. Explicit setup replay remains available; the native installer no longer passes --setup on ordinary Finish.
+- The introduction and workspace checks run in isolated profiles. Tests never enable app auto-opening in the normal user profile or start OBS recording.
+- The public presentation and application build are consolidated as Nagi version 1 (1.0.0). Historical development versions below and existing Git tags are retained. The README includes current download links, feature tables and actual app screenshots.
+- Compilation succeeds; cached NU1900 warnings can occur because the NuGet vulnerability-data host is unavailable. This does not establish a fresh online vulnerability audit. Signing and broader physical-machine/provider matrices remain as documented below.
+
 ## Nagi 1.10 workspaces, glass and native clipping — 2026-10-16
 
 - All 220 automated cases pass: 174 core/infrastructure and 46 Windows. Release compilation succeeds with zero warnings/errors using the restored cache. No fresh online vulnerability audit was available.

@@ -1,5 +1,15 @@
 # Changelog
 
+## Nagi version 1 — 2026-10-16
+
+The consolidated version 1 release includes the earlier system, media, search, Lua and integration features plus workspaces, category settings, four-edge layouts, weather, speaker selection and native setup. Git history and earlier development tags remain available.
+
+- Welcome appears only on first launch unless explicitly reopened from Settings; setup upgrades no longer force it.
+- Finishing welcome saves the user's choices, then dims the selected monitor with a real input/visual hole around the dock.
+- A friendly thank-you points out the selected edge. Hover the drop, choose Okay, or press Escape to dismiss and remove the dimmer.
+- Redesigned the README around version 1 with portable ZIP and EXE downloads, screenshots and the complete feature overview.
+- Release downloads are `Nagi-win-x64.zip` and `Nagi-Setup.exe`; the application build version is 1.0.0.
+
 ## 1.10.0 — 2026-10-16
 
 - Added a category grid for Settings, with individual pages and back navigation.

@@ -35,6 +35,7 @@ public sealed partial class MainWindow
             else if (Stopwatch.GetElapsedTime(_dockEnteredAt).TotalMilliseconds >= 180)
             {
                 _dockEnteredAt = 0; _dock.Hover(); _previewSuppressed = false; Layout(true);
+                DismissDockIntroduction();
             }
             return true;
         }
@@ -58,6 +59,7 @@ public sealed partial class MainWindow
     private void Dock_Click(object sender, RoutedEventArgs e)
     {
         if (_closed || _userHidden) return;
+        DismissDockIntroduction();
         if (ReferenceEquals(sender, CompactBrand) && _suppressLogoClick) return;
         if (ReferenceEquals(sender, CompactBrand)) { OpenControlCenter("Profiles"); return; }
         _dockSuppressed = _previewSuppressed = false; _dockEnteredAt = 0;

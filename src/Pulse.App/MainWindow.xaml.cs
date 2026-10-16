@@ -74,7 +74,7 @@ public sealed partial class MainWindow : Window
         _windowManager.ToggleRequested += () => { if (_expanded && !_userHidden) Collapse(); else Reveal(); };
         _windowManager.HideRequested += () => { if (_userHidden) Reveal(); else HideHalo(); };
         _windowManager.EscapeRequested += () => { if (!_dialogOpen) Collapse(); };
-        _windowManager.DisplayChanged += () => DispatcherQueue.TryEnqueue(() => Layout());
+        _windowManager.DisplayChanged += () => DispatcherQueue.TryEnqueue(() => { DismissDockIntroduction(); Layout(); });
         _windowManager.PositionChanged += async position => await CommitAsync(s => s with { Position = position });
         Activated += async (_, args) =>
         {
@@ -221,6 +221,7 @@ public sealed partial class MainWindow : Window
     }
     private async void HideHalo()
     {
+        DismissDockIntroduction();
         if (_closed || _dialogOpen || _userHidden) return;
         if (!_hotkeyAvailable && !_hideHotkeyAvailable && _tray?.IsRegistered != true)
         { ViewModel.Publish("Set a working shortcut or restore the system tray before hiding Nagi.", true); return; }
@@ -538,7 +539,7 @@ public sealed partial class MainWindow : Window
     private async Task ShutdownAsync()
     {
         if (_closed) return;
-        _closed = true; _visibilityGeneration++; _volumeTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
+        _closed = true; DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
         _indexTimer.Stop(); _searchCancellation?.Cancel(); _searchWindow?.DisposeWindow();
         ResetPreview();
         _motion.Dispose(); _tray?.Dispose(); _windowManager.Dispose();

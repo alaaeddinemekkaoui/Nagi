@@ -49,10 +49,28 @@ public sealed class WindowSilhouetteTests
         }
         finally { DestroyWindow(hwnd); }
     }
+    [Fact] public void FirstRunSpotlightLeavesTheDockUncoveredAndDestroysItsWindow()
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi spotlight target test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        var region = CreateRectRgn(0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var dock = manager.PrepareLayout(false, false, new(Anchor: "Top edge", Orientation: "Horizontal"), 84, true);
+            using var spotlight = new DockSpotlight(dock);
+            Assert.NotEqual(0, spotlight.Handle); Assert.False(IsWindowVisible(spotlight.Handle));
+            Assert.NotEqual(0, GetWindowRgn(spotlight.Handle, region));
+            Assert.False(PtInRegion(region, (int)(dock.X - spotlight.Bounds.X + dock.Width / 2), (int)(dock.Y - spotlight.Bounds.Y + dock.Height / 2)));
+            Assert.True(PtInRegion(region, (int)spotlight.Bounds.Width / 2, (int)spotlight.Bounds.Height / 2));
+            spotlight.Dispose(); Assert.Equal(0, spotlight.Handle);
+        }
+        finally { DeleteObject(region); DestroyWindow(hwnd); }
+    }
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] private struct MonitorInfo { public int Size; public Rect Monitor, Work; public uint Flags; [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string Device; }
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint CreateWindowEx(uint ex, string cls, string name, uint style, int x, int y, int width, int height, nint parent, nint menu, nint instance, nint param);
     [DllImport("user32.dll")] private static extern bool DestroyWindow(nint hwnd);
+    [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hwnd);
     [DllImport("user32.dll")] private static extern int GetWindowRgn(nint hwnd, nint region);
     [DllImport("gdi32.dll")] private static extern nint CreateRectRgn(int left, int top, int right, int bottom);
     [DllImport("gdi32.dll")] private static extern bool PtInRegion(nint region, int x, int y);

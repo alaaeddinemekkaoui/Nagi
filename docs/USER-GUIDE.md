@@ -1,6 +1,6 @@
 # Nagi app guide
 
-This guide covers Nagi on Windows 11 x64, version 22H2 or newer. Start with the [Nagi 1.9 setup, layout, weather and speaker guide](WELCOME-AND-LAYOUT.md) for the new installer and welcome flow. Nagi has no account or backend.
+This guide covers Nagi on Windows 11 x64, version 22H2 or newer. Start with the [welcome, layout, weather and speaker guide](WELCOME-AND-LAYOUT.md) for the new installer and welcome flow. Nagi has no account or backend.
 
 ## Contents
 
@@ -107,6 +107,8 @@ Configure indexing under **Settings → Quick search**. Standard roots are your 
 ## Profiles, rules and quick actions
 
 Nagi provides **Work**, **Gaming** and **Focus**. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus quiets the dock and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize app docks, visible widgets, context and shortcuts. They do not tune hardware or game settings.
+
+After first-time welcome, a dimmed introduction points out the edge drop. Hover it or choose Okay to dismiss; Escape also closes the introduction. Welcome and this introduction are skipped on ordinary later launches. Your saved choices persist.
 
 Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Work/Gaming/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. The first four appear on the edge rail; Overview lists every app in the workspace. Missing suggestions show an actionable error rather than downloading or installing software.
 

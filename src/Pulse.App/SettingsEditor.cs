@@ -240,7 +240,7 @@ public sealed partial class MainWindow
     private void BuildDiagnosticsSettings()
     {
         var diagnostics = Stack(); diagnostics.Children.Add(Heading("Integrations & diagnostics"));
-        diagnostics.Children.Add(Note($"Nagi 1.10 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
+        diagnostics.Children.Add(Note($"Nagi version 1 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
         diagnostics.Children.Add(Note("CPU: " + (ViewModel.Metrics.Cpu.HasValue ? "available · GetSystemTimes" : "waiting / unavailable")
             + "\nMemory: " + (ViewModel.Metrics.TotalMemory > 0 ? $"{GiB(ViewModel.Metrics.AvailableMemory):0.0} GB available of {GiB(ViewModel.Metrics.TotalMemory):0.0} GB" : "unavailable")
             + "\nNetwork: " + (ViewModel.Metrics.ReceiveBytesPerSecond.HasValue ? "available · aggregate active adapters" : "waiting / unavailable")

@@ -1,13 +1,13 @@
 # Welcome, layout, weather and speakers
 
-Nagi 1.9 adds a native setup executable and a four-step welcome window. Run **Nagi-Setup-1.10.0.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
+Nagi version 1 includes a native setup executable and a four-step welcome window. Run **Nagi-Setup.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
 
 1. Enter a local display name. No account is created.
 2. Choose Akeno, Dark, Light or System. Choose Vertical with left/right edge, or Horizontal with top/bottom edge.
 3. Enable Tools → WebSocket Server Settings in OBS and enter its local port/password. Connect checks status and enables Continue after success. Alternatively choose Skip OBS. Setup never starts recording. A newly entered password is protected for your Windows account when you finish.
 4. Search for a weather city and select a result, then Start Nagi. Or choose Skip weather. Celsius and Fahrenheit are supported. No device location permission is requested.
 
-The water drop touches the selected edge before hovering. Hover reveals controls, click pins them, and the next click expands details inward. Horizontal docking follows the work area so the taskbar remains accessible. Layout, edge, name and city can be changed in Settings. Closing welcome saves no draft; the next launch starts setup again. Once completed, ordinary launches go straight to the dock. Installer Finish opens welcome again. To revisit it later, choose **Settings → Run welcome setup**, or run `Nagi.exe --setup`. Existing choices are prefilled; closing a replay keeps the saved configuration.
+The water drop touches the selected edge before hovering. Hover reveals controls, click pins them, and the next click expands details inward. Horizontal docking follows the work area so the taskbar remains accessible. Layout, edge, name and city can be changed in Settings. Closing welcome saves no draft; the next launch starts setup again. Finish saves your choices, then a dimmed introduction points out the dock. Hover the uncovered drop or choose Okay to dismiss it. Once completed, ordinary launches go straight to the dock. Installer Finish launches Nagi normally; welcome appears only when setup has not been completed. To revisit it later, choose **Settings → General → Run welcome setup**, or run `Nagi.exe --setup`. Existing choices are prefilled; closing a replay keeps the saved configuration.
 
 ## Weather
 

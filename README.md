@@ -1,102 +1,118 @@
-# Nagi
+<div align="center">
+  <img src="docs/images/nagi-logo.png" width="96" alt="Nagi logo">
+  <h1>Nagi version 1</h1>
+  <p><strong>A little space. More control.</strong></p>
+  <p>A glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.</p>
+  <p><strong>Windows 11 x64</strong> · Portable ZIP · EXE installer · No account required</p>
+  <p><a href="#download">Download</a> · <a href="#make-yourself-at-home">First launch</a> · <a href="#your-desktop-your-rhythm">Features</a> · <a href="docs/USER-GUIDE.md">Full guide</a></p>
+</div>
 
-<img src="docs/images/nagi-logo.png" width="88" alt="Nagi logo">
+---
 
-A local-first Windows 11 desktop companion. **Nagi** reads system context and presents it through a vertical or horizontal edge dock and control center. One process, one settings file, no account or backend. Nagi (凪) is named for calm; it was previously called Pulse / Halo.
+## Download
 
-Start with the [complete app guide](docs/USER-GUIDE.md), browse the [documentation index](docs/README.md), or try the [simple commented Lua example](docs/examples/simple-ui.lua). The guide covers installation, controls, every feature, settings, privacy, troubleshooting and removal.
+| Run it your way | Download | What to do |
+| --- | --- | --- |
+| **Portable** | [Nagi-win-x64.zip](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-win-x64.zip) | Extract the whole folder, then open **Nagi.exe**. Keep its files together. |
+| **Install** | [Nagi-Setup.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Setup.exe) | Run setup, then open Nagi from Start. Installs for your Windows user without administrator rights. |
 
-**[Download Nagi 1.10.0](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.10.0)** · [Release README](RELEASE_README.md). The earlier [v1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1) remains on Nagi 1.8.0.
+[Open the Nagi version 1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) for both downloads and SHA256 checksums. Windows 11 **22H2 or newer**, x64. The runtime is included. The app and installer are unsigned.
 
-Customize Nagi in **Settings → Lua UI studio**. Edit and apply Lua for colors, card corners, spacing, metric labels and overview sections, or start from Rose glass, Glacier and Quiet focus presets. Saved scripts can be reloaded while Nagi runs. See [the Lua UI guide](docs/LUA-UI.md).
+## Make yourself at home
 
-The vertical edge rail shows the Nagi logo, quick search, CPU/GPU, media, microphone mute and native battery percentage. Hover the battery for charging details; drag the logo to reposition Nagi. Systems without a battery show AC, and unavailable percentages stay explicit.
+Welcome appears on your **first launch**:
 
-Akeno adds ink-black glass, vermilion accents and restrained Japanese motifs around the Nagi logo. Choose it under **Settings → Theme**. Media artwork appears in the vertical rail, hover preview and overview when supplied by the player. Output volume, mute and a measured signal-activity meter refresh independently every 50 ms; both volume sliders stay synchronized with Windows. Preview height adapts to screen work area and DPI.
+1. Choose the name Nagi greets you with. It stays on this PC.
+2. Pick a theme, **vertical or horizontal** layout, and your screen edge.
+3. Connect local OBS, or skip it.
+4. Choose a weather city and units, or skip weather.
 
-Press **Alt + Space** for **Quick search**: installed apps, locally indexed filenames/folders, a calculator and Nagi actions. Try `app: chrome`, `file: report`, `> volume` or `24 * 7`. Configure folders and the shortcut under Settings → Quick search. A tray command and Nagi search icon are also available. [Quick search guide](docs/QUICK-SEARCH.md).
+Finish saves your choices. Nagi takes its place at the edge, dims the surrounding screen, and introduces your tiny desktop buddy. **Hover the uncovered drop** or press **Okay, tiny desk buddy!** to carry on. Please do not water it.
 
-## Set up Nagi 1.9
+<details>
+<summary>Meet your tiny desk buddy</summary>
 
-Run **Nagi-Setup-1.10.0.exe** for a per-user installation, then open Nagi. The welcome page asks for a local display name, theme, dock layout and screen edge. Connect OBS or skip it, then choose a weather city or skip weather. Installer Finish opens welcome, including on upgrades. You can reopen it through **Settings → Run welcome setup**. Nagi starts as a water drop touching the selected edge.
+<img src="docs/images/nagi-first-run-v1.png" width="440" alt="Nagi first-run thank-you and dock position introduction">
 
-Vertical docks attach left/right; horizontal docks attach top/bottom. Hover reveals controls, click pins them, and the next click expands details inward. Settings can change layout, edge, name and city later. Music includes artwork and a live output-level visualizer; **Speakers** selects connected Windows media outputs.
+</details>
 
-Weather is optional. Explicit city searches and selected coordinates go to Open-Meteo; Nagi does not request GPS or IP geolocation. Current model conditions cache for 15 minutes, with clearly marked stale/offline states. No weather requests occur when weather is disabled. The existing GitHub v1 release stays on 1.8.0; current source and local setup are **1.10.0**.
+Later launches go straight to your dock. Change anything in Settings, or revisit welcome through **Settings → General → Run welcome setup**. Updates preserve your preferences and Lua scripts.
 
-## Run
+## Your desktop, your rhythm
 
-Prerequisites: Windows 11 x64 (22H2 or newer), .NET SDK **10.0.112** or a later 10.0.1xx patch, and the Windows 11 SDK. Visual Studio 2026 with Windows application development support is recommended for editing. The build restores the Windows App SDK and SDK BuildTools from NuGet. No Vercel tooling is used by this native app.
-
-From the repository root in PowerShell:
-
-```powershell
-dotnet restore Pulse.sln
-dotnet build Pulse.sln -c Release
-dotnet test Pulse.sln -c Release --no-build
-.\scripts\Run-Nagi.ps1 -Configuration Release
-```
-
-Or launch the built executable directly:
-
-```powershell
-& '.\src\Pulse.App\bin\Release\net10.0-windows10.0.22621.0\win-x64\Nagi.exe'
-```
-
-Nagi starts as a small, borderless **tab connected to the right screen edge**. Hover to reveal the slim vertical rail. The first click keeps those controls open; another click expands the full panel. Moving away from an unpinned reveal returns it to the edge. Choose **Left edge** or **Right edge** in Settings. Drag the Nagi logo to change height or move to the other side. Older floating positions migrate to edge docking.
-
-**Ctrl + Alt + Space** opens/collapses the full panel; **Ctrl + Alt + H** hides/shows Nagi. Both shortcuts are configurable. Escape returns it to the edge. Reopening Nagi reveals the running instance.
-
-Inside the compact reveal, hover **CPU** for live CPU, memory and network details. Hover **Playing / Paused** for track information, artwork and supported playback controls; the same preview keeps output volume and mute available when no media session exists. Move into the preview to use it, or click **Show more** for the full panel. Hover keeps keyboard focus in your current app. Compact indicators follow the same first-click pin / second-click expand behavior.
-
-Nagi also lives in the **system tray** (possibly under **Show Hidden Icons**). Left-click its waveform icon to open Nagi; right-click for Open, Hide, Settings, profiles and **Quit Nagi**. Right-clicking Nagi itself opens a matching quick menu. Hiding keeps Nagi running; Quit exits and removes the tray icon.
-
-The first restore needs internet access. The built app and all core features work offline. The output bundles both .NET and the Windows App SDK runtime; keep the entire output folder together.
-
-## Package and install
-
-```powershell
-.\scripts\Publish-Nagi.ps1
-```
-
-Produces `artifacts\Nagi-win-x64\Nagi.exe` and `artifacts\Nagi-win-x64.zip`. Extract the whole ZIP to use it portably. For a per-user installation, run `Install-Nagi.ps1` from the extracted folder. This copies the app to `%LOCALAPPDATA%\Programs\Nagi` and adds a Start menu shortcut. No administrator rights are needed. Run the installed `Uninstall-Nagi.ps1` to remove it; preferences are retained.
-
-Startup with Windows is opt-in in Settings. The portable package is unsigned; it is not an MSIX or a Store submission. See [build details](docs/BUILD.md) and [validation](docs/VALIDATION.md).
-
-## Features
-
-- Reused topmost Nagi window with native tinted acrylic, layered glass cards, segmented navigation, compact media and audio controls, profile/rule editor and settings.
-- Real CPU, physical memory, available memory and aggregate network throughput; short in-memory sparklines.
-- Foreground process identity and exact executable/path rules with priorities and a 1.8-second debounce.
-- Work, Gaming and Focus profiles. Manual choices lock; Automatic or the lock button releases the override. Focus collapses Nagi and suppresses nonessential notices.
-- Windows media-session title, artist, artwork and supported transport controls. Empty/unsupported states are explicit.
-- Default Windows audio endpoint name, output volume and mute using Core Audio.
-- Validated shortcuts for apps, folders, files, HTTP(S), profiles and Nagi visibility; optional per-profile filtering.
-- Akeno Japanese black/red, dark, light, system and high-contrast palettes; an opaque appearance option; display, anchor and drag offsets; outside-click and fullscreen preferences.
-- Interruptible window springs, GPU composition fades/scales, staggered content and restrained hover/press feedback. Nagi and Windows reduced-motion settings disable these effects.
-- Configurable hotkey with conflict recovery, per-user startup, single instance, cancellable background sampling and bounded local diagnostics.
-- A separate hide/show hotkey and native tray menu, including recovery after Explorer recreates the notification area.
-- Versioned, atomic JSON persistence with backups, field-level recovery and preservation of unknown fields. Future schemas are read-only.
-
-GPU usage and microphone mute use native Windows APIs. Optional temperature sensors, PresentMon FPS and authenticated OBS status/recording controls are configured in Settings → Hardware & studio. Temperature readings need a WMI sensor provider; FPS tracing may need the separate helper with tracing permission. See [integration setup](docs/INTEGRATIONS.md). Nagi never fabricates readings or media. Network totals may include virtual adapters and may count traffic across more than one interface. Protected process paths can be unavailable. See [limitations and next milestones](docs/ROADMAP.md).
-
-## Data and privacy
-
-Configuration is `%LOCALAPPDATA%\Pulse\settings.json`. Recovery copies and `.bak` backups are kept beside it. Logs are bounded JSON lines in `%LOCALAPPDATA%\Pulse\logs`. Profile/activity history and metric samples stay in memory and disappear on exit. Nagi does not capture screenshots, record keystrokes, collect activity telemetry, or change Windows notification settings. Only the registered shortcuts are handled globally.
-
-Shortcuts execute only on a user click. Shell scripts, command hosts, network paths and indirect shortcuts are blocked. Configuration is local; there is no configuration import/download feature. Revalidate paths at execution time.
-
-## Source map
-
-| Project | Responsibility |
+| | What Nagi brings |
 | --- | --- |
-| `src/Pulse.App` | WinUI 3, composition root, view model, Nagi, editors, design tokens |
-| `src/Pulse.Core` | Models, contracts, rule evaluation, validation |
-| `src/Pulse.Windows` | Win32, metrics, media, Core Audio, windows, hotkeys, startup |
-| `src/Pulse.Infrastructure` | Settings, recovery, atomic writes, bounded diagnostic log |
-| `tests/Pulse.Tests` | Platform-independent behavior and persistence tests |
-| `tests/Pulse.Windows.Tests` | Live Windows integration and positioning/hotkey tests |
+| **A dock that belongs to the screen** | An edge-attached water drop, hover controls, inward-opening details and a large control center opened with one logo click. Vertical left/right or horizontal top/bottom. Native clipping removes opaque corner patches. |
+| **Workspaces that fit the moment** | Work, Gaming and Focus profiles with editable app docks and independent widgets. Work suggests VS Code, Terminal and Browser; Gaming suggests Steam and Browser. Choose installed apps and optionally open them when you explicitly activate a profile. |
+| **Music and audio** | Windows media artwork and supported playback controls, a live measured output visualizer, synchronized volume/mute and speaker/headphone selection. Microphone status and mute sit below media. |
+| **Useful information** | CPU, memory, network, battery percentage and supported GPU readings. Optional city weather, temperature providers, PresentMon FPS and local OBS status/recording controls. |
+| **Quick search** | **Alt+Space** for installed apps, indexed filenames/folders, calculations and Nagi commands. Filename indexing is optional and does not read file contents. |
+| **Glass or a little drama** | Glass follows Windows light/dark mode by default. Akeno adds Japanese black/red styling with a generated samurai background; choose **Samurai**, **Gradient** or **None**. Windows transparency, high contrast and reduced-motion preferences are respected. |
+| **Settings with a home for everything** | Category pages for general preferences, appearance, profiles, weather, hardware/studio, search, Lua, behavior and diagnostics. |
+| **A personal touch** | Lua colors, spacing, cards, labels and overview sections, with a native editor, presets, reload and validation. |
 
-See [architecture](docs/ARCHITECTURE.md), [changelog](CHANGELOG.md), and [task status](TASKS.md).
+<div align="center">
+  <img src="docs/images/nagi-settings-v1.png" width="820" alt="Nagi settings organized into category cards">
+  <p><em>Pick a category. Make it yours.</em></p>
+</div>
 
-The glass uses the real Windows desktop acrylic renderer. Windows can select an opaque fallback when Energy Saver, transparency settings, remote sessions or contrast policies require it; Nagi keeps those system preferences intact. Material state is shown in diagnostics. See [design references and motion details](docs/UI-DESIGN.md).
+### Build your workspace
+
+Open **Profiles → Customize Work / Gaming / Focus**. Add or remove installed apps and choose visible widgets: Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery. The first four apps appear on the rail; Overview lists all configured apps.
+
+**Open apps when I activate this profile** is off by default. Turn it on for a workspace you want to launch deliberately. Startup and automatic foreground detection update the dock and widgets without opening apps. Switching away does not close your applications. Missing suggested apps can be replaced in the profile editor.
+
+### Give it some character
+
+Choose **Settings → Appearance & dock → Akeno** for the samurai artwork. Prefer something quieter? Choose **Gradient** or **None**. Glass remains available for a theme that follows Windows.
+
+<div align="center">
+  <img src="docs/images/nagi-akeno-v1.png" width="820" alt="Akeno black and red appearance with optional samurai art">
+</div>
+
+Or try this in **Settings → Lua UI studio → Edit Lua UI**:
+
+```lua
+-- A little red, a little breathing room.
+return {
+  name = "My Nagi",
+  accent = "#FF4B4B", -- Highlight color.
+  card_radius = 22,   -- Soft cards: 8–28.
+  spacing = 12       -- Space between sections: 6–20.
+}
+```
+
+[Commented example](docs/examples/simple-ui.lua) · [Complete Lua guide](docs/LUA-UI.md) · [Artwork provenance and generation prompt](docs/ASSETS.md)
+
+## A few useful moves
+
+| Control | Action |
+| --- | --- |
+| Hover the edge drop | Reveal your rail |
+| Click the logo | Open the large control center and profiles |
+| Drag the logo | Reposition the dock |
+| **Alt + Space** | Quick search |
+| **Ctrl + Alt + Space** | Expand/collapse the panel |
+| **Ctrl + Alt + H** | Hide/show Nagi |
+| **Escape** | Dismiss search, the introduction, or the expanded panel |
+| Tray → **Quit Nagi** | Exit completely |
+
+Try `app: chrome`, `file: report`, `folder: projects`, `> volume` or `24 * 7` in search.
+
+## Private by design
+
+No account, backend or activity telemetry. Settings, rules, scripts and protected OBS credentials live in `%LOCALAPPDATA%\Pulse` for compatibility with earlier development builds. Both the portable and installed app use this local Windows profile. Uninstalling preserves those files.
+
+Weather is optional: explicit city searches and selected coordinates go to Open-Meteo. Nagi does not request GPS or IP geolocation. Web searches open in your browser only when selected. Audio meters show measured levels; Nagi does not save or transmit raw audio. OBS connection during welcome never starts recording.
+
+## Requirements and checks
+
+GPU counters depend on the driver. Temperatures require a supported Libre Hardware Monitor/Open Hardware Monitor WMI provider; FPS requires PresentMon tracing permission; OBS requires its local WebSocket v5 server. Media artwork and transport depend on the player. Nagi shows unavailable states rather than invented readings.
+
+The current validation record covers automated behavior and Windows integration tests, isolated welcome/workspace UI checks, native window clipping and installer preference retention. Broader physical monitor, player, sign-in, clean-machine and accessibility coverage remains documented in [Validation](docs/VALIDATION.md).
+
+## Explore further
+
+[Complete app guide](docs/USER-GUIDE.md) · [Documentation index](docs/README.md) · [Welcome and layouts](docs/WELCOME-AND-LAYOUT.md) · [Hardware and OBS](docs/INTEGRATIONS.md) · [Build from source](docs/BUILD.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md)
+
+Built with WinUI 3, Win2D and .NET. The source retains its original Pulse project names; the app is **Nagi**.

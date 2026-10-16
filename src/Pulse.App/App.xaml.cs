@@ -63,17 +63,18 @@ public partial class App : Application
         if ((LaunchOptions.ShowSetup || !configuration.WelcomeCompleted) && configuration.SchemaVersion <= 1)
         {
             var welcome = _welcome = new WelcomeWindow(settings, configuration);
-            welcome.Finished += completed => { StartDock(settings, completed); _welcome = null; welcome.Close(); };
+            welcome.Finished += completed => { StartDock(settings, completed, true); _welcome = null; welcome.Close(); };
             welcome.Closed += (_, _) => { if (!welcome.Completed) { _welcome = null; settings.Dispose(); ReleaseInstance(); Exit(); } };
             welcome.Activate(); return;
         }
         StartDock(settings, configuration);
     }
-    private void StartDock(SettingsService settings, Pulse.Core.PulseSettings configuration)
+    private void StartDock(SettingsService settings, Pulse.Core.PulseSettings configuration, bool introduce = false)
     {
         _window = new MainWindow(settings, configuration, _log);
         _window.Closed += (_, _) => ReleaseInstance();
         _window.ShowInitial();
+        if (introduce) _window.DispatcherQueue.TryEnqueue(_window.BeginDockIntroduction);
         _log.Write("lifecycle", "Nagi started");
     }
     private void ReleaseInstance()

@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$ExecutablePath,[switch]$SkipWeather,[int]$ObsPort=0,[string]$ObsPassword='',[string]$DataDirectory='',[switch]$ShowSetup,[ValidateSet('Vertical','Horizontal')][string]$Orientation='Horizontal')
+param([Parameter(Mandatory)][string]$ExecutablePath,[switch]$SkipWeather,[int]$ObsPort=0,[string]$ObsPassword='',[string]$DataDirectory='',[switch]$ShowSetup,[ValidateSet('Vertical','Horizontal')][string]$Orientation='Horizontal',[ValidateSet('Okay','Hover')][string]$IntroductionDismissal='Okay',[switch]$IntroductionOnly)
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -9,6 +9,7 @@ public static class NagiWelcomeNative {
  [StructLayout(LayoutKind.Sequential)]public struct Rect {public int Left,Top,Right,Bottom;}
  [DllImport("user32.dll")]public static extern bool GetWindowRect(IntPtr h,out Rect r);
  [DllImport("user32.dll")]public static extern uint GetDpiForWindow(IntPtr h);
+ [DllImport("user32.dll")]public static extern bool PrintWindow(IntPtr h,IntPtr dc,uint flags);
  [DllImport("user32.dll")]public static extern bool SetPhysicalCursorPos(int x,int y);
  [DllImport("user32.dll")]public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
 }
@@ -27,7 +28,8 @@ if($ShowSetup){$nagiStart.ArgumentList.Add('--setup')}
 $nagiProcess=[Diagnostics.Process]::Start($nagiStart)
 function Get-NagiRoot {
  for($nagiAttempt=0;$nagiAttempt -lt 100;$nagiAttempt++){
-  $nagiWindow=[Windows.Automation.AutomationElement]::RootElement.FindFirst([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$nagiProcess.Id))
+  $nagiWindows=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$nagiProcess.Id))
+  $nagiWindow=$nagiWindows|Where-Object {$_.Current.Name -eq 'Nagi' -or $_.Current.Name -like '*Welcome*'}|Select-Object -First 1
   if($nagiWindow -and ($nagiWindow.Current.Name -eq 'Nagi' -or $nagiWindow.Current.Name -like '*Welcome*')){return $nagiWindow};Start-Sleep -Milliseconds 100
  };throw 'Nagi window did not appear.'
 }
@@ -80,6 +82,7 @@ if($ObsPort -gt 0){
  if((Find-Nagi 'WelcomeNext').Current.IsEnabled){throw 'Expected disabled Continue with no local OBS fixture.'}
  Invoke-Nagi 'WelcomeSkip';Write-Output 'Welcome OBS unavailable / skip: PASS'
 }
+[NagiWelcomeNative]::SetPhysicalCursorPos(400,250)|Out-Null
 if($SkipWeather){Invoke-Nagi 'WelcomeSkip'}else{
  Set-NagiText 'WeatherCityQuery' 'Tokyo';Invoke-Nagi 'SearchWeatherCities'
  $nagiCities=Find-Nagi 'WeatherCities';$nagiCity=$null
@@ -93,16 +96,45 @@ if($SkipWeather){Invoke-Nagi 'WelcomeSkip'}else{
 }
 Start-Sleep -Seconds 2;$script:nagiRoot=Get-NagiRoot
 if($nagiRoot.Current.Name -ne 'Nagi'){throw 'Welcome did not open the dock.'}
+$nagiIntro=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$nagiProcess.Id))|Where-Object {$_.Current.Name -like '*hello*'}|Select-Object -First 1
+if(!$nagiIntro){throw 'Dock introduction did not appear after welcome.'}
+$nagiIntroBounds=[NagiWelcomeNative+Rect]::new();[NagiWelcomeNative]::GetWindowRect([IntPtr]$nagiIntro.Current.NativeWindowHandle,[ref]$nagiIntroBounds)|Out-Null
+$nagiCardBitmap=[Drawing.Bitmap]::new($nagiIntroBounds.Right-$nagiIntroBounds.Left,$nagiIntroBounds.Bottom-$nagiIntroBounds.Top);$nagiCardGraphics=[Drawing.Graphics]::FromImage($nagiCardBitmap);$nagiCardDc=$nagiCardGraphics.GetHdc()
+try{[NagiWelcomeNative]::PrintWindow([IntPtr]$nagiIntro.Current.NativeWindowHandle,$nagiCardDc,2)|Out-Null}finally{$nagiCardGraphics.ReleaseHdc($nagiCardDc)}
+try{$nagiCardBitmap.Save((Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/validation/dock-introduction.png'))}finally{$nagiCardGraphics.Dispose();$nagiCardBitmap.Dispose()}
+
+if($IntroductionDismissal -eq 'Okay'){
+ $nagiOkay=$nagiIntro.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Okay, got it'))
+ $nagiOkay.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+}else{
+ $nagiIntroRect=[NagiWelcomeNative+Rect]::new();[NagiWelcomeNative]::GetWindowRect([IntPtr]$nagiRoot.Current.NativeWindowHandle,[ref]$nagiIntroRect)|Out-Null
+ [NagiWelcomeNative]::SetPhysicalCursorPos(($nagiIntroRect.Left+$nagiIntroRect.Right)/2,($nagiIntroRect.Top+$nagiIntroRect.Bottom)/2)|Out-Null
+}
+Start-Sleep -Seconds 1
+$nagiStillIntro=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$nagiProcess.Id))|Where-Object {$_.Current.Name -like '*hello*' -or $_.Current.Name -eq 'Nagi dock spotlight'}
+if($nagiStillIntro){throw 'Introduction did not close and remove the dimmer.'}
+Write-Output ('Dock introduction / '+$IntroductionDismissal+' dismissal / cleanup: PASS')
+if($IntroductionOnly){
+ $nagiSaved=Get-Content -LiteralPath $nagiSettingsPath -Raw|ConvertFrom-Json
+ if(!$nagiSaved.WelcomeCompleted -or $nagiSaved.UserName -ne 'Nagi QA'){throw 'First-run choices did not persist.'}
+ Write-Output ('Welcome / introduction / saved choices: PASS; process '+$nagiProcess.Id);return
+}
+
 $nagiHandle=[IntPtr]$nagiRoot.Current.NativeWindowHandle;$nagiScale=[NagiWelcomeNative]::GetDpiForWindow($nagiHandle)/96.0
 [NagiWelcomeNative]::SetPhysicalCursorPos(400,250)|Out-Null;Start-Sleep -Seconds 1
 $nagiRect=[NagiWelcomeNative+Rect]::new();[NagiWelcomeNative]::GetWindowRect($nagiHandle,[ref]$nagiRect)|Out-Null
 $nagiDepth=if($Orientation -eq 'Horizontal'){$nagiRect.Bottom-$nagiRect.Top}else{$nagiRect.Right-$nagiRect.Left}
 if([Math]::Abs($nagiDepth/$nagiScale-18) -gt 2){throw 'Resting drop is not 18 DIP deep.'}
 Save-NagiImage ($Orientation.ToLowerInvariant()+'-water-drop')
-[NagiWelcomeNative]::SetPhysicalCursorPos(($nagiRect.Left+$nagiRect.Right)/2,($nagiRect.Top+$nagiRect.Bottom)/2)|Out-Null;Start-Sleep -Seconds 2
-[NagiWelcomeNative]::GetWindowRect($nagiHandle,[ref]$nagiRect)|Out-Null
-$nagiDepth=if($Orientation -eq 'Horizontal'){$nagiRect.Bottom-$nagiRect.Top}else{$nagiRect.Right-$nagiRect.Left}
+[NagiWelcomeNative]::SetPhysicalCursorPos(460,250)|Out-Null;Start-Sleep -Milliseconds 350
 $nagiRailDepth=if($Orientation -eq 'Horizontal'){76}else{80}
+[NagiWelcomeNative]::SetPhysicalCursorPos(($nagiRect.Left+$nagiRect.Right)/2,($nagiRect.Top+$nagiRect.Bottom)/2)|Out-Null
+for($nagiHoverWait=0;$nagiHoverWait -lt 60;$nagiHoverWait++){
+ Start-Sleep -Milliseconds 50
+ [NagiWelcomeNative]::GetWindowRect($nagiHandle,[ref]$nagiRect)|Out-Null
+ $nagiDepth=if($Orientation -eq 'Horizontal'){$nagiRect.Bottom-$nagiRect.Top}else{$nagiRect.Right-$nagiRect.Left}
+ if([Math]::Abs($nagiDepth/$nagiScale-$nagiRailDepth) -le 2){break}
+}
 if([Math]::Abs($nagiDepth/$nagiScale-$nagiRailDepth) -gt 2){throw 'Hover did not reveal the rail.'}
 Save-NagiImage ($Orientation.ToLowerInvariant()+'-rail')
 $nagiEvent=[Threading.EventWaitHandle]::OpenExisting($nagiActivationName);$nagiEvent.Set()|Out-Null;$nagiEvent.Dispose();Start-Sleep -Seconds 1

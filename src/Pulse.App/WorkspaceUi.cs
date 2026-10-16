@@ -18,6 +18,7 @@ public sealed partial class MainWindow
     private void OpenControlCenter(string page = "Overview")
     {
         if (_closed || _suppressLogoClick) return;
+        DismissDockIntroduction();
         ResetPreview(); _controlCenter = true; _userHidden = false; _hiding = false;
         _visibilityGeneration++; _motion.Reset(Root); _revealFullscreen = true;
         Navigate(page); _windowManager.SetVisible(true); Activate(); UpdateTray();
