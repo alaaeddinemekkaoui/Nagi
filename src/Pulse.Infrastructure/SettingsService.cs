@@ -36,6 +36,7 @@ public sealed class SettingsService : ISettingsService, IDisposable
                 _original = JsonNode.Parse(text) as JsonObject ?? throw new JsonException("Expected a JSON object.");
                 var safe = JsonSerializer.SerializeToNode(new PulseSettings(), JsonOptions)!.AsObject();
                 var invalid = new List<string>();
+                var nullability = new System.Reflection.NullabilityInfoContext();
                 // Deserialize each known field separately so a broken field cannot erase valid siblings.
                 foreach (var property in typeof(PulseSettings).GetProperties().Where(p => p.Name != nameof(PulseSettings.Extra)))
                 {
@@ -44,7 +45,8 @@ public sealed class SettingsService : ISettingsService, IDisposable
                     try
                     {
                         var node = _original[key];
-                        if (node is null && Nullable.GetUnderlyingType(property.PropertyType) is null) throw new JsonException();
+                        if (node is null && Nullable.GetUnderlyingType(property.PropertyType) is null
+                            && nullability.Create(property).ReadState != System.Reflection.NullabilityState.Nullable) throw new JsonException();
                         var value = node?.Deserialize(property.PropertyType, JsonOptions);
                         safe[property.Name] = JsonSerializer.SerializeToNode(value, property.PropertyType, JsonOptions);
                     }

@@ -1,5 +1,7 @@
 # Architecture
 
+Nagi 1.9 adds WelcomeWindow, shared vertical/horizontal DockLayout, optional WeatherService, a measured MusicVisualizer and speaker routing. See [setup and implementation details](WELCOME-AND-LAYOUT.md).
+
 Battery status is sampled with system metrics through Win32 `GetSystemPowerStatus`. `PowerSnapshot` decodes charge flags and unknown/no-battery sentinels; the view model exposes percentage/details without substituting a fake value. The compact logo supports a six-DIP drag threshold while retaining ordinary pin/expand clicks.
 
 Lua UI customization is evaluated in `Pulse.Infrastructure/LuaUiService.cs` using embedded MoonSharp and returns a validated `LuaUiStyle`. The interpreter receives only theme/profile strings, uses a restricted library set, and has source/instruction limits. `Pulse.App/LuaUi.cs` evaluates off the UI thread, ignores superseded results, applies theme resources and presentation properties, and retains the last working appearance after errors. Scripts cannot obtain native controls or call tray, launch, media or audio services. See [LUA-UI.md](LUA-UI.md).

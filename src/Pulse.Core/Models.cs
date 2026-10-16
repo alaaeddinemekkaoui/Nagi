@@ -8,12 +8,17 @@ public enum ActionKind { Application, Folder, File, Url, Profile, ToggleHalo }
 public sealed record AppRule(string Identity, Profile Profile, int Priority = 100, bool Enabled = true);
 public sealed record QuickAction(string Label, ActionKind Kind, string Target, Profile? Profile = null);
 public sealed record Hotkey(uint Modifiers = 0x0003, uint Key = 0x20); // Alt+Ctrl+Space
-public sealed record HaloPosition(string Monitor = "", string Anchor = "Right edge", double OffsetX = 0, double OffsetY = 0);
+public sealed record HaloPosition(string Monitor = "", string Anchor = "Right edge", double OffsetX = 0, double OffsetY = 0, string Orientation = "Vertical");
 
 public sealed record PulseSettings
 {
     public int SchemaVersion { get; init; } = 1;
     public string Theme { get; init; } = "Dark";
+    public bool WelcomeCompleted { get; init; }
+    public string UserName { get; init; } = "";
+    public bool WeatherEnabled { get; init; }
+    public WeatherLocation? WeatherLocation { get; init; }
+    public string WeatherUnit { get; init; } = "Celsius";
     public HaloPosition Position { get; init; } = new();
     public bool StartExpanded { get; init; }
     public Hotkey Hotkey { get; init; } = new();
@@ -43,12 +48,19 @@ public sealed record PulseSettings
     public PulseSettings Normalize() => this with
     {
         Theme = Theme is "Dark" or "Light" or "System" or "Akeno" ? Theme : "Dark",
+        UserName = new string((UserName ?? "").Where(c => !char.IsControl(c)).Take(32).ToArray()).Trim(),
+        WeatherEnabled = WeatherEnabled && WeatherLocation is { IsValid: true },
+        WeatherLocation = WeatherLocation is { IsValid: true } city ? city : null,
+        WeatherUnit = WeatherUnit == "Fahrenheit" ? "Fahrenheit" : "Celsius",
         PollingIntervalMs = Math.Clamp(PollingIntervalMs, 500, 10000),
         ObsPort = Math.Clamp(ObsPort, 1024, 65535),
         Position = Position is { } p ? p with
         {
             Monitor = p.Monitor ?? "",
-            Anchor = p.Anchor is "Left edge" or "Bottom left" ? "Left edge" : "Right edge",
+            Orientation = p.Orientation == "Horizontal" ? "Horizontal" : "Vertical",
+            Anchor = p.Orientation == "Horizontal"
+                ? p.Anchor is "Top edge" or "Top center" ? "Top edge" : "Bottom edge"
+                : p.Anchor is "Left edge" or "Bottom left" ? "Left edge" : "Right edge",
             OffsetX = double.IsFinite(p.OffsetX) ? Math.Clamp(p.OffsetX, -100000, 100000) : 0,
             OffsetY = double.IsFinite(p.OffsetY) ? Math.Clamp(p.OffsetY, -100000, 100000) : 0
         } : new(),

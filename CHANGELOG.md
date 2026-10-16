@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.0 — 2026-10-16
+
+- Added a native per-user NSIS installer and Apps & features removal, preserving preferences and scripts.
+- Added a four-step welcome flow: local display name, theme/layout/edge, optional verified OBS connection, and optional city weather.
+- Added horizontal top/bottom docking alongside vertical left/right docking, with inward-opening details and work-area/DPI bounds.
+- Reshaped the resting tab into an edge-attached water drop with a Win2D surface and spring-driven contour.
+- Added optional Open-Meteo city search, current conditions, Celsius/Fahrenheit, caching and offline states.
+- Added a live measured output-level history visualizer and connected speaker/headphone selection.
+
 ## 1.8.0 — Nagi
 
 - Renamed the app to Nagi (凪), with one name across the rail, panels, quick search, tray, executable, installer and documentation.

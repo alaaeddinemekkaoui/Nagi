@@ -69,6 +69,7 @@ public sealed partial class MainWindow : Window
         AppWindow.IsShownInSwitchers = false;
         var handle = WindowNative.GetWindowHandle(this);
         _windowManager = new HaloWindowManager(handle);
+        _windowManager.FrameApplied += frame => WindowSurface.SetShape(frame.DropAmount, ViewModel.Settings.Position.Anchor);
         _motion = new HaloMotion(_windowManager, () => !ViewModel.Settings.ReducedMotion && new UISettings().AnimationsEnabled);
         _windowManager.ToggleRequested += () => { if (_expanded && !_userHidden) Collapse(); else Reveal(); };
         _windowManager.HideRequested += () => { if (_userHidden) Reveal(); else HideHalo(); };
@@ -130,6 +131,7 @@ public sealed partial class MainWindow : Window
         _audioPolling = Task.Run(PollAudioAsync);
         _searchStarted = true; RebuildSearchIndex(); _indexTimer.Start();
         _integrationPolling = Task.Run(PollIntegrationsAsync);
+        _weatherPolling = Task.Run(PollWeatherAsync);
     }
     public void Reveal()
     {
@@ -156,24 +158,8 @@ public sealed partial class MainWindow : Window
         var wasDrop = EdgeDrop.Visibility == Visibility.Visible;
         var resting = _dock.Stage == DockStage.Resting;
         var frame = _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting);
-        var left = ViewModel.Settings.Position.Anchor == "Left edge";
         var logicalWidth = frame.Width / frame.Scale; var logicalHeight = frame.Height / frame.Scale;
-        Compact.Width = 80; Compact.Height = double.NaN; Compact.MinHeight = 420;
-        RailViewport.Width = 80; RailViewport.Height = Math.Min(420, logicalHeight);
-        RailViewport.Visibility = resting ? Visibility.Collapsed : Visibility.Visible;
-        RailViewport.HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right;
-        Compact.HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right;
-        Compact.VerticalAlignment = VerticalAlignment.Center;
-        CompactCpuButton.Visibility = CompactSecondaryValue.Visibility = Visibility.Visible;
-        PeekHost.Width = Math.Max(0, logicalWidth - 80); PeekHost.Height = logicalHeight;
-        PeekHost.HorizontalAlignment = left ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-        PeekHost.VerticalAlignment = VerticalAlignment.Center;
-        Expanded.HorizontalAlignment = left ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-        Expanded.VerticalAlignment = VerticalAlignment.Center;
-        EdgeDrop.HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right;
-        EdgeDrop.IsHitTestVisible = resting;
-        Compact.IsHitTestVisible = !resting;
-        DockPinIndicator.Visibility = _dock.Pinned ? Visibility.Visible : Visibility.Collapsed;
+        PlaceDockContent(resting, logicalWidth, logicalHeight);
         if (resting)
         {
             EdgeDrop.Visibility = Visibility.Visible;
@@ -189,7 +175,6 @@ public sealed partial class MainWindow : Window
         {
             EdgeDrop.Visibility = Visibility.Collapsed;
             PeekHost.Visibility = Visibility.Collapsed;
-            Expanded.Width = Math.Max(0, logicalWidth - 80); Expanded.Height = logicalHeight;
             Expanded.Visibility = Visibility.Visible; Expanded.IsHitTestVisible = true;
             Compact.Visibility = Visibility.Visible;
             if (animate) { _motion.Reveal(Expanded, 0, 260, .985f); RevealCards(); }
@@ -203,14 +188,13 @@ public sealed partial class MainWindow : Window
             PeekHost.IsHitTestVisible = PreviewVisible;
             if (PreviewVisible)
             {
-                PeekHost.Height = logicalHeight;
                 PeekHost.Visibility = Visibility.Visible;
                 if (animate) _motion.Reveal(PeekHost, 0, 220, .99f); else _motion.Reset(PeekHost);
             }
             else if (animate && wasPreview) _motion.Fade(PeekHost, false, 90);
             else PeekHost.Visibility = Visibility.Collapsed;
         }
-        Shell.CornerRadius = new(22);
+        Shell.CornerRadius = new(0); // DWM clips the outer corners; avoid an opaque seam behind a second XAML clip.
         _motion.Move(frame, animate && !_userHidden, () =>
         {
             if (!_expanded) Expanded.Visibility = Visibility.Collapsed;
@@ -395,7 +379,7 @@ public sealed partial class MainWindow : Window
     private void ApplyPreferences()
     {
         var settings = ViewModel.Settings;
-        EnsureSearchScope();
+        EnsureSearchScope(); RenderWeather();
         _updating = true;
         Shell.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
         ApplyGlass(); UpdateTabs();
@@ -564,6 +548,8 @@ public sealed partial class MainWindow : Window
         _audio.Dispose(); _microphone.Dispose();
         if (_integrationPolling is not null) { try { await _integrationPolling; } catch (OperationCanceledException) { } }
         _gpu.Dispose();
+        if (_weatherPolling is not null) { try { await _weatherPolling; } catch (OperationCanceledException) { } }
+        _weather.Dispose();
         if (_searchWork is not null) { try { await _searchWork; } catch (OperationCanceledException) { } }
         _log.Write("lifecycle", "Nagi stopped");
         _settings.Dispose(); _shutdown.Dispose();

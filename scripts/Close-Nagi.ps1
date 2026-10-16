@@ -8,9 +8,8 @@ if(-not ('PulseInstallerClose' -as [type])){Add-Type 'using System;using System.
 foreach($pulseOwned in $pulseProcesses){
  try{$pulseActivation=[Threading.EventWaitHandle]::OpenExisting('Local\Pulse.Desktop.Activate.v1');$pulseActivation.Set()|Out-Null;$pulseActivation.Dispose()}catch [Threading.WaitHandleCannotBeOpenedException]{}
  Start-Sleep -Milliseconds 700
- $pulseWindow=[Windows.Automation.AutomationElement]::RootElement.FindFirst([Windows.Automation.TreeScope]::Children,[Windows.Automation.AndCondition]::new(
- [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$pulseOwned.Id),
- [Windows.Automation.OrCondition]::new([Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Nagi'),[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,('Pulse '+[char]0xB7+' Halo')))))
+ $pulseWindows=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$pulseOwned.Id))
+ $pulseWindow=$pulseWindows | Where-Object {$_.Current.Name -in @('Nagi',('Nagi '+[char]0xB7+' Welcome'),('Pulse '+[char]0xB7+' Halo'))} | Select-Object -First 1
  if($null -eq $pulseWindow){throw 'Nagi could not be closed gracefully. Quit it from the tray and retry.'}
  [PulseInstallerClose]::PostMessage([IntPtr]$pulseWindow.Current.NativeWindowHandle,16,[IntPtr]::Zero,[IntPtr]::Zero)|Out-Null
  if(!$pulseOwned.WaitForExit(10000)){throw 'Nagi is still closing. Quit it from the tray and retry.'}

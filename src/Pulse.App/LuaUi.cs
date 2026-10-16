@@ -92,7 +92,7 @@ public sealed partial class MainWindow
         AkenoDecor.Visibility = ak ? Visibility.Visible : Visibility.Collapsed;
         AkenoSeal.Visibility = Visibility.Collapsed;
         HeaderMark.Visibility = Visibility.Visible;
-        BrandSubtitle.Text = ak ? "凪 · Calm, within reach." : "Calm, within reach.";
+        BrandSubtitle.Text = (ak ? "凪 · " : "") + (string.IsNullOrWhiteSpace(ViewModel.Settings.UserName) ? "Calm, within reach." : "Welcome, " + ViewModel.Settings.UserName + ".");
         Root.Background = ak ? new SolidColorBrush(Microsoft.UI.Colors.Transparent) : ThemeBrush("HeaderGlowBrush");
         WindowSurface.SetColor(((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color);
         HomePage.Spacing = _luaStyle.Spacing;

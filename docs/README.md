@@ -1,6 +1,6 @@
 # Nagi documentation
 
-Documentation for Nagi 1.8, the Windows 11 desktop companion.
+Documentation for Nagi 1.9, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the new setup flow.
 
 Start with the [complete app guide](USER-GUIDE.md). For a first customization, copy the [commented Lua example](examples/simple-ui.lua) into **Settings → Lua UI studio → Edit Lua UI**, then select **Apply script**.
 

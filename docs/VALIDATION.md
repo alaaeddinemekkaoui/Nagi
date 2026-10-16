@@ -1,5 +1,17 @@
 # Validation record
 
+## Nagi 1.9 setup and layouts — 2026-10-16
+
+- 200 automated cases pass: 159 core/infrastructure and 41 Windows. Added welcome/settings round trips, orientation normalization, bounded weather parsing, cancellation, unit/culture handling, caching/stale/backoff states, nullable skipped-weather reload without false recovery, four drop contours, horizontal native geometry and connected-speaker enumeration/routing. Speaker setter checks write the existing multimedia endpoint and leave other routing roles alone.
+- Release compilation succeeds. A later package restore reports NU1900 because api.nuget.org is unreachable for vulnerability data; compilation itself has no errors. The earlier restore/build completed with no warnings. This network result does not establish a fresh vulnerability audit.
+- Actual welcome checks pass: required name validation, Light/Akeno selection, horizontal layout/edge selection, authenticated connection to an owned local OBS fixture, unavailable OBS/skip, skip weather, saved greeting/preferences, direct dock startup after completion, and cancel/close without saving a draft. No recording was started during welcome checks. The OBS fixture was closed afterward.
+- Live checks pass on Top, Bottom, Left and Right: flush attachment, resting drop, hover controls, pin/expand, inward-opening previews and screen fit. Horizontal media previews expose Speakers without scrolling. Both vertical edges retain physical-pointer focus, original-position clicking, battery percentage, logo drag, CPU preview, Show more and quick-menu checks.
+- The Speakers dialog lists real connected outputs. Routing to the existing multimedia endpoint passes the Windows COM test. Choosing a different physical speaker still depends on the devices connected to the user's machine.
+- Native setup lifecycle passes: per-user install, version 1.9.0 metadata, Start menu shortcut, HKCU Apps & features registration, installed launch, graceful removal, exact settings-file retention and preservation of an unknown file in the install folder. The native uninstaller is also callable through Uninstall-Nagi.ps1.
+- Live geocoding through WeatherService returned six Tokyo results. Separate UI lookup attempts timed out, and the forecast hostname failed DNS resolution from this environment. Timeout/unavailable UI states were observed; successful forecast parsing and stale recovery are covered with controlled HTTP responses. A live forecast reading remains unverified on this network.
+- Existing user preferences and OBS credentials are backed up before UI checks and restored afterward; test names/cities are not left as the user's configuration. The final installed copy opens welcome for the user to personalize.
+- Broader physical multi-monitor/DPI, player, sign-in, clean-machine, signing and accessibility matrices remain as documented below. Setup remains unsigned.
+
 Implementation environment: Windows 11 x64, OS 10.0.26300, .NET SDK 10.0.113, Windows SDK 10.0.26100, a primary display at 125% scale. Validation was performed on 2026-10-15.
 
 ## Automated

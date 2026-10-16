@@ -2,11 +2,11 @@
 
 <img src="docs/images/nagi-logo.png" width="88" alt="Nagi logo">
 
-A local-first Windows 11 desktop companion. **Nagi** reads system context and presents it through a vertical edge rail and control center. One process, one settings file, no account or backend. Nagi (凪) is named for calm; it was previously called Pulse / Halo.
+A local-first Windows 11 desktop companion. **Nagi** reads system context and presents it through a vertical or horizontal edge dock and control center. One process, one settings file, no account or backend. Nagi (凪) is named for calm; it was previously called Pulse / Halo.
 
 Start with the [complete app guide](docs/USER-GUIDE.md), browse the [documentation index](docs/README.md), or try the [simple commented Lua example](docs/examples/simple-ui.lua). The guide covers installation, controls, every feature, settings, privacy, troubleshooting and removal.
 
-**[Download Nagi v1](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1)** · [Release README](RELEASE_README.md). The `v1` release contains the tested Nagi 1.8.0 application build.
+**[Download Nagi 1.9.0](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.9.0)** · [Release README](RELEASE_README.md). The earlier [v1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1) remains on Nagi 1.8.0.
 
 Customize Nagi in **Settings → Lua UI studio**. Edit and apply Lua for colors, card corners, spacing, metric labels and overview sections, or start from Rose glass, Glacier and Quiet focus presets. Saved scripts can be reloaded while Nagi runs. See [the Lua UI guide](docs/LUA-UI.md).
 
@@ -15,6 +15,14 @@ The vertical edge rail shows the Nagi logo, quick search, CPU/GPU, media, microp
 Akeno adds ink-black glass, vermilion accents and restrained Japanese motifs around the Nagi logo. Choose it under **Settings → Theme**. Media artwork appears in the vertical rail, hover preview and overview when supplied by the player. Output volume, mute and a measured signal-activity meter refresh independently every 50 ms; both volume sliders stay synchronized with Windows. Preview height adapts to screen work area and DPI.
 
 Press **Alt + Space** for **Quick search**: installed apps, locally indexed filenames/folders, a calculator and Nagi actions. Try `app: chrome`, `file: report`, `> volume` or `24 * 7`. Configure folders and the shortcut under Settings → Quick search. A tray command and Nagi search icon are also available. [Quick search guide](docs/QUICK-SEARCH.md).
+
+## Set up Nagi 1.9
+
+Run **Nagi-Setup-1.9.0.exe** for a per-user installation, then open Nagi. The welcome page asks for a local display name, theme, dock layout and screen edge. Connect OBS or skip it, then choose a weather city or skip weather. Nagi starts as a water drop touching the selected edge.
+
+Vertical docks attach left/right; horizontal docks attach top/bottom. Hover reveals controls, click pins them, and the next click expands details inward. Settings can change layout, edge, name and city later. Music includes artwork and a live output-level visualizer; **Speakers** selects connected Windows media outputs.
+
+Weather is optional. Explicit city searches and selected coordinates go to Open-Meteo; Nagi does not request GPS or IP geolocation. Current model conditions cache for 15 minutes, with clearly marked stale/offline states. No weather requests occur when weather is disabled. The existing GitHub v1 release stays on 1.8.0; current source and local setup are **1.9.0**.
 
 ## Run
 

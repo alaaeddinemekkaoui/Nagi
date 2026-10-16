@@ -1,5 +1,13 @@
 # Build and distribution
 
+## Native setup executable (1.9)
+
+After publishing, run `./scripts/Build-NagiInstaller.ps1 -SkipPublish`. Use PowerShell 7 and NSIS 3.12: install its compiler or pass `-CompilerPath` to `makensis.exe`. The helper also recognizes `artifacts/tooling/nsis-3.12/makensis.exe`. Official portable compiler: https://nsis.sourceforge.io/Download. The verified 3.12 compiler ZIP SHA256 used here is `56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f`.
+
+The output is `artifacts/Nagi-Setup-1.9.0.exe` plus `.sha256`. Modern UI 2 supplies native setup pages. NSIS calls the same guarded graceful-close and shortcut helpers as the portable installer, writes an HKCU uninstall entry, and removes only files listed in the published payload. Unknown files and user data are retained. Setup adds no autostart registration unless the user previously opted in. Setup and app are unsigned in this environment.
+
+`Smoke-NagiWelcome.ps1 -ExecutablePath <exe>` exercises welcome name validation, themes, horizontal hover, weather lookup and speaker UI. `-SkipWeather` checks the offline path. An owned OBS fixture can be supplied with `-ObsPort` and `-ObsPassword`. Back up/restore preferences and credentials before QA: this helper intentionally completes onboarding with a test name/city. It does not select a different speaker or start recording.
+
 Use Windows 11 x64 with the SDK pinned in `global.json`. Windows SDK 10.0.26100 is installed on the implementation machine. NuGet restores the Windows App SDK compiler and native dependencies. No Electron, browser, backend, administrator token or runtime download is required by the published application.
 
 ```powershell

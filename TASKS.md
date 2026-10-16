@@ -4,6 +4,12 @@ Legend: **Verified** = automated or observed runtime pass on the implementation 
 
 | Requirement | State | Evidence / remaining coverage |
 | --- | --- | --- |
+| Native installer / Apps & features removal | Verified | Actual per-user install, launch and graceful removal; exact preferences and unknown-file retention |
+| Welcome / name / theme / layout / optional OBS | Verified | Native UI flow, real authenticated local OBS status connection, skip paths, cancel and persisted settings |
+| Horizontal top/bottom / vertical left/right | Verified | Four-edge live hover/pin/expand/preview checks and native work-area/DPI geometry tests |
+| Resting water-drop silhouette | Verified | Shared contour tests, Win2D surface and matching native clipping; live attachment on four edges |
+| Music visualizer / speaker selection | Verified | Measured system peak history, live selector UI, connected endpoint enumeration and existing-endpoint routing test |
+| Optional city weather | Implemented | Controlled HTTP/cache/error tests and live geocoding; UI timeout/offline states observed; live forecast DNS unavailable here |
 | Quick search / apps / files / useful actions | Verified | 149 automated cases; live Alt+Space, 276 installed apps, filename fixture, calculator, filters, Escape/reopen and Settings navigation; folder scope configurable |
 | Akeno / live media and audio | Verified | 120 automated cases; live Akeno/audio refresh/hover/screen-fit and both-edge interaction checks; actual player artwork and playback matrix pending |
 | Lua UI editor / presets / reload | Verified | 25 new automated cases plus live editor/apply/reload/error/opt-out checks; declarative appearance API documented in docs/LUA-UI.md |

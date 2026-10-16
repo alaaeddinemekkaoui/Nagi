@@ -3,6 +3,8 @@ using Pulse.Core;
 
 namespace Pulse.Windows;
 
+public sealed record AudioOutputDevice(string Id, string Name, bool IsDefault);
+
 // Cached Core Audio interfaces are serialized across sampling and control calls.
 public sealed class AudioControlService(bool capture = false) : IAudioControlService, IDisposable
 {
@@ -92,6 +94,62 @@ public sealed class AudioControlService(bool capture = false) : IAudioControlSer
     {
         var context = Guid.Empty; return v.SetMute(muted, ref context);
     });
+    public IReadOnlyList<AudioOutputDevice> GetOutputDevices()
+    {
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (capture) return [];
+            _enumerator ??= (IMMDeviceEnumerator)new MMDeviceEnumerator();
+            IMMDeviceCollection? devices = null; IMMDevice? current = null;
+            try
+            {
+                string? selected = null;
+                if (_enumerator.GetDefaultAudioEndpoint(0, 1, out current) >= 0) current.GetId(out selected!);
+                Marshal.ThrowExceptionForHR(_enumerator.EnumAudioEndpoints(0, 1, out devices));
+                Marshal.ThrowExceptionForHR(devices.GetCount(out var count));
+                var result = new List<AudioOutputDevice>();
+                for (uint i = 0; i < count; i++)
+                {
+                    IMMDevice? device = null;
+                    try
+                    {
+                        Marshal.ThrowExceptionForHR(devices.Item(i, out device));
+                        Marshal.ThrowExceptionForHR(device.GetId(out var id));
+                        result.Add(new(id, ReadName(device), id == selected));
+                    }
+                    finally { if (device is not null) Marshal.ReleaseComObject(device); }
+                }
+                return result.OrderByDescending(d => d.IsDefault).ThenBy(d => d.Name).ToArray();
+            }
+            finally
+            {
+                if (current is not null) Marshal.ReleaseComObject(current);
+                if (devices is not null) Marshal.ReleaseComObject(devices);
+            }
+        }
+    }
+    // Windows exposes endpoint enumeration publicly; default switching uses its PolicyConfig COM service.
+    // Keep communications routing intact. The Sound settings button remains available if this service changes.
+    public OperationResult SetOutputDevice(string id, bool multimediaOnly = false)
+    {
+        lock (_gate)
+        {
+            object? policy = null;
+            try
+            {
+                if (!GetOutputDevices().Any(d => d.Id == id)) return OperationResult.Fail("This speaker is no longer connected.");
+                policy = new PolicyConfigClient();
+                var config = (IPolicyConfig)policy;
+                if (!multimediaOnly) Marshal.ThrowExceptionForHR(config.SetDefaultEndpoint(id, 0));
+                Marshal.ThrowExceptionForHR(config.SetDefaultEndpoint(id, 1));
+                _nextProbe = 0;
+                return OperationResult.Ok("Speaker changed.");
+            }
+            catch (Exception ex) { return OperationResult.Fail("Speaker change unavailable: " + ex.GetType().Name + ". Open Windows sound settings."); }
+            finally { if (policy is not null) Marshal.ReleaseComObject(policy); }
+        }
+    }
     private OperationResult Execute(Func<IAudioEndpointVolume, int> action)
     {
         try { return WithEndpoint(volume => { Marshal.ThrowExceptionForHR(action(volume)); return OperationResult.Ok("Audio updated"); }); }
@@ -129,8 +187,30 @@ public sealed class AudioControlService(bool capture = false) : IAudioControlSer
     [ComImport, Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDeviceEnumerator
     {
-        [PreserveSig] int EnumAudioEndpoints(int flow, uint mask, out nint devices);
+        [PreserveSig] int EnumAudioEndpoints(int flow, uint mask, out IMMDeviceCollection devices);
         [PreserveSig] int GetDefaultAudioEndpoint(int flow, int role, out IMMDevice device);
+    }
+    [ComImport, Guid("0BD7A1BE-7A1A-44DB-8397-CC5392387B5E"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IMMDeviceCollection
+    {
+        [PreserveSig] int GetCount(out uint count);
+        [PreserveSig] int Item(uint index, out IMMDevice device);
+    }
+    [ComImport, Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")] private class PolicyConfigClient { }
+    [ComImport, Guid("F8679F50-850A-41CF-9C72-430F290290C8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IPolicyConfig
+    {
+        [PreserveSig] int GetMixFormat(nint id, nint format);
+        [PreserveSig] int GetDeviceFormat(nint id, int @default, nint format);
+        [PreserveSig] int ResetDeviceFormat(nint id);
+        [PreserveSig] int SetDeviceFormat(nint id, nint endpointFormat, nint mixFormat);
+        [PreserveSig] int GetProcessingPeriod(nint id, int @default, nint period, nint minimum);
+        [PreserveSig] int SetProcessingPeriod(nint id, nint period);
+        [PreserveSig] int GetShareMode(nint id, nint mode);
+        [PreserveSig] int SetShareMode(nint id, nint mode);
+        [PreserveSig] int GetPropertyValue(nint id, int effects, nint key, nint value);
+        [PreserveSig] int SetPropertyValue(nint id, int effects, nint key, nint value);
+        [PreserveSig] int SetDefaultEndpoint([MarshalAs(UnmanagedType.LPWStr)] string id, int role);
     }
     [ComImport, Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDevice

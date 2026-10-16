@@ -166,16 +166,26 @@ public sealed partial class MainWindow
         SettingsPage.Children.Clear();
         SettingsPage.Children.Add(Heading("Make Nagi yours."));
         SettingsPage.Children.Add(Note("Preferences are stored on this PC. Nagi has no account, server or activity telemetry."));
+        BuildPersonalSettings();
         var appearance = Stack();
         appearance.Children.Add(Heading("Appearance & placement"));
         var theme = Select(new[] { "Akeno", "Dark", "Light", "System" }, ViewModel.Settings.Theme, "Theme");
         theme.SelectionChanged += async (_, _) => { if (theme.SelectedItem is string selected) await CommitAsync(s => s with { Theme = selected }); };
         appearance.Children.Add(Labeled("Theme", theme));
         appearance.Children.Add(Toggle("Translucent glass", "Native acrylic follows Windows transparency and contrast preferences.", ViewModel.Settings.GlassEnabled, (s, v) => s with { GlassEnabled = v }));
-        var anchors = Select(new[] { "Right edge", "Left edge" }, ViewModel.Settings.Position.Anchor, "Nagi position");
+        var orientation = Select(new[] { "Vertical", "Horizontal" }, ViewModel.Settings.Position.Orientation, "Dock layout");
+        orientation.SelectionChanged += async (_, _) =>
+        {
+            if (orientation.SelectedItem is not string selected) return;
+            await CommitAsync(s => s with { Position = s.Position with { Orientation = selected, Anchor = selected == "Horizontal" ? "Bottom edge" : "Right edge", OffsetX = 0, OffsetY = 0 } });
+            BuildSettingsPage();
+        };
+        appearance.Children.Add(Labeled("Dock layout", orientation));
+        var edges = ViewModel.Settings.Position.Orientation == "Horizontal" ? new[] { "Top edge", "Bottom edge" } : new[] { "Right edge", "Left edge" };
+        var anchors = Select(edges, ViewModel.Settings.Position.Anchor, "Nagi position");
         anchors.SelectionChanged += async (_, _) =>
         { if (anchors.SelectedItem is string selected) await CommitAsync(s => s with { Position = s.Position with { Anchor = selected, OffsetX = 0, OffsetY = 0 } }); };
-        appearance.Children.Add(Labeled("Screen edge · drag compact controls to adjust height or switch sides", anchors));
+        appearance.Children.Add(Labeled("Screen edge · drag the logo to reposition", anchors));
         var monitors = HaloWindowManager.GetMonitors();
         var displayNames = new[] { "Primary display" }.Concat(monitors.Select(m => m.Label)).ToArray();
         var selectedDisplay = monitors.FirstOrDefault(m => m.Device == ViewModel.Settings.Position.Monitor)?.Label ?? "Primary display";
@@ -221,7 +231,7 @@ public sealed partial class MainWindow
         SettingsPage.Children.Add(Card(behavior));
 
         var diagnostics = Stack(); diagnostics.Children.Add(Heading("Integrations & diagnostics"));
-        diagnostics.Children.Add(Note($"Nagi 1.8 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
+        diagnostics.Children.Add(Note($"Nagi 1.9 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
         diagnostics.Children.Add(Note("CPU: " + (ViewModel.Metrics.Cpu.HasValue ? "available · GetSystemTimes" : "waiting / unavailable")
             + "\nMemory: " + (ViewModel.Metrics.TotalMemory > 0 ? $"{GiB(ViewModel.Metrics.AvailableMemory):0.0} GB available of {GiB(ViewModel.Metrics.TotalMemory):0.0} GB" : "unavailable")
             + "\nNetwork: " + (ViewModel.Metrics.ReceiveBytesPerSecond.HasValue ? "available · aggregate active adapters" : "waiting / unavailable")
@@ -314,12 +324,25 @@ public sealed partial class MainWindow
         else ViewModel.Publish("Nagi defaults restored.", true);
         BuildSettingsPage(); BuildRulesPage();
     }
-    private ContentDialog Dialog(string title, UIElement content) => new()
+    private ContentDialog Dialog(string title, UIElement content)
     {
-        Title = title, Content = new ScrollViewer { Content = content, MaxHeight = 420, VerticalScrollBarVisibility = ScrollBarVisibility.Auto },
-        PrimaryButtonText = "Save", CloseButtonText = "Cancel", DefaultButton = ContentDialogButton.Primary,
-        XamlRoot = Root.XamlRoot, RequestedTheme = Shell.ActualTheme
-    };
+        var dialog = new ContentDialog
+        {
+            Title = title, Content = new ScrollViewer { Content = content, MaxHeight = 420, VerticalScrollBarVisibility = ScrollBarVisibility.Auto },
+            PrimaryButtonText = "Save", CloseButtonText = "Cancel", DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = Root.XamlRoot, RequestedTheme = Shell.ActualTheme
+        };
+        if (ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast)
+        {
+            dialog.Resources["AccentFillColorDefaultBrush"] = new SolidColorBrush(global::Windows.UI.Color.FromArgb(255, 180, 42, 47));
+            dialog.Resources["AccentFillColorSecondaryBrush"] = new SolidColorBrush(global::Windows.UI.Color.FromArgb(255, 196, 47, 52));
+            dialog.Resources["AccentFillColorTertiaryBrush"] = new SolidColorBrush(global::Windows.UI.Color.FromArgb(255, 165, 36, 41));
+            dialog.Resources["TextOnAccentFillColorPrimaryBrush"] = new SolidColorBrush(Colors.White);
+            foreach (var key in new[] { "ListBoxItemBackgroundSelected", "ListBoxItemBackgroundSelectedPointerOver", "ListBoxItemBackgroundSelectedPressed" })
+                dialog.Resources[key] = ThemeBrush("AccentWashBrush");
+        }
+        return dialog;
+    }
     private async Task<ContentDialogResult> ShowDialogAsync(ContentDialog dialog)
     {
         if (_dialogOpen) return ContentDialogResult.None;

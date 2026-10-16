@@ -7,6 +7,7 @@ foreach ($pulseRequired in @('Nagi.exe','Nagi.pri','App.xbf','MainWindow.xbf','T
     if (!(Test-Path -LiteralPath (Join-Path $pulseOutput $pulseRequired))) { throw "Publish is missing required WinUI resource: $pulseRequired" }
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-Nagi.ps1') -Destination $pulseOutput -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Complete-NagiInstall.ps1') -Destination $pulseOutput -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Uninstall-Nagi.ps1') -Destination $pulseOutput -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Close-Nagi.ps1') -Destination $pulseOutput -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Sign-Nagi.ps1') -Destination $pulseOutput -Force

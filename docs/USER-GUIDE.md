@@ -1,6 +1,6 @@
 # Nagi app guide
 
-This guide covers Nagi 1.8 on Windows 11 x64, version 22H2 or newer. Nagi reads local desktop context and system information through an edge rail, hover previews and control panel. There is no account or backend.
+This guide covers Nagi on Windows 11 x64, version 22H2 or newer. Start with the [Nagi 1.9 setup, layout, weather and speaker guide](WELCOME-AND-LAYOUT.md) for the new installer and welcome flow. Nagi has no account or backend.
 
 ## Contents
 

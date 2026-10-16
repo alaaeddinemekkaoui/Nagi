@@ -6,6 +6,21 @@ namespace Pulse.Tests;
 
 public sealed class MediaDesignTests
 {
+    [Theory]
+    [InlineData("Left edge", 18, 132)]
+    [InlineData("Right edge", 18, 132)]
+    [InlineData("Top edge", 132, 18)]
+    [InlineData("Bottom edge", 132, 18)]
+    public void WaterDropTouchesEdgeAndTapersAtBothEnds(string edge, float width, float height)
+    {
+        var points = EdgeDropContour.Create(width, height, edge);
+        Assert.All(points, point => { Assert.InRange(point.X, 0, width); Assert.InRange(point.Y, 0, height); });
+        var center = points[33];
+        if (edge == "Left edge") { Assert.Equal(0, points[0].X); Assert.Equal(width, center.X); Assert.Equal(0, points[^1].X); }
+        if (edge == "Right edge") { Assert.Equal(width, points[0].X); Assert.Equal(0, center.X); Assert.Equal(width, points[^1].X); }
+        if (edge == "Top edge") { Assert.Equal(0, points[0].Y); Assert.Equal(height, center.Y); Assert.Equal(0, points[^1].Y); }
+        if (edge == "Bottom edge") { Assert.Equal(height, points[0].Y); Assert.Equal(0, center.Y); Assert.Equal(height, points[^1].Y); }
+    }
     [Fact] public void AkenoThemeSurvivesSettingsNormalization() => Assert.Equal("Akeno", (new PulseSettings { Theme = "Akeno" }).Normalize().Theme);
     [Fact] public void AudioEnvelopeNeverInventsActivityAndReleasesToSilence()
     {

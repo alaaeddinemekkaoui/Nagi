@@ -49,8 +49,10 @@ public sealed partial class MainWindow
     }
     private bool PointerOnEdgeLip()
     {
-        if (!_windowManager.TryGetPointerPosition(out var x, out _)) return false;
+        if (!_windowManager.TryGetPointerPosition(out var x, out var y)) return false;
         var frame = _windowManager.CurrentFrame;
+        if (ViewModel.Settings.Position.Orientation == "Horizontal")
+            return ViewModel.Settings.Position.Anchor == "Top edge" ? y < 12 : y > frame.Height / frame.Scale - 12;
         return ViewModel.Settings.Position.Anchor == "Left edge" ? x < 12 : x > frame.Width / frame.Scale - 12;
     }
     private void Dock_Click(object sender, RoutedEventArgs e)

@@ -7,6 +7,7 @@ namespace Pulse.App;
 public sealed partial class MainWindow
 {
     private Task? _audioPolling;
+    private readonly global::Windows.UI.ViewManagement.UISettings _audioMotion = new();
     private AudioSnapshot _latestAudio = new(null, false, "Checking audio…");
     private int _audioFrameQueued;
     private long _audioFrameCount;
@@ -57,5 +58,12 @@ public sealed partial class MainWindow
         var accent = ThemeBrush("PulseAccentBrush");
         OutputAudioMeter.Update(level, audio.Peak.HasValue, accent);
         PeekAudioMeter.Update(level, audio.Peak.HasValue, accent);
+        var animate = !ViewModel.Settings.ReducedMotion && _audioMotion.AnimationsEnabled;
+        if (!_userHidden)
+        {
+            if (Compact.Visibility == Microsoft.UI.Xaml.Visibility.Visible) CompactMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+            if (PeekHost.Visibility == Microsoft.UI.Xaml.Visibility.Visible) PeekMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+            if (Expanded.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _page == "Overview") OutputMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+        }
     }
 }

@@ -7,6 +7,20 @@ namespace Pulse.Windows.Tests;
 
 public sealed class WindowsIntegrationTests
 {
+    [Fact] public void SpeakerEnumerationUsesConnectedEndpointsAndRejectsUnknownDevices()
+    {
+        using var service = new AudioControlService();
+        var devices = service.GetOutputDevices();
+        Assert.All(devices, device => { Assert.False(string.IsNullOrWhiteSpace(device.Id)); Assert.False(string.IsNullOrWhiteSpace(device.Name)); });
+        Assert.InRange(devices.Count(d => d.IsDefault), 0, 1);
+        Assert.False(service.SetOutputDevice("Nagi.missing.speaker").Success);
+        // Writing the existing speaker exercises routing without changing the user's selected endpoint.
+        if (devices.FirstOrDefault(d => d.IsDefault) is { } current)
+        {
+            Assert.True(service.SetOutputDevice(current.Id, multimediaOnly: true).Success);
+            Assert.Equal(current.Id, Assert.Single(service.GetOutputDevices(), d => d.IsDefault).Id);
+        }
+    }
     [Fact] public async Task InstalledApplicationsComeFromWindowsAndUnknownEntriesCannotLaunch()
     {
         var catalog = await SearchApplications.ReadAsync(default);
@@ -188,6 +202,37 @@ public sealed class WindowsIntegrationTests
                 Assert.InRange(frame.Y, monitor.Work.Top, monitor.Work.Bottom - frame.Height);
             }
             Assert.True(drop.Width < compact.Width);
+            Assert.False(manager.IsVisible);
+        }
+        finally { DestroyWindow(hwnd); }
+    }
+    [Theory]
+    [InlineData("Top edge", 0)]
+    [InlineData("Bottom edge", 0)]
+    [InlineData("Top edge", -100000)]
+    [InlineData("Bottom edge", 100000)]
+    public void HorizontalDockPreservesItsRailAnchorAndStaysWithinTheWorkArea(string anchor, double offset)
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi horizontal layout test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var position = new HaloPosition(Anchor: anchor, OffsetX: offset, Orientation: "Horizontal");
+            var compact = manager.PrepareLayout(false, false, position, 84);
+            manager.ApplyFrame(compact);
+            var monitor = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            Assert.True(GetMonitorInfo(MonitorFromWindow(hwnd, 2), ref monitor));
+            var frames = new[] { manager.PrepareLayout(false, false, position, 84, true), compact,
+                manager.PrepareLayout(false, false, position, 336), manager.PrepareLayout(true, true, position) };
+            Assert.Equal(76 * compact.Scale, compact.Height, 0);
+            foreach (var frame in frames)
+            {
+                Assert.InRange(frame.X, monitor.Work.Left, monitor.Work.Right - frame.Width);
+                Assert.InRange(frame.Y, monitor.Work.Top, monitor.Work.Bottom - frame.Height);
+                Assert.Equal(anchor == "Top edge" ? monitor.Work.Top : monitor.Work.Bottom,
+                    anchor == "Top edge" ? frame.Y : frame.Y + frame.Height);
+                Assert.InRange(Math.Abs(compact.X + compact.Width / 2 - (frame.X + frame.Width / 2)), 0, 1);
+            }
             Assert.False(manager.IsVisible);
         }
         finally { DestroyWindow(hwnd); }

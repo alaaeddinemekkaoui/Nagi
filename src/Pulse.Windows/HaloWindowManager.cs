@@ -16,6 +16,8 @@ public sealed class HaloWindowManager : IWindowManager
     private bool? _visible;
     private double _dropAmount;
     private bool _hasFrame;
+    private bool _dropRegion;
+    public event Action<HaloFrame>? FrameApplied;
     public bool PreviewAbove { get; private set; }
     public event Action? ToggleRequested;
     public event Action? HideRequested;
@@ -96,6 +98,19 @@ public sealed class HaloWindowManager : IWindowManager
             Native.GetDpiForMonitor(selected.Handle, 0, out var dpi, out _);
             var scale = (dpi == 0 ? 96 : dpi) / 96d;
             var work = selected.Info.Work;
+            if (position.Orientation == "Horizontal")
+            {
+                var preview = !expanded && !edgeResting && compactHeight > 84;
+                var railWidth = Math.Min(work.Width - 16, Math.Round(760 * scale));
+                var widthH = edgeResting && !expanded ? Math.Min(railWidth, Math.Round(132 * scale)) : railWidth;
+                var heightH = Math.Min(work.Height - 16, Math.Round((expanded ? dashboard ? 800 : 780 : edgeResting ? 18 : preview ? 400 : 76) * scale));
+                var centerX = Math.Clamp(work.Left + work.Width / 2d + position.OffsetX * scale,
+                    work.Left + railWidth / 2 + 8, Math.Max(work.Left + railWidth / 2 + 8, work.Right - railWidth / 2 - 8));
+                var top = position.Anchor is "Top edge" or "Top center";
+                PreviewAbove = !top;
+                return new(Math.Round(centerX - widthH / 2), top ? work.Top : work.Bottom - heightH,
+                    widthH, heightH, 22 * scale, scale, edgeResting && !expanded ? 1 : 0);
+            }
             var edge = position.Anchor is "Left edge" or "Right edge";
             if (edge)
             {
@@ -133,8 +148,17 @@ public sealed class HaloWindowManager : IWindowManager
             if (!_hasFrame || !Native.GetWindowRect(_hwnd, out var current) || current.Left != x || current.Top != y || current.Width != width || current.Height != height)
                 Native.SetWindowPos(_hwnd, -1, x, y, width, height, 0x0010);
             _dropAmount = Math.Clamp(frame.DropAmount, 0, 1);
-            if (!_hasFrame) Native.SetWindowRgn(_hwnd, 0, true);
-            _hasFrame = true; // DWM rounds the window; Win2D draws the surface.
+            if (_dropAmount > .001)
+            {
+                var contour = Pulse.Core.Motion.EdgeDropContour.Create(width, height, _position.Anchor, _dropAmount);
+                var points = contour.Select(p => new Native.Point { X = (int)Math.Round(p.X), Y = (int)Math.Round(p.Y) }).ToArray();
+                var region = Native.CreatePolygonRgn(points, points.Length, 1);
+                if (region != 0 && Native.SetWindowRgn(_hwnd, region, true) == 0) Native.DeleteObject(region);
+                _dropRegion = true;
+            }
+            else if (!_hasFrame || _dropRegion) { Native.SetWindowRgn(_hwnd, 0, true); _dropRegion = false; }
+            _hasFrame = true;
+            FrameApplied?.Invoke(frame);
 
         }
         finally { _layout = false; }
@@ -164,6 +188,13 @@ public sealed class HaloWindowManager : IWindowManager
         var monitor = new Native.MonitorInfo { Size = Marshal.SizeOf<Native.MonitorInfo>() };
         if (!Native.GetMonitorInfo(Native.MonitorFromWindow(_hwnd, 2), ref monitor)) return;
         var scale = Native.GetDpiForWindow(_hwnd) / 96d;
+        if (_position.Orientation == "Horizontal")
+        {
+            var top = rect.Top + rect.Height / 2d < monitor.Work.Top + monitor.Work.Height / 2d;
+            _position = _position with { Monitor = monitor.Device, Anchor = top ? "Top edge" : "Bottom edge", OffsetY = 0,
+                OffsetX = (rect.Left + rect.Width / 2d - (monitor.Work.Left + monitor.Work.Width / 2d)) / scale };
+            PositionChanged?.Invoke(_position); return;
+        }
         var anchor = rect.Left + rect.Width / 2d < (monitor.Monitor.Left + monitor.Monitor.Right) / 2d ? "Left edge" : "Right edge";
         _position = _position with { Monitor = monitor.Device, Anchor = anchor, OffsetX = 0,
             OffsetY = (rect.Top + rect.Height / 2d - (monitor.Work.Top + monitor.Work.Height / 2d)) / scale };
