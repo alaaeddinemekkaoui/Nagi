@@ -1,19 +1,15 @@
-# Nagi 1.9.1
+# Nagi 1.10.0
 
-This update fixes dark corner patches, the clipped red decoration and horizontal media spacing. Installer Finish now opens welcome on upgrades, and Settings → Run welcome setup reopens it with existing choices prefilled.
+Settings now opens a category grid. Profiles now control editable app docks and visible widgets. Work suggests VS Code, Terminal and Browser; Gaming suggests Steam and Browser. Choose installed apps in Profiles → Customize. The first four appear on the edge; Overview lists every configured app.
 
-Nagi includes a native installer and a welcome flow: choose your local name, theme, vertical/horizontal layout and edge, optional OBS connection, and optional weather city.
+**Open apps when I activate this profile** is off by default. When enabled, choosing a profile explicitly opens its apps. Startup and automatic foreground switching only update the dock/widgets. Switching profiles never closes apps.
 
-Download the [installer](https://github.com/alaaeddinemekkaoui/Nagi/releases/download/v1.9.1/Nagi-Setup-1.9.1.exe) from the [1.9.1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.9.1). Run **Nagi-Setup-1.9.1.exe**, then open Nagi from Start. Windows 11 x64 22H2+ is required. Setup installs for your Windows account without administrator rights. The app and installer are unsigned. Verify the adjacent SHA256 file using Get-FileHash.
+Click the logo once to open the large centered control center. Microphone status and mute controls sit below media. Glass follows Windows light/dark mode by default. Akeno has a generated Samurai background with Gradient and None alternatives. The native window now clips its corners directly; the rail stays flat against its attached edge.
 
-Nagi starts as a water drop touching the selected edge. Hover reveals the rail, click pins it, and the next click expands details inward. Vertical attaches left/right; horizontal attaches top/bottom. Settings can change these choices later.
+Download [Nagi-Setup-1.10.0.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/download/v1.10.0/Nagi-Setup-1.10.0.exe) from the [private GitHub release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.10.0). Windows 11 x64 22H2+ is required. Setup installs per user without administrator rights and preserves preferences, Lua scripts and credentials. The app and installer are unsigned; verify the adjacent SHA256 file.
 
-Music includes supplied artwork and a measured live output-level visualizer. Speakers selects a connected Windows media output. Optional weather sends explicit city searches and selected coordinates to Open-Meteo; no device geolocation is used. OBS connects only to this computer and never starts recording during setup. Both can be skipped.
+Installer Finish opens welcome with saved choices: local name, theme/layout/edge, optional OBS, and optional weather city. Normal launches go directly to the configured dock after welcome is complete. Reopen it under Settings → General → Run welcome setup.
 
-Alt+Space opens quick search. Ctrl+Alt+Space opens the control center. Ctrl+Alt+H hides/shows the dock. Quit is available in the system tray.
+Alt+Space opens search; Ctrl+Alt+Space opens the panel; Ctrl+Alt+H hides/shows Nagi. Quit is in the system tray. The self-contained portable ZIP remains available. Keep all files together.
 
-The portable Nagi-win-x64.zip contains the same self-contained app. Extract all files together and run Nagi.exe. Install-Nagi.ps1 remains available. Remove through Windows Installed apps or Uninstall-Nagi.ps1; preferences and Lua scripts are retained.
-
-See [the complete guide](docs/USER-GUIDE.md), [welcome/layout details](docs/WELCOME-AND-LAYOUT.md), [build instructions](docs/BUILD.md), [validation](docs/VALIDATION.md), and [changelog](CHANGELOG.md). GPU/temperature/FPS depend on available providers and permissions. Tests on this desktop do not certify every monitor, media player or clean Windows installation.
-
-The existing GitHub v1 release remains on Nagi 1.8.0. Its original notes are preserved in [docs/RELEASE-v1.md](docs/RELEASE-v1.md).
+See [the full guide](docs/USER-GUIDE.md), [build instructions](docs/BUILD.md), [validation](docs/VALIDATION.md), [background provenance](docs/ASSETS.md) and [changelog](CHANGELOG.md). Sensor/FPS/OBS support depends on available providers and permissions. Broader clean-machine, monitor, player and accessibility checks remain documented.

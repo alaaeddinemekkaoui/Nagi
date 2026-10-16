@@ -35,7 +35,7 @@ public sealed partial class MainWindow
     {
         var settings = ViewModel.Settings;
         var enabled = settings.WeatherEnabled && settings.WeatherLocation is { IsValid: true };
-        WeatherCard.Visibility = RailWeatherButton.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
+        WeatherCard.Visibility = RailWeatherButton.Visibility = enabled && settings.Workspace(ViewModel.Profile).Shows("Weather") ? Visibility.Visible : Visibility.Collapsed;
         if (!enabled) return;
         var current = _weatherSnapshot.Location == settings.WeatherLocation && _weatherSnapshot.Unit == settings.WeatherUnit
             ? _weatherSnapshot : new(settings.WeatherLocation, null, null, null, null, true, null, settings.WeatherUnit, "Checking weather…");
@@ -59,6 +59,9 @@ public sealed partial class MainWindow
         profile.Children.Add(Button("Run welcome setup", (_, _) => RestartWelcome()));
         profile.Children.Add(Note("Revisit your name, theme, layout, OBS and city. Existing choices stay filled in; canceling keeps your saved settings."));
         SettingsPage.Children.Add(Card(profile));
+    }
+    private void BuildWeatherSettings()
+    {
         var weather = Stack(); weather.Children.Add(Heading("Weather"));
         weather.Children.Add(Note(ViewModel.Settings.WeatherLocation?.Label ?? "Choose a city to show weather."));
         if (ViewModel.Settings.WeatherLocation is { IsValid: true })

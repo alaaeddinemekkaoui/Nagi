@@ -16,7 +16,7 @@ public sealed class HaloWindowManager : IWindowManager
     private bool? _visible;
     private double _dropAmount;
     private bool _hasFrame;
-    private bool _dropRegion;
+    private bool _controlCenter;
     public event Action<HaloFrame>? FrameApplied;
     public bool PreviewAbove { get; private set; }
     public event Action? ToggleRequested;
@@ -89,6 +89,7 @@ public sealed class HaloWindowManager : IWindowManager
     }
     public HaloFrame PrepareLayout(bool expanded, bool dashboard, HaloPosition position, double compactHeight = 54, bool edgeResting = false)
     {
+            _controlCenter = false;
             _expanded = expanded; _dashboard = dashboard; _position = position;
             var monitors = Monitors();
             if (monitors.Count == 0) return CurrentFrame;
@@ -117,7 +118,7 @@ public sealed class HaloWindowManager : IWindowManager
                 var screen = selected.Info.Monitor;
                 var preview = !expanded && !edgeResting && compactHeight > 84;
                 var edgeWidth = Math.Min(work.Width - 16, (int)Math.Round((expanded ? dashboard ? 720 : 580 : edgeResting ? 18 : preview ? 430 : 80) * scale));
-                var railHeight = Math.Min(420 * scale, work.Height - 16);
+                var railHeight = Math.Min(560 * scale, work.Height - 16);
                 var center = Math.Clamp(work.Top + work.Height / 2d + position.OffsetY * scale, work.Top + railHeight / 2 + 8, Math.Max(work.Top + railHeight / 2 + 8, work.Bottom - railHeight / 2 - 8));
                 var edgeHeight = Math.Min(work.Height - 16, (int)Math.Round(expanded ? (dashboard ? 800 : 780) * scale : edgeResting ? 132 * scale : railHeight));
                 PreviewAbove = false;
@@ -154,18 +155,49 @@ public sealed class HaloWindowManager : IWindowManager
                 var points = contour.Select(p => new Native.Point { X = (int)Math.Round(p.X), Y = (int)Math.Round(p.Y) }).ToArray();
                 var region = Native.CreatePolygonRgn(points, points.Length, 1);
                 if (region != 0 && Native.SetWindowRgn(_hwnd, region, true) == 0) Native.DeleteObject(region);
-                _dropRegion = true;
             }
-            else if (!_hasFrame || _dropRegion)
+            else
             {
-                Native.SetWindowRgn(_hwnd, 0, true); _dropRegion = false;
-                var corners = 2; Native.DwmSetWindowAttribute(_hwnd, 33, ref corners, sizeof(int));
+                // Borderless WinUI hosts do not reliably receive DWM corner clipping.
+                // Clip the HWND itself so the backdrop can never paint black outside the silhouette.
+                var diameter = (int)Math.Round(Math.Min(frame.Radius * 2, Math.Min(frame.Width, frame.Height)));
+                var region = Native.CreateRoundRectRgn(0, 0, (int)Math.Round(frame.Width) + 1, (int)Math.Round(frame.Height) + 1, diameter, diameter);
+                if (region != 0 && !_controlCenter)
+                {
+                    // The attached edge stays flat against the display; only the inward corners round.
+                    var radius = Math.Max(1, diameter / 2);
+                    var flat = _position.Anchor switch
+                    {
+                        "Left edge" => Native.CreateRectRgn(0, 0, radius, height),
+                        "Right edge" => Native.CreateRectRgn(width - radius, 0, width, height),
+                        "Top edge" => Native.CreateRectRgn(0, 0, width, radius),
+                        "Bottom edge" => Native.CreateRectRgn(0, height - radius, width, height),
+                        _ => 0
+                    };
+                    if (flat != 0) { Native.CombineRgn(region, region, flat, 2); Native.DeleteObject(flat); }
+                }
+                if (region != 0 && Native.SetWindowRgn(_hwnd, region, true) == 0) Native.DeleteObject(region);
             }
             _hasFrame = true;
             FrameApplied?.Invoke(frame);
 
         }
         finally { _layout = false; }
+    }
+    public HaloFrame PrepareControlCenter(HaloPosition position)
+    {
+        _controlCenter = _expanded = _dashboard = true; _position = position;
+        var monitors = Monitors();
+        if (monitors.Count == 0) return CurrentFrame;
+        var selected = monitors.FirstOrDefault(m => m.Info.Device == position.Monitor);
+        if (selected.Handle == 0) selected = monitors.FirstOrDefault(m => (m.Info.Flags & 1) != 0);
+        if (selected.Handle == 0) selected = monitors[0];
+        Native.GetDpiForMonitor(selected.Handle, 0, out var dpi, out _);
+        var scale = (dpi == 0 ? 96 : dpi) / 96d;
+        var work = selected.Info.Work;
+        var width = Math.Min(work.Width - 32, Math.Round(960 * scale));
+        var height = Math.Min(work.Height - 32, Math.Round(760 * scale));
+        return new(Math.Round(work.Left + (work.Width - width) / 2), Math.Round(work.Top + (work.Height - height) / 2), width, height, 22 * scale, scale);
     }
     public void SetVisible(bool visible)
     {
@@ -234,6 +266,7 @@ public sealed class HaloWindowManager : IWindowManager
         if (message == 0x0232 && Native.GetWindowRect(hwnd, out var rect))
         {
             _dragging = false;
+            if (_controlCenter) return Native.DefSubclassProc(hwnd, message, wParam, lParam);
             var monitorHandle = Native.MonitorFromWindow(hwnd, 2);
             var monitor = new Native.MonitorInfo { Size = Marshal.SizeOf<Native.MonitorInfo>() };
             if (Native.GetMonitorInfo(monitorHandle, ref monitor))

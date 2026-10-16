@@ -59,6 +59,7 @@ public sealed partial class MainWindow
     {
         if (_closed || _userHidden) return;
         if (ReferenceEquals(sender, CompactBrand) && _suppressLogoClick) return;
+        if (ReferenceEquals(sender, CompactBrand)) { OpenControlCenter("Profiles"); return; }
         _dockSuppressed = _previewSuppressed = false; _dockEnteredAt = 0;
         _previewOpen.Stop(); _previewClose.Stop();
         _dock.Click();

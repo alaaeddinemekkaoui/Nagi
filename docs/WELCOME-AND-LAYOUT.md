@@ -1,6 +1,6 @@
 # Welcome, layout, weather and speakers
 
-Nagi 1.9 adds a native setup executable and a four-step welcome window. Run **Nagi-Setup-1.9.1.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
+Nagi 1.9 adds a native setup executable and a four-step welcome window. Run **Nagi-Setup-1.10.0.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
 
 1. Enter a local display name. No account is created.
 2. Choose Akeno, Dark, Light or System. Choose Vertical with left/right edge, or Horizontal with top/bottom edge.

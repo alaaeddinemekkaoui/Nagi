@@ -1,5 +1,15 @@
 # Validation record
 
+## Nagi 1.10 workspaces, glass and native clipping — 2026-10-16
+
+- All 220 automated cases pass: 174 core/infrastructure and 46 Windows. Release compilation succeeds with zero warnings/errors using the restored cache. No fresh online vulnerability audit was available.
+- Workspace coverage includes distinct defaults, empty docks, malformed/unknown app kinds and widgets, installed-catalog resolution, JSON round trips and opt-in/manual-only launch policy. No app launching was enabled in the normal user profile.
+- Native tests inspect the actual HWND region on all four edges: attached corners are included, inward corners excluded, and the center remains interactive. A centered control-window test checks monitor work-area bounds and return to the edge drop.
+- The isolated workspace UI smoke passes: one logo click opens the centered control center; installed app add/remove; auto-open defaults off and saves without launching; widget selection; microphone card; all nine settings categories and back navigation; Samurai/Gradient/None Akeno modes; Glass (system) selection; Gaming workspace and compact Steam dock button. No microphone mute or OBS recording was triggered in QA.
+- Native screenshots were inspected for the large profile window, settings categories, Akeno background and Gaming dock. UI checks use their own profile and leave the active user's settings alone.
+- The samurai PNG is locally bundled and generated with the built-in image tool; its exact prompt is in ASSETS.md. Graphify's AST graph was updated after code edits.
+- Existing weather DNS, physical speaker-routing, player and clean-machine limits remain as documented below. App and installer remain unsigned.
+
 ## Nagi 1.9.1 rendering and setup replay — 2026-10-16
 
 - All 206 cases pass: 165 core/infrastructure and 41 Windows. Release build succeeds with zero errors; four NU1900 warnings reflect unavailable NuGet vulnerability metadata.

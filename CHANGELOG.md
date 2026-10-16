@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.10.0 — 2026-10-16
+
+- Added a category grid for Settings, with individual pages and back navigation.
+- Added editable Work/Gaming/Focus app docks and per-profile widget visibility. Work suggests VS Code, Terminal and Browser; Gaming suggests Steam and Browser.
+- Added opt-in app opening on explicit profile activation. Automatic detection and startup only change the dock/widgets.
+- A single logo click opens a large centered control center with profile management.
+- Added microphone status and mute controls immediately below media and in its preview.
+- Made Glass following Windows light/dark mode the default for new settings.
+- Added a locally bundled generated Akeno samurai background with Samurai, Gradient and None options.
+- Clipped the actual native window silhouette to remove opaque corner patches; attached rail edges remain flat and inward corners rounded.
+
 ## 1.9.1 — 2026-10-16
 
 - Fixed dark corner patches by painting the full client area inside the native rounded window.

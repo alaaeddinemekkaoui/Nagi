@@ -89,12 +89,12 @@ public sealed partial class MainWindow
         }
         // Leave the system's HighContrast palette intact.
         var ak = ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast;
-        AkenoDecor.Visibility = ak && _expanded ? Visibility.Visible : Visibility.Collapsed;
+        ApplyThemeBackground();
         AkenoSeal.Visibility = Visibility.Collapsed;
         HeaderMark.Visibility = Visibility.Visible;
         BrandSubtitle.Text = (ak ? "凪 · " : "") + (string.IsNullOrWhiteSpace(ViewModel.Settings.UserName) ? "Calm, within reach." : "Welcome, " + ViewModel.Settings.UserName + ".");
         Root.Background = ak ? new SolidColorBrush(Microsoft.UI.Colors.Transparent) : ThemeBrush("HeaderGlowBrush");
-        WindowSurface.SetColor(((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color);
+        UpdateSurfaceMaterial();
         HomePage.Spacing = _luaStyle.Spacing;
         MetricsGrid.ColumnSpacing = _luaStyle.Spacing;
         MetricsGrid.Visibility = _luaStyle.ShowMetrics ? Visibility.Visible : Visibility.Collapsed;
@@ -113,7 +113,7 @@ public sealed partial class MainWindow
             metric.Customize(_luaStyle.CardRadius, accentBrush);
         CpuMetric.Rename(_luaStyle.CpuLabel); PeekCpuMetric.Rename(_luaStyle.CpuLabel);
         RamMetric.Rename(_luaStyle.MemoryLabel); PeekRamMetric.Rename(_luaStyle.MemoryLabel);
-        ApplyCardRadius(Root);
+        ApplyCardRadius(Root); ApplyWorkspaceVisibility();
     }
 
     private void ApplyCardRadius(DependencyObject parent)

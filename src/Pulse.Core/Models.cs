@@ -13,7 +13,10 @@ public sealed record HaloPosition(string Monitor = "", string Anchor = "Right ed
 public sealed record PulseSettings
 {
     public int SchemaVersion { get; init; } = 1;
-    public string Theme { get; init; } = "Dark";
+    public string Theme { get; init; } = "System";
+    public string AkenoBackground { get; init; } = "Samurai";
+    public ProfileWorkspace[] Workspaces { get; init; } = ProfileWorkspaces.Normalize(null);
+    public ProfileWorkspace Workspace(Profile profile) => Workspaces.FirstOrDefault(w => w.Profile == profile) ?? ProfileWorkspaces.Default(profile);
     public bool WelcomeCompleted { get; init; }
     public string UserName { get; init; } = "";
     public bool WeatherEnabled { get; init; }
@@ -47,7 +50,9 @@ public sealed record PulseSettings
 
     public PulseSettings Normalize() => this with
     {
-        Theme = Theme is "Dark" or "Light" or "System" or "Akeno" ? Theme : "Dark",
+        Theme = Theme is "Dark" or "Light" or "System" or "Akeno" ? Theme : "System",
+        AkenoBackground = AkenoBackground is "Samurai" or "Gradient" or "None" ? AkenoBackground : "Samurai",
+        Workspaces = ProfileWorkspaces.Normalize(Workspaces),
         UserName = new string((UserName ?? "").Where(c => !char.IsControl(c)).Take(32).ToArray()).Trim(),
         WeatherEnabled = WeatherEnabled && WeatherLocation is { IsValid: true },
         WeatherLocation = WeatherLocation is { IsValid: true } city ? city : null,

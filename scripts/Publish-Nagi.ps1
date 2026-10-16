@@ -1,9 +1,11 @@
+param([switch]$NoRestore)
 $ErrorActionPreference = 'Stop'
 $pulseRoot = Split-Path $PSScriptRoot -Parent
 $pulseOutput = Join-Path $pulseRoot 'artifacts/Nagi-win-x64'
-dotnet publish (Join-Path $pulseRoot 'src/Pulse.App/Pulse.App.csproj') -c Release -r win-x64 --self-contained true -o $pulseOutput
+$nagiRestoreArguments = if ($NoRestore) { @('--no-restore') } else { @() }
+dotnet publish @nagiRestoreArguments (Join-Path $pulseRoot 'src/Pulse.App/Pulse.App.csproj') -c Release -r win-x64 --self-contained true -o $pulseOutput
 if ($LASTEXITCODE -ne 0) { throw 'Nagi publish failed.' }
-foreach ($pulseRequired in @('Nagi.exe','Nagi.pri','App.xbf','MainWindow.xbf','Themes/Tokens.xbf','Controls/PulseMark.xbf','Assets/Nagi.Tray.ico','Assets/Nagi.Logo.png','Assets/Nagi.ico','Microsoft.Graphics.Canvas.dll','Microsoft.Graphics.Canvas.Interop.dll','Assets/Tools/PresentMon.exe','Assets/Tools/PresentMon-LICENSE.txt')) {
+foreach ($pulseRequired in @('Nagi.exe','Nagi.pri','App.xbf','MainWindow.xbf','Themes/Tokens.xbf','Controls/PulseMark.xbf','Assets/Nagi.Tray.ico','Assets/Nagi.Logo.png','Assets/Nagi.ico','Assets/Akeno.Samurai.png','Microsoft.Graphics.Canvas.dll','Microsoft.Graphics.Canvas.Interop.dll','Assets/Tools/PresentMon.exe','Assets/Tools/PresentMon-LICENSE.txt')) {
     if (!(Test-Path -LiteralPath (Join-Path $pulseOutput $pulseRequired))) { throw "Publish is missing required WinUI resource: $pulseRequired" }
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-Nagi.ps1') -Destination $pulseOutput -Force

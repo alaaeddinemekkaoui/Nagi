@@ -1,0 +1,62 @@
+using System.Runtime.InteropServices;
+using Pulse.Core;
+using Pulse.Windows;
+using Xunit;
+
+namespace Pulse.Windows.Tests;
+
+public sealed class WindowSilhouetteTests
+{
+    [Theory][InlineData("Left edge")][InlineData("Right edge")][InlineData("Top edge")][InlineData("Bottom edge")]
+    public void RoundedWindowActuallyExcludesTheOpaqueCornerPixels(string edge)
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi silhouette test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        Assert.NotEqual(0, hwnd);
+        var region = CreateRectRgn(0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var position = new HaloPosition(Anchor: edge, Orientation: edge is "Top edge" or "Bottom edge" ? "Horizontal" : "Vertical");
+            manager.ApplyFrame(manager.PrepareLayout(false, false, position, 84, true));
+            var rail = manager.PrepareLayout(false, false, position, 84);
+            manager.ApplyFrame(rail);
+            Assert.NotEqual(0, GetWindowRgn(hwnd, region));
+            Assert.Equal(edge is "Left edge" or "Top edge", PtInRegion(region, 0, 0));
+            Assert.Equal(edge is "Right edge" or "Top edge", PtInRegion(region, (int)rail.Width - 1, 0));
+            Assert.Equal(edge is "Left edge" or "Bottom edge", PtInRegion(region, 0, (int)rail.Height - 1));
+            Assert.Equal(edge is "Right edge" or "Bottom edge", PtInRegion(region, (int)rail.Width - 1, (int)rail.Height - 1));
+            Assert.True(PtInRegion(region, (int)rail.Width / 2, (int)rail.Height / 2));
+            Assert.True(PtInRegion(region, 1, (int)rail.Height / 2));
+        }
+        finally { DeleteObject(region); DestroyWindow(hwnd); }
+    }
+    [Fact] public void ControlCenterFitsAndCentersInsideTheMonitorWorkAreaThenReturnsToDock()
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi center test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var position = new HaloPosition(Anchor: "Top edge", Orientation: "Horizontal");
+            var frame = manager.PrepareControlCenter(position); manager.ApplyFrame(frame);
+            var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            Assert.True(GetMonitorInfo(MonitorFromWindow(hwnd, 2), ref info));
+            Assert.InRange(frame.X, info.Work.Left + 8, info.Work.Right - frame.Width);
+            Assert.InRange(frame.Y, info.Work.Top + 8, info.Work.Bottom - frame.Height);
+            Assert.InRange(Math.Abs(frame.X + frame.Width / 2 - (info.Work.Left + info.Work.Right) / 2d), 0, 1);
+            Assert.InRange(Math.Abs(frame.Y + frame.Height / 2 - (info.Work.Top + info.Work.Bottom) / 2d), 0, 1);
+            var drop = manager.PrepareLayout(false, false, position, 84, true);
+            Assert.Equal(1, drop.DropAmount); Assert.Equal(info.Work.Top, drop.Y);
+        }
+        finally { DestroyWindow(hwnd); }
+    }
+    [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] private struct MonitorInfo { public int Size; public Rect Monitor, Work; public uint Flags; [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string Device; }
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint CreateWindowEx(uint ex, string cls, string name, uint style, int x, int y, int width, int height, nint parent, nint menu, nint instance, nint param);
+    [DllImport("user32.dll")] private static extern bool DestroyWindow(nint hwnd);
+    [DllImport("user32.dll")] private static extern int GetWindowRgn(nint hwnd, nint region);
+    [DllImport("gdi32.dll")] private static extern nint CreateRectRgn(int left, int top, int right, int bottom);
+    [DllImport("gdi32.dll")] private static extern bool PtInRegion(nint region, int x, int y);
+    [DllImport("gdi32.dll")] private static extern bool DeleteObject(nint value);
+    [DllImport("user32.dll")] private static extern nint MonitorFromWindow(nint hwnd, uint flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
+}

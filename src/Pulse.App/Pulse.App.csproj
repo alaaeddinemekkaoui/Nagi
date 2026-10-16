@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Version>1.9.1</Version>
+    <Version>1.10.0</Version>
     <AssemblyName>Nagi</AssemblyName>
     <RootNamespace>Pulse.App</RootNamespace>
     <Product>Nagi</Product>
@@ -28,6 +28,7 @@
   </ItemGroup>
   <ItemGroup><Content Include="Assets/Tools/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <ItemGroup><Content Include="Assets/Nagi.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
+  <ItemGroup><Content Include="Assets/Akeno.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <!-- The unpackaged WinUI publish pipeline omits app XBF/PRI files. Export them explicitly. -->
   <Target Name="IncludePulseXamlResourcesInPublish" AfterTargets="ComputeFilesToPublish">
     <ItemGroup>

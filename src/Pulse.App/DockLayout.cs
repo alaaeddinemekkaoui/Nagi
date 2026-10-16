@@ -11,13 +11,14 @@ public sealed partial class MainWindow
         if (_horizontalRail == horizontal) return;
         _horizontalRail = horizontal;
         Compact.RowDefinitions.Clear(); Compact.ColumnDefinitions.Clear();
-        var buttons = new[] { CompactBrand, RailSearchButton, CompactCpuButton, RailGpuButton,
-            CompactMediaButton, RailWeatherButton, RailMicrophoneButton, CompactBatteryButton };
+        var buttons = new FrameworkElement[] { CompactBrand, RailSearchButton, ProfileDockPanel, CompactCpuButton, RailGpuButton,
+            CompactMediaButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
         for (var i = 0; i < buttons.Length; i++)
         {
             Grid.SetRow(buttons[i], horizontal ? 0 : i); Grid.SetColumn(buttons[i], horizontal ? i : 0);
-            if (horizontal) Compact.ColumnDefinitions.Add(new() { Width = i == 4 ? new(1, GridUnitType.Star) : i == 5 ? GridLength.Auto : new(new[] { 44d, 44, 62, 62, 0, 0, 44, 58 }[i]) });
-            else Compact.RowDefinitions.Add(new() { Height = i == 4 ? new(1, GridUnitType.Star) : GridLength.Auto });
+            buttons[i].Width = horizontal ? new[] { 40d, 40, double.NaN, 54, 54, double.NaN, 40, 54, 48 }[i] : double.NaN;
+            if (horizontal) Compact.ColumnDefinitions.Add(new() { Width = i == 5 ? new(1, GridUnitType.Star) : GridLength.Auto });
+            else Compact.RowDefinitions.Add(new() { Height = i == 5 ? new(1, GridUnitType.Star) : GridLength.Auto });
         }
         Compact.RowSpacing = horizontal ? 0 : 5; Compact.ColumnSpacing = horizontal ? 7 : 0;
         Compact.Padding = horizontal ? new(10, 5, 10, 5) : new(7, 10, 7, 10);
@@ -47,6 +48,13 @@ public sealed partial class MainWindow
     }
     private void PlaceDockContent(bool resting, double width, double height)
     {
+        RailViewport.Visibility = _controlCenter ? Visibility.Collapsed : Visibility.Visible;
+        if (_controlCenter)
+        {
+            Expanded.Width = width; Expanded.Height = height;
+            Expanded.HorizontalAlignment = HorizontalAlignment.Center; Expanded.VerticalAlignment = VerticalAlignment.Center;
+            return;
+        }
         var position = ViewModel.Settings.Position;
         var horizontal = position.Orientation == "Horizontal";
         ConfigureRail(horizontal);
@@ -70,8 +78,8 @@ public sealed partial class MainWindow
         else
         {
             var left = position.Anchor == "Left edge";
-            Compact.Width = 80; Compact.MinWidth = 0; Compact.Height = double.NaN; Compact.MinHeight = 420;
-            RailViewport.Width = 80; RailViewport.Height = Math.Min(420, height);
+            Compact.Width = 80; Compact.MinWidth = 0; Compact.Height = double.NaN; Compact.MinHeight = 560;
+            RailViewport.Width = 80; RailViewport.Height = Math.Min(560, height);
             RailViewport.HorizontalAlignment = Compact.HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right;
             RailViewport.VerticalAlignment = Compact.VerticalAlignment = VerticalAlignment.Center;
             PeekHost.Width = Expanded.Width = Math.Max(0, width - 80);

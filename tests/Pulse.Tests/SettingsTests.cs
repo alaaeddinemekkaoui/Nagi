@@ -14,7 +14,7 @@ public sealed class SettingsTests : IDisposable
     [Fact] public async Task MissingFileReturnsSafeDefaults()
     {
         var settings = await _service.LoadAsync();
-        Assert.Equal("Dark", settings.Theme); Assert.False(settings.StartWithWindows); Assert.False(settings.StartExpanded);
+        Assert.Equal("System", settings.Theme); Assert.False(settings.StartWithWindows); Assert.False(settings.StartExpanded);
     }
     [Fact] public async Task RoundTripPersistsAllUserConfiguration()
     {
@@ -43,7 +43,7 @@ public sealed class SettingsTests : IDisposable
     {
         await Write("{ broken json");
         var settings = await _service.LoadAsync();
-        Assert.Equal("Dark", settings.Theme); Assert.NotNull(_service.RecoveryMessage);
+        Assert.Equal("System", settings.Theme); Assert.NotNull(_service.RecoveryMessage);
         Assert.Equal("{ broken json", await File.ReadAllTextAsync(Assert.Single(Directory.GetFiles(_directory, "*.corrupt.*"))));
         await _service.SaveAsync(settings);
         Assert.NotNull(JsonNode.Parse(await File.ReadAllTextAsync(_service.FilePath)));
@@ -60,7 +60,7 @@ public sealed class SettingsTests : IDisposable
     {
         await Write("""{"PollingIntervalMs":1,"Theme":"invalid","DefaultProfile":999,"Hotkey":null,"Rules":null,"QuickActions":null,"Position":{"Anchor":"lost","OffsetX":1e10}}""");
         var settings = await _service.LoadAsync();
-        Assert.Equal(500, settings.PollingIntervalMs); Assert.Equal("Dark", settings.Theme); Assert.Equal(Profile.Work, settings.DefaultProfile);
+        Assert.Equal(500, settings.PollingIntervalMs); Assert.Equal("System", settings.Theme); Assert.Equal(Profile.Work, settings.DefaultProfile);
         Assert.NotNull(settings.Hotkey); Assert.Equal("Right edge", settings.Position.Anchor); Assert.InRange(settings.Position.OffsetX, -100000, 100000);
     }
     [Fact] public async Task SavesAreAtomicAndLeavePreviousBackup()
@@ -76,7 +76,7 @@ public sealed class SettingsTests : IDisposable
         using (var locked = new FileStream(_service.FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
             var settings = await _service.LoadAsync();
-            Assert.Equal("Dark", settings.Theme);
+            Assert.Equal("System", settings.Theme);
             Assert.Contains("read-only", _service.RecoveryMessage);
             await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(settings));
         }

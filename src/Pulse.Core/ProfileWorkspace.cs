@@ -1,0 +1,45 @@
+namespace Pulse.Core;
+
+public sealed record ProfileApp(string Name, string Target, string Kind = "Catalog");
+
+public sealed record ProfileWorkspace(Profile Profile, ProfileApp[] Apps, string[] Widgets, bool AutoOpenApps = false)
+{
+    public bool Shows(string widget) => Widgets.Contains(widget, StringComparer.Ordinal);
+    public ProfileWorkspace Normalize() => this with
+    {
+        Apps = (Apps ?? []).Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Name)
+                && !string.IsNullOrWhiteSpace(a.Target) && a.Name.Length <= 80 && a.Target.Length <= 2048
+                && (a.Kind == "Catalog" || a.Kind == "Suggested" && ProfileWorkspaces.Suggestions.ContainsKey(a.Target)))
+            .DistinctBy(a => (a.Kind, a.Target)).Take(16).ToArray(),
+        Widgets = (Widgets ?? []).Where(ProfileWorkspaces.WidgetNames.Contains).Distinct().ToArray()
+    };
+}
+
+public static class ProfileWorkspaces
+{
+    public static readonly string[] WidgetNames = ["Performance", "Network", "Media", "Audio", "Microphone", "Weather", "Studio", "Battery"];
+    public static readonly IReadOnlyDictionary<string, string[]> Suggestions = new Dictionary<string, string[]>
+    {
+        ["code"] = ["Visual Studio Code", "VS Code"], ["terminal"] = ["Windows Terminal", "Terminal"],
+        ["browser"] = ["Google Chrome", "Microsoft Edge", "Firefox", "Brave"], ["steam"] = ["Steam"]
+    };
+    public static ProfileWorkspace Default(Profile profile) => new(profile, profile switch
+    {
+        Profile.Work => [new("VS Code", "code", "Suggested"), new("Terminal", "terminal", "Suggested"), new("Browser", "browser", "Suggested")],
+        Profile.Gaming => [new("Steam", "steam", "Suggested"), new("Browser", "browser", "Suggested")],
+        _ => [new("Browser", "browser", "Suggested")]
+    }, profile == Profile.Focus ? ["Media", "Audio", "Microphone", "Battery"] : [.. WidgetNames]);
+    public static ProfileWorkspace[] Normalize(ProfileWorkspace[]? workspaces) => Enum.GetValues<Profile>()
+        .Select(profile => (workspaces?.FirstOrDefault(w => w is not null && w.Profile == profile) ?? Default(profile)).Normalize()).ToArray();
+    public static SearchEntry? Resolve(ProfileApp app, IEnumerable<SearchEntry> catalog)
+    {
+        var apps = catalog.Where(e => e.Kind == SearchKind.Application).ToArray();
+        if (app.Kind == "Catalog") return apps.FirstOrDefault(e => string.Equals(e.Target, app.Target, StringComparison.OrdinalIgnoreCase));
+        if (app.Kind != "Suggested" || !Suggestions.TryGetValue(app.Target, out var names)) return null;
+        return names.Select(name => apps.FirstOrDefault(e => string.Equals(e.Title, name, StringComparison.OrdinalIgnoreCase)))
+            .FirstOrDefault(e => e is not null);
+    }
+    // Only an explicit profile activation can launch apps. Background detection and repeated UI refreshes cannot.
+    public static bool ShouldOpenApps(Profile? activated, ProfileWorkspace workspace, bool explicitActivation, bool alreadyOpening)
+        => explicitActivation && activated == workspace.Profile && workspace.AutoOpenApps && !alreadyOpening;
+}

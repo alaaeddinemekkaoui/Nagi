@@ -6,7 +6,7 @@ A local-first Windows 11 desktop companion. **Nagi** reads system context and pr
 
 Start with the [complete app guide](docs/USER-GUIDE.md), browse the [documentation index](docs/README.md), or try the [simple commented Lua example](docs/examples/simple-ui.lua). The guide covers installation, controls, every feature, settings, privacy, troubleshooting and removal.
 
-**[Download Nagi 1.9.1](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.9.1)** · [Release README](RELEASE_README.md). The earlier [v1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1) remains on Nagi 1.8.0.
+**[Download Nagi 1.10.0](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1.10.0)** · [Release README](RELEASE_README.md). The earlier [v1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/v1) remains on Nagi 1.8.0.
 
 Customize Nagi in **Settings → Lua UI studio**. Edit and apply Lua for colors, card corners, spacing, metric labels and overview sections, or start from Rose glass, Glacier and Quiet focus presets. Saved scripts can be reloaded while Nagi runs. See [the Lua UI guide](docs/LUA-UI.md).
 
@@ -18,11 +18,11 @@ Press **Alt + Space** for **Quick search**: installed apps, locally indexed file
 
 ## Set up Nagi 1.9
 
-Run **Nagi-Setup-1.9.1.exe** for a per-user installation, then open Nagi. The welcome page asks for a local display name, theme, dock layout and screen edge. Connect OBS or skip it, then choose a weather city or skip weather. Installer Finish opens welcome, including on upgrades. You can reopen it through **Settings → Run welcome setup**. Nagi starts as a water drop touching the selected edge.
+Run **Nagi-Setup-1.10.0.exe** for a per-user installation, then open Nagi. The welcome page asks for a local display name, theme, dock layout and screen edge. Connect OBS or skip it, then choose a weather city or skip weather. Installer Finish opens welcome, including on upgrades. You can reopen it through **Settings → Run welcome setup**. Nagi starts as a water drop touching the selected edge.
 
 Vertical docks attach left/right; horizontal docks attach top/bottom. Hover reveals controls, click pins them, and the next click expands details inward. Settings can change layout, edge, name and city later. Music includes artwork and a live output-level visualizer; **Speakers** selects connected Windows media outputs.
 
-Weather is optional. Explicit city searches and selected coordinates go to Open-Meteo; Nagi does not request GPS or IP geolocation. Current model conditions cache for 15 minutes, with clearly marked stale/offline states. No weather requests occur when weather is disabled. The existing GitHub v1 release stays on 1.8.0; current source and local setup are **1.9.1**.
+Weather is optional. Explicit city searches and selected coordinates go to Open-Meteo; Nagi does not request GPS or IP geolocation. Current model conditions cache for 15 minutes, with clearly marked stale/offline states. No weather requests occur when weather is disabled. The existing GitHub v1 release stays on 1.8.0; current source and local setup are **1.10.0**.
 
 ## Run
 

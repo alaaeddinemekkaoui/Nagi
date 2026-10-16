@@ -37,6 +37,7 @@ public sealed partial class MainWindow
     private ToggleSwitch Toggle(string title, string detail, bool value, Func<PulseSettings, bool, PulseSettings> change)
     {
         var toggle = new ToggleSwitch { Header = title, IsOn = value, FontSize = 12, OnContent = "On", OffContent = "Off" };
+        AutomationProperties.SetName(toggle, title);
         ToolTipService.SetToolTip(toggle, detail);
         toggle.Toggled += async (_, _) =>
         {
@@ -49,6 +50,7 @@ public sealed partial class MainWindow
     private void BuildRulesPage()
     {
         RulesPage.Children.Clear();
+        if (_editingWorkspace is { } editing) { BuildWorkspaceEditor(editing); return; }
         RulesPage.Children.Add(Heading("A desktop that follows your rhythm."));
         RulesPage.Children.Add(Note("Choose a profile anytime. Manual selections stay locked until you choose Automatic or unlock the profile."));
         var profileCards = Stack();
@@ -63,8 +65,10 @@ public sealed partial class MainWindow
             row.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
             var copy = Stack(); copy.Spacing = 3; copy.Children.Add(Heading(profile.ToString())); copy.Children.Add(Note(description));
             row.Children.Add(copy);
-            var use = Button("Activate", async (_, _) => await CommitAsync(s => s with { LockedProfile = profile }));
-            use.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(use, 1); row.Children.Add(use);
+            var controls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
+            controls.Children.Add(Button("Activate " + profile, async (_, _) => await ActivateProfileAsync(profile)));
+            controls.Children.Add(Button("Customize " + profile, (_, _) => { _editingWorkspace = profile; BuildRulesPage(); ContentScroll.ChangeView(null, 0, null); }));
+            Grid.SetColumn(controls, 1); row.Children.Add(controls);
             profileCards.Children.Add(row);
         }
         RulesPage.Children.Add(Card(profileCards));
@@ -161,18 +165,19 @@ public sealed partial class MainWindow
         await ShowDialogAsync(dialog); BuildRulesPage();
     }
 
-    private void BuildSettingsPage()
+    private void BuildAppearanceSettings()
     {
-        SettingsPage.Children.Clear();
-        SettingsPage.Children.Add(Heading("Make Nagi yours."));
-        SettingsPage.Children.Add(Note("Preferences are stored on this PC. Nagi has no account, server or activity telemetry."));
-        BuildPersonalSettings();
         var appearance = Stack();
         appearance.Children.Add(Heading("Appearance & placement"));
-        var theme = Select(new[] { "Akeno", "Dark", "Light", "System" }, ViewModel.Settings.Theme, "Theme");
-        theme.SelectionChanged += async (_, _) => { if (theme.SelectedItem is string selected) await CommitAsync(s => s with { Theme = selected }); };
+        var theme = Select(new[] { "Glass (system)", "Akeno", "Dark", "Light" }, ViewModel.Settings.Theme == "System" ? "Glass (system)" : ViewModel.Settings.Theme, "Theme");
+        theme.SelectionChanged += async (_, _) => { if (theme.SelectedItem is string selected) await CommitAsync(s => s with { Theme = selected == "Glass (system)" ? "System" : selected }); };
         appearance.Children.Add(Labeled("Theme", theme));
         appearance.Children.Add(Toggle("Translucent glass", "Native acrylic follows Windows transparency and contrast preferences.", ViewModel.Settings.GlassEnabled, (s, v) => s with { GlassEnabled = v }));
+        appearance.Children.Add(Note("Glass follows Windows light and dark mode. Native transparency respects Windows accessibility preferences."));
+        var background = Select(new[] { "Samurai", "Gradient", "None" }, ViewModel.Settings.AkenoBackground, "Akeno background");
+        background.SelectionChanged += async (_, _) => { if (background.SelectedItem is string selected) await CommitAsync(s => s with { AkenoBackground = selected }); };
+        appearance.Children.Add(Labeled("Akeno background · choose None to hide", background));
+        appearance.Children.Add(Note("The generated samurai artwork appears behind expanded Akeno panels. Choose Gradient for a simple red wash."));
         var orientation = Select(new[] { "Vertical", "Horizontal" }, ViewModel.Settings.Position.Orientation, "Dock layout");
         orientation.SelectionChanged += async (_, _) =>
         {
@@ -198,10 +203,10 @@ public sealed partial class MainWindow
         appearance.Children.Add(Labeled("Display", display));
         appearance.Children.Add(Toggle("Reduce motion", "Windows animation preferences are also respected.", ViewModel.Settings.ReducedMotion, (s, v) => s with { ReducedMotion = v }));
         SettingsPage.Children.Add(Card(appearance));
-        BuildLuaSettings();
-        BuildSearchSettings();
-        BuildIntegrationSettings();
+    }
 
+    private void BuildBehaviorSettings()
+    {
         var behavior = Stack(); behavior.Children.Add(Heading("Behavior"));
         behavior.Children.Add(Toggle("Dismiss when clicking outside", "Keep the panel open by turning this off.", ViewModel.Settings.CloseOnDeactivate, (s, v) => s with { CloseOnDeactivate = v }));
         behavior.Children.Add(Toggle("Hide over fullscreen apps", "Applies to any fullscreen app; does not change profile rules.", ViewModel.Settings.HideInFullscreen, (s, v) => s with { HideInFullscreen = v }));
@@ -230,8 +235,12 @@ public sealed partial class MainWindow
         behavior.Children.Add(startup); behavior.Children.Add(Note("Startup is per-user and opt-in. Re-enable it if you move the executable."));
         SettingsPage.Children.Add(Card(behavior));
 
+    }
+
+    private void BuildDiagnosticsSettings()
+    {
         var diagnostics = Stack(); diagnostics.Children.Add(Heading("Integrations & diagnostics"));
-        diagnostics.Children.Add(Note($"Nagi 1.9 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
+        diagnostics.Children.Add(Note($"Nagi 1.10 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
         diagnostics.Children.Add(Note("CPU: " + (ViewModel.Metrics.Cpu.HasValue ? "available · GetSystemTimes" : "waiting / unavailable")
             + "\nMemory: " + (ViewModel.Metrics.TotalMemory > 0 ? $"{GiB(ViewModel.Metrics.AvailableMemory):0.0} GB available of {GiB(ViewModel.Metrics.TotalMemory):0.0} GB" : "unavailable")
             + "\nNetwork: " + (ViewModel.Metrics.ReceiveBytesPerSecond.HasValue ? "available · aggregate active adapters" : "waiting / unavailable")
@@ -256,7 +265,6 @@ public sealed partial class MainWindow
         footer.Children.Add(Button("Restore defaults", async (_, _) => await RestoreDefaultsAsync()));
         footer.Children.Add(Button("Quit Nagi", (_, _) => Close()));
         SettingsPage.Children.Add(footer);
-        ApplyLuaVisuals();
     }
 
     private async Task EditHotkeyAsync(bool hideShortcut = false, bool searchShortcut = false)

@@ -106,7 +106,12 @@ Configure indexing under **Settings → Quick search**. Standard roots are your 
 
 ## Profiles, rules and quick actions
 
-Nagi provides **Work**, **Gaming** and **Focus**. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus collapses Nagi and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize context and shortcuts rather than tuning hardware or game settings.
+Nagi provides **Work**, **Gaming** and **Focus**. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus quiets the dock and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize app docks, visible widgets, context and shortcuts. They do not tune hardware or game settings.
+
+Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Work/Gaming/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. The first four appear on the edge rail; Overview lists every app in the workspace. Missing suggestions show an actionable error rather than downloading or installing software.
+
+Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery checkboxes. Widget choices also filter the rail. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
+
 
 To map an app to a profile:
 
@@ -121,11 +126,11 @@ Under **Quick actions**, use **+ Add quick action** to create an application, fo
 
 ## Appearance and settings
 
-Settings groups are scrollable; some controls appear farther down the page.
+Settings opens a category grid. Choose a category to open its controls, then use **All settings** to go back. Individual categories scroll when needed. The default **Glass (system)** appearance follows Windows light/dark mode and respects transparency and high contrast preferences. Akeno can display the generated Samurai artwork, a Gradient, or None. Microphone status and mute controls sit directly below the media card and inside the media preview.
 
 | Group | Options |
 | --- | --- |
-| Appearance & placement | Akeno, Dark, Light or System theme; translucent glass; edge; display; reduced motion |
+| Appearance & dock | Glass (system), Akeno, Dark or Light; native glass; Samurai/Gradient/None background; layout; edge; display; reduced motion |
 | Lua UI studio | Enable, edit/apply and explicitly reload a script; current status/errors |
 | Quick search | Open launcher, search shortcut, indexing and folder scope |
 | Hardware & studio | GPU/provider status, FPS toggle/helper guidance and microphone mute |

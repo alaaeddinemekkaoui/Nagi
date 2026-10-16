@@ -42,7 +42,7 @@ public sealed partial class MainWindow : Window
     private Task? _polling;
     private readonly DockInteraction _dock = new();
     private bool _expanded { get => _dock.Stage == DockStage.Expanded; set { if (value) _dock.Expand(); else _dock.Collapse(); } }
-    private bool _dashboard, _updating, _dialogOpen, _closed, _userHidden, _revealFullscreen;
+    private bool _dashboard, _updating, _dialogOpen, _closed, _userHidden, _revealFullscreen, _controlCenter;
     private bool _hotkeyAvailable;
     private bool _hideHotkeyAvailable, _hiding, _active, _quickMenuOpen;
     private int _visibilityGeneration;
@@ -84,7 +84,7 @@ public sealed partial class MainWindow : Window
             if (!_closed && !_active && !_windowManager.OwnsForeground && _tray?.IsMenuOpen != true && _expanded && !_dialogOpen && !_userHidden && ViewModel.Settings.CloseOnDeactivate) Collapse();
         };
         Closed += async (_, _) => await ShutdownAsync();
-        ViewModel.FocusActivated += Collapse;
+        ViewModel.FocusActivated += () => { if (!_controlCenter) Collapse(); };
         ViewModel.PropertyChanged += (_, args) => { if (args.PropertyName == nameof(PulseViewModel.Notice)) Animate(NoticeText); };
         _volumeTimer.Tick += VolumeTimer_Tick;
         InitializePreviews();
@@ -98,7 +98,7 @@ public sealed partial class MainWindow : Window
             _tray.ShowRequested += Reveal;
             _tray.SearchRequested += ToggleQuickSearch;
             _tray.HideRequested += HideHalo;
-            _tray.SettingsRequested += () => { Reveal(); Navigate("Settings"); };
+            _tray.SettingsRequested += () => OpenControlCenter("Settings");
             _tray.QuitRequested += Close;
             _tray.MenuOpening += () =>
             {
@@ -106,8 +106,7 @@ public sealed partial class MainWindow : Window
                 if (_dock.Stage == DockStage.Compact && !_dock.Pinned) _dock.Collapse();
                 Layout(); // Settle the owner before its native menu enters the modal loop.
             };
-            _tray.ProfileRequested += async profile => await CommitAsync(s => profile is null
-                ? s with { LockedProfile = null, AutomaticSwitching = true } : s with { LockedProfile = profile });
+            _tray.ProfileRequested += async profile => await ActivateProfileAsync(profile);
             _tray.RegistrationChanged += result => { Report(result, false); UpdateTray(); };
             Report(_tray.Register(), false);
         }
@@ -119,7 +118,7 @@ public sealed partial class MainWindow : Window
         Root.Loaded += (_, _) => { WireButtons(Root); ApplyLuaVisuals(); };
         _expanded = configuration.StartExpanded && ViewModel.Profile != Profile.Focus;
         ApplyPreferences();
-        BuildRulesPage(); BuildSettingsPage(); BuildQuickActions();
+        BuildRulesPage(); BuildSettingsPage(); BuildQuickActions(); BuildProfileDock();
         if (settings.RecoveryMessage is { } recovery) ViewModel.Publish(recovery, true);
     }
 
@@ -148,17 +147,18 @@ public sealed partial class MainWindow : Window
         ResetPreview();
         _dockSuppressed = true;
         _windowManager.TryGetPointerScreenPosition(out _dockDismissX, out _dockDismissY);
-        _expanded = false; _dashboard = false; _revealFullscreen = false; Layout(true);
+        _controlCenter = false; _expanded = false; _dashboard = false; _revealFullscreen = false; Layout(true);
     }
     private void Layout(bool animate = false)
     {
-        AkenoDecor.Visibility = _expanded && ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast ? Visibility.Visible : Visibility.Collapsed;
+        ApplyThemeBackground();
         if (!_closed && !_expanded && !_userHidden) _previewWatch.Start(); else _previewWatch.Stop();
         var wasExpanded = Expanded.Visibility == Visibility.Visible;
         var wasPreview = PeekHost.Visibility == Visibility.Visible;
         var wasDrop = EdgeDrop.Visibility == Visibility.Visible;
         var resting = _dock.Stage == DockStage.Resting;
-        var frame = _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting);
+        var frame = _controlCenter ? _windowManager.PrepareControlCenter(ViewModel.Settings.Position)
+            : _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting);
         var logicalWidth = frame.Width / frame.Scale; var logicalHeight = frame.Height / frame.Scale;
         PlaceDockContent(resting, logicalWidth, logicalHeight);
         if (resting)
@@ -178,6 +178,7 @@ public sealed partial class MainWindow : Window
             PeekHost.Visibility = Visibility.Collapsed;
             Expanded.Visibility = Visibility.Visible; Expanded.IsHitTestVisible = true;
             Compact.Visibility = Visibility.Visible;
+            RailViewport.Visibility = _controlCenter ? Visibility.Collapsed : Visibility.Visible;
             if (animate) { _motion.Reveal(Expanded, 0, 260, .985f); RevealCards(); }
             else _motion.Reset(Expanded);
         }
@@ -263,6 +264,7 @@ public sealed partial class MainWindow : Window
                 : new SolidColorBrush(ViewModel.Settings.Theme == "Akeno" ? global::Windows.UI.Color.FromArgb(255, 16, 11, 13)
                     : Shell.ActualTheme == ElementTheme.Light ? global::Windows.UI.Color.FromArgb(255, 241, 244, 249) : global::Windows.UI.Color.FromArgb(255, 27, 30, 40));
         }
+        UpdateSurfaceMaterial();
     }
     private void UpdateTabs()
     {
@@ -324,7 +326,7 @@ public sealed partial class MainWindow : Window
     private async void Render()
     {
         RefreshContrast();
-        if (_renderedProfile != ViewModel.Profile) { _renderedProfile = ViewModel.Profile; BuildQuickActions(); Animate(); _ = ReloadLuaUiAsync(); }
+        if (_renderedProfile != ViewModel.Profile) { _renderedProfile = ViewModel.Profile; BuildQuickActions(); BuildProfileDock(); ApplyWorkspaceVisibility(); Animate(); _ = ReloadLuaUiAsync(); }
         var metrics = ViewModel.Metrics;
         UpdateTray();
         var power = metrics.Power ?? PowerSnapshot.Unknown;
@@ -375,6 +377,7 @@ public sealed partial class MainWindow : Window
         var hasArt = ViewModel.Settings.ShowMedia && media.Available && CompactAlbumArt.Source is not null;
         CompactArtworkHost.Visibility = hasArt ? Visibility.Visible : Visibility.Collapsed;
         CompactSecondaryLabel.Visibility = hasArt ? Visibility.Collapsed : Visibility.Visible;
+        ApplyWorkspaceVisibility();
     }
 
     private void ApplyPreferences()
@@ -402,7 +405,7 @@ public sealed partial class MainWindow : Window
             await _settings.SaveAsync(next, _shutdown.Token);
             ViewModel.Settings = next;
             Volatile.Write(ref _pollSettings, next);
-            ApplyPreferences(); BuildQuickActions();
+            ApplyPreferences(); BuildQuickActions(); BuildProfileDock(); ApplyWorkspaceVisibility();
             return true;
         }
         catch (OperationCanceledException) { return false; }
@@ -444,7 +447,7 @@ public sealed partial class MainWindow : Window
     private void Hide_Click(object sender, RoutedEventArgs e) => HideHalo();
     private void Overview_Click(object sender, RoutedEventArgs e) => Navigate("Overview");
     private void Rules_Click(object sender, RoutedEventArgs e) => Navigate("Profiles");
-    private void Settings_Click(object sender, RoutedEventArgs e) => Navigate("Settings");
+    private void Settings_Click(object sender, RoutedEventArgs e) => OpenControlCenter("Settings");
     private void Actions_Click(object sender, RoutedEventArgs e) { Navigate("Profiles"); }
     private void Drag_PointerPressed(object sender, PointerRoutedEventArgs e)
     { if (e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) { e.Handled = true; ResetPreview(); Layout(); _motion.Stop(); _windowManager.Drag(); } }
@@ -458,7 +461,7 @@ public sealed partial class MainWindow : Window
         menu.Closed += (_, _) => { _quickMenuOpen = false; if (!_closed) Layout(); };
         var open = new MenuFlyoutItem { Text = "Open Nagi", Icon = new FontIcon { Glyph = "\uE8A7" } }; open.Click += (_, _) => Reveal();
         var hide = new MenuFlyoutItem { Text = "Hide Nagi", Icon = new FontIcon { Glyph = "\uED1A" } }; hide.Click += (_, _) => HideHalo();
-        var settings = new MenuFlyoutItem { Text = "Settings", Icon = new FontIcon { Glyph = "\uE713" } }; settings.Click += (_, _) => { Reveal(); Navigate("Settings"); };
+        var settings = new MenuFlyoutItem { Text = "Settings", Icon = new FontIcon { Glyph = "\uE713" } }; settings.Click += (_, _) => OpenControlCenter("Settings");
         var quit = new MenuFlyoutItem { Text = "Quit Nagi", Icon = new FontIcon { Glyph = "\uE8BB" } }; quit.Click += (_, _) => Close();
         menu.Items.Add(open); menu.Items.Add(hide); menu.Items.Add(settings); menu.Items.Add(new MenuFlyoutSeparator()); menu.Items.Add(quit);
         var point = e.GetPosition(Root);
@@ -470,8 +473,7 @@ public sealed partial class MainWindow : Window
     {
         if (_updating || ProfilePicker.SelectedIndex < 0) return;
         var index = ProfilePicker.SelectedIndex;
-        await CommitAsync(s => index == 0 ? s with { LockedProfile = null, AutomaticSwitching = true }
-            : s with { LockedProfile = (Profile)(index - 1) });
+        await ActivateProfileAsync(index == 0 ? null : (Profile)(index - 1));
     }
     private async void Lock_Click(object sender, RoutedEventArgs e) => await CommitAsync(s => s with { LockedProfile = s.LockedProfile.HasValue ? null : ViewModel.Profile });
     private async void Previous_Click(object sender, RoutedEventArgs e) => Report(await _media.SendAsync("previous"), false);
@@ -513,7 +515,7 @@ public sealed partial class MainWindow : Window
             {
                 if (action.Kind == ActionKind.Profile)
                 {
-                    if (Report(ActionValidator.Validate(action), false)) await CommitAsync(s => s with { LockedProfile = Enum.Parse<Profile>(action.Target) });
+                    if (Report(ActionValidator.Validate(action), false)) await ActivateProfileAsync(Enum.Parse<Profile>(action.Target));
                 }
                 else if (action.Kind == ActionKind.ToggleHalo)
                 {

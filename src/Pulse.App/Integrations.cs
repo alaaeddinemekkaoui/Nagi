@@ -70,6 +70,13 @@ public sealed partial class MainWindow
         var sensorLine = _temperatureSnapshot.Readings.Length > 0 ? string.Join(" · ", _temperatureSnapshot.Readings.Take(4).Select(x => $"{x.Name} {x.Celsius:0}°C")) : "Temperature · connect a sensor provider";
         var fpsLine = _fpsSnapshot.Fps is { } f ? $"App FPS {f:0.0} · PID {_fpsSnapshot.ProcessId}" : _fpsSnapshot.Status;
         var micLine = "Microphone · " + (!_microphoneSnapshot.Volume.HasValue ? "Unavailable" : _microphoneSnapshot.Muted ? "Muted" : "On");
+        MicrophoneDeviceText.Text = _microphoneSnapshot.Device;
+        MicrophoneStatusText.Text = !_microphoneSnapshot.Volume.HasValue ? "No microphone available" : _microphoneSnapshot.Muted ? "Muted" : "On";
+        MicrophoneCardIcon.Glyph = RailMicrophoneIcon.Glyph;
+        MicrophoneToggleButton.IsEnabled = PeekMicrophoneButton.IsEnabled = RailMicrophoneButton.IsEnabled;
+        MicrophoneToggleButton.Content = _microphoneSnapshot.Muted ? "Unmute" : "Mute";
+        PeekMicrophoneButton.Content = _microphoneSnapshot.Muted ? "Unmute mic" : "Mute mic";
+        PeekMicrophoneText.Text = micLine;
         var obsLine = !_obsSnapshot.Connected ? _obsSnapshot.Status : "OBS · " + (_obsSnapshot.Recording ? "Recording" : "Not recording") + (_obsSnapshot.Streaming ? " · Live" : "") + (_obsSnapshot.RenderFps is { } of ? $" · {of:0} render FPS" : "");
         IntegrationSummary.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine + "\n" + micLine + "\n" + obsLine;
         PeekIntegrations.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine;

@@ -128,13 +128,13 @@ public sealed partial class MainWindow
             return await Task.Run(() => ActionLauncher.Launch(new(entry.Title, entry.Kind == SearchKind.Folder ? ActionKind.Folder : entry.Kind == SearchKind.Web ? ActionKind.Url : ActionKind.File, entry.Target)));
         switch (entry.Target)
         {
-            case "settings": _searchWindow?.Hide(); Reveal(); Navigate("Settings"); break;
+            case "settings": _searchWindow?.Hide(); OpenControlCenter("Settings"); break;
             case "halo": _searchWindow?.Hide(); Navigate("Overview"); Reveal(); break;
             case "hide": HideHalo(); break;
             case "work": case "gaming": case "focus":
                 var profile = entry.Target == "work" ? Profile.Work : entry.Target == "gaming" ? Profile.Gaming : Profile.Focus;
-                if (!await CommitAsync(s => s with { LockedProfile = profile })) return OperationResult.Fail("Could not save the profile."); break;
-            case "automatic": if (!await CommitAsync(s => s with { LockedProfile = null, AutomaticSwitching = true })) return OperationResult.Fail("Could not save profile mode."); break;
+                await ActivateProfileAsync(profile); break;
+            case "automatic": await ActivateProfileAsync(null); break;
             case "mute": return await Task.Run(() => { var audio = _audio.Sample(); return audio.Volume.HasValue ? _audio.SetMute(!audio.Muted) : OperationResult.Fail("Audio output unavailable."); });
             case "volume-up": case "volume-down": return await Task.Run(() => { var audio = _audio.Sample(); return audio.Volume is { } volume ? _audio.SetVolume(volume + (entry.Target == "volume-up" ? 5 : -5)) : OperationResult.Fail("Audio output unavailable."); });
             case "reindex": RebuildSearchIndex(); break;
