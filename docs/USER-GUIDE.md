@@ -256,7 +256,7 @@ dotnet test Pulse.sln -c Release --no-build
 
 The publish script creates the self-contained portable directory, ZIP and SHA256 file. Trusted signing requires a valid code-signing certificate; it is a separate release step. Source is split into WinUI presentation, Core policy/models, Windows integrations and Infrastructure persistence/Lua/indexing.
 
-Use the [documentation index](README.md) for architecture, build prerequisites, licenses, validation and the V1.0 changelog. [Validation](VALIDATION.md) records Nagi V1.0 checks while distinguishing remaining physical-monitor, media-player, sign-in and accessibility coverage from completed checks.
+Use the [documentation index](README.md) for architecture, build prerequisites, licenses, validation and the v0.1.1 changelog. [Validation](VALIDATION.md) records Nagi v0.1.1 checks while distinguishing remaining physical-monitor, media-player, sign-in and accessibility coverage from completed checks.
 
 ## Music and app updates
 

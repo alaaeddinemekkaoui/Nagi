@@ -1,4 +1,4 @@
-# Nagi V1.0 validation
+# Nagi v0.1.1 validation
 
 ## Automated checks
 
@@ -8,6 +8,7 @@ OBS tests use an owned loopback fixture and confirm observed recording, streamin
 
 ## Isolated desktop checks
 
+- `Smoke-NagiThemes.ps1`: the old build crashes on its first Akeno → Light change with `E_INVALIDARG` (`0x80070057`) in the base acrylic configuration-change handler. The fixed build exercises repeated Akeno/Light/Dark/System changes, saved choices, glass on/off and collapse/reveal. An owned solid-color window behind the actual desktop capture checks pixels outside the native teardrop region; forced DWM rounding reproduced the unwanted pill, and disabling it removes those pixels.
 - `Smoke-NagiWorkspaces.ps1`: control center, app add/remove, optional widgets, settings navigation, Akeno choices, music preference, Default/Stream profiles, four-app rows and OBS hover controls.
 - `Smoke-NagiAppFolder.ps1`: Horizontal and Vertical teardrop reveal, three direct shortcuts, app-folder hover/click expansion, pointer movement, stable dock position, 16-app profiles, empty Default profile and removal back to three apps.
 - `Smoke-NagiUpdate.ps1`: staged replacement, preference retention, restart/data-directory arguments, result reporting, locked-file rollback and path rejection using a test executable.

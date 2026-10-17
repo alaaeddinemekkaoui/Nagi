@@ -2,7 +2,7 @@
 
 For optional Open-Meteo weather, output visualization and speaker selection, see [weather and speakers](WELCOME-AND-LAYOUT.md).
 
-Nagi V1.0 includes a vertical edge rail and optional hardware/studio providers. Open Settings → Hardware & studio to configure them. Available values come from actual Windows or provider data; missing samples stay missing.
+Nagi v0.1.1 includes a vertical edge rail and optional hardware/studio providers. Open Settings → Hardware & studio to configure them. Available values come from actual Windows or provider data; missing samples stay missing.
 
 ## GPU
 

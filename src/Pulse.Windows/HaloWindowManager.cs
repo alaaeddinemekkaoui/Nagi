@@ -37,7 +37,9 @@ public sealed class HaloWindowManager : IWindowManager
         var windowStyle = Native.GetWindowLongPtr(hwnd, -16).ToInt64();
         Native.SetWindowLongPtr(hwnd, -16, (nint)(windowStyle & ~0x00C40000L));
         Native.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0037); // FRAMECHANGED, NOMOVE/NOSIZE/NOZORDER/NOACTIVATE.
-        var corners = 2; Native.DwmSetWindowAttribute(hwnd, 33, ref corners, sizeof(int));
+        // The HWND region owns rounding, including the nonrectangular resting drop.
+        // Forced DWM rounding leaves a rounded glass plate behind that region.
+        var corners = 1; Native.DwmSetWindowAttribute(hwnd, 33, ref corners, sizeof(int));
         var dark = 1; Native.DwmSetWindowAttribute(hwnd, 20, ref dark, sizeof(int));
         var noSystemBorder = -2; Native.DwmSetWindowAttribute(hwnd, 34, ref noSystemBorder, sizeof(int));
     }

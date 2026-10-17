@@ -29,6 +29,7 @@ public sealed partial class MainWindow : Window
     private readonly HaloWindowManager _windowManager;
     private readonly HaloMotion _motion;
     private readonly HaloAcrylicBackdrop _glass = new();
+    private bool _surfaceIsDrop = true;
     private readonly AccessibilitySettings _themeAccessibility = new();
     private bool _lastHighContrast;
     private readonly SystemTrayService? _tray;
@@ -71,7 +72,14 @@ public sealed partial class MainWindow : Window
         AppWindow.IsShownInSwitchers = false;
         var handle = WindowNative.GetWindowHandle(this);
         _windowManager = new HaloWindowManager(handle);
-        _windowManager.FrameApplied += frame => WindowSurface.SetShape(frame.DropAmount, ViewModel.Settings.Position.Anchor);
+        _windowManager.FrameApplied += frame =>
+        {
+            WindowSurface.SetShape(frame.DropAmount, ViewModel.Settings.Position.Anchor);
+            var drop = frame.DropAmount > .001;
+            if (_surfaceIsDrop == drop) return;
+            _surfaceIsDrop = drop;
+            ApplyGlass();
+        };
         _motion = new HaloMotion(_windowManager, () => !ViewModel.Settings.ReducedMotion && new UISettings().AnimationsEnabled);
         _windowManager.ToggleRequested += () => { if (_expanded && !_userHidden) Collapse(); else Reveal(); };
         _windowManager.HideRequested += () => { if (_userHidden) Reveal(); else HideHalo(); };
@@ -259,7 +267,7 @@ public sealed partial class MainWindow : Window
     {
         _glass.SetAkeno(ViewModel.Settings.Theme == "Akeno");
         _glass.SetLight(Shell.ActualTheme == ElementTheme.Light);
-        if (ViewModel.Settings.GlassEnabled && HaloAcrylicBackdrop.IsSupported && !_themeAccessibility.HighContrast)
+        if (!_surfaceIsDrop && ViewModel.Settings.GlassEnabled && HaloAcrylicBackdrop.IsSupported && !_themeAccessibility.HighContrast)
         { if (!ReferenceEquals(SystemBackdrop, _glass)) SystemBackdrop = _glass; Shell.Background = ThemeBrush("CanvasBrush"); }
         else
         {
@@ -268,6 +276,9 @@ public sealed partial class MainWindow : Window
                 : new SolidColorBrush(ViewModel.Settings.Theme == "Akeno" ? global::Windows.UI.Color.FromArgb(255, 16, 11, 13)
                     : Shell.ActualTheme == ElementTheme.Light ? global::Windows.UI.Color.FromArgb(255, 241, 244, 249) : global::Windows.UI.Color.FromArgb(255, 27, 30, 40));
         }
+        if (_surfaceIsDrop) Shell.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        Root.Background = _surfaceIsDrop || ViewModel.Settings.Theme == "Akeno"
+            ? new SolidColorBrush(Microsoft.UI.Colors.Transparent) : ThemeBrush("HeaderGlowBrush");
         UpdateSurfaceMaterial();
     }
     private void UpdateTabs()

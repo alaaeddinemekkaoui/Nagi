@@ -17,6 +17,7 @@ public sealed partial class MainWindow
         if (_themeAccessibility.HighContrast)
         { WindowSurface.SetColor(((SolidColorBrush)ThemeBrush("CanvasBrush")).Color); return; }
         var color = ((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color;
+        if (_surfaceIsDrop) color.A = 255;
         if (SystemBackdrop is not null && !ViewModel.Settings.LuaUiEnabled)
             color.A = ViewModel.Settings.Theme == "Akeno" ? (byte)74 : (byte)24;
         WindowSurface.SetColor(color);

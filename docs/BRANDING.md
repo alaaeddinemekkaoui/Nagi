@@ -1,6 +1,6 @@
 # Nagi identity
 
-**Nagi** (凪, “calm”) is the product name. The current release is **V1.0**, published with the `v1` Git tag. Akeno is an appearance theme.
+**Nagi** (凪, “calm”) is the product name. The current release is **v0.1.1**, published with the `v0.1.1` Git tag. Akeno is an appearance theme.
 
 <img src="images/nagi-logo.png" width="160" alt="Nagi red arc and water-ripple logo">
 

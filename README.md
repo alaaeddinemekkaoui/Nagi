@@ -3,7 +3,7 @@
   <h1>Nagi</h1>
   <p><strong>A little space. More control.</strong></p>
   <p>A glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.</p>
-  <p><strong>V1.0 · Windows 11 x64</strong> · Portable EXE / ZIP · EXE installer · No account required</p>
+  <p><strong>v0.1.1 · Windows 11 x64</strong> · Portable EXE / ZIP · EXE installer · No account required</p>
   <p><a href="#download">Download</a> · <a href="#make-yourself-at-home">First launch</a> · <a href="#your-desktop-your-rhythm">Features</a> · <a href="docs/USER-GUIDE.md">Full guide</a></p>
 </div>
 
@@ -17,7 +17,7 @@
 | **Portable ZIP** | [Nagi-win-x64.zip](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-win-x64.zip) | Extract the whole folder, then open **Nagi.exe**. Keep its files together. |
 | **Install** | [Nagi-Setup.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Setup.exe) | Run setup, then open Nagi from Start. Installs for your Windows user without administrator rights. |
 
-[Open the Nagi V1.0 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) for all downloads and SHA256 checksums. Windows 11 **22H2 or newer**, x64. The runtime is included. The app and installer are unsigned.
+[Open the Nagi v0.1.1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) for all downloads and SHA256 checksums. Windows 11 **22H2 or newer**, x64. The runtime is included. The app and installer are unsigned.
 
 ## Make yourself at home
 
@@ -33,7 +33,7 @@ Finish saves your choices. Nagi takes its place at the edge, dims the surroundin
 <details>
 <summary>Meet your tiny desk buddy</summary>
 
-<img src="docs/images/nagi-first-run-v1.png" width="440" alt="Nagi first-run thank-you and dock position introduction">
+<img src="docs/images/nagi-first-run.png" width="440" alt="Nagi first-run thank-you and dock position introduction">
 
 </details>
 
@@ -53,7 +53,7 @@ Later launches go straight to your dock. Change anything in Settings, or revisit
 | **A personal touch** | Lua colors, spacing, cards, labels and overview sections, with a native editor, presets, reload and validation. |
 
 <div align="center">
-  <img src="docs/images/nagi-settings-v1.png" width="820" alt="Nagi settings organized into category cards">
+  <img src="docs/images/nagi-settings.png" width="820" alt="Nagi settings organized into category cards">
   <p><em>Pick a category. Make it yours.</em></p>
 </div>
 
@@ -79,7 +79,7 @@ The dock shows up to **three app shortcuts**. Any extra apps share a **folder ti
 Choose **Settings → Appearance & dock → Akeno** for the samurai artwork. Prefer something quieter? Choose **Gradient** or **None**. Glass remains available for a theme that follows Windows.
 
 <div align="center">
-  <img src="docs/images/nagi-akeno-v1.png" width="820" alt="Akeno black and red appearance with optional samurai art">
+  <img src="docs/images/nagi-akeno.png" width="820" alt="Akeno black and red appearance with optional samurai art">
 </div>
 
 Or try this in **Settings → Lua UI studio → Edit Lua UI**:

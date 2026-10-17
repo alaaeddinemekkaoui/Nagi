@@ -16,7 +16,7 @@ public sealed partial class MainWindow
     private string _updateStatus = "Check for a new release.";
     private TextBlock? _updateStatusText;
     private Button? _checkUpdateButton, _installUpdateButton;
-    private static Version CurrentVersion => typeof(MainWindow).Assembly.GetName().Version ?? new(1, 0, 0, 0);
+    private static Version CurrentVersion => typeof(MainWindow).Assembly.GetName().Version ?? new(0, 1, 1, 0);
     private string UpdateResultPath => Path.Combine(Path.GetDirectoryName(_settings.FilePath)!, "update-result.json");
     private void InitializeUpdates()
     {

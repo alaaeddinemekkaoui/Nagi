@@ -10,6 +10,7 @@ namespace Pulse.App.Themes;
 public sealed class HaloAcrylicBackdrop : SystemBackdrop
 {
     private DesktopAcrylicController? _controller;
+    private SystemBackdropConfiguration? _configuration;
     private bool _light;
     private bool _akeno;
     public void SetAkeno(bool enabled) { _akeno = enabled; ApplyPalette(); }
@@ -21,18 +22,21 @@ public sealed class HaloAcrylicBackdrop : SystemBackdrop
         base.OnTargetConnected(connectedTarget, xamlRoot);
         if (!IsSupported) return;
         _controller = new DesktopAcrylicController { Kind = DesktopAcrylicKind.Thin };
-        var configuration = GetDefaultSystemBackdropConfiguration(connectedTarget, xamlRoot);
-        configuration.IsInputActive = true;
-        _controller.SetSystemBackdropConfiguration(configuration);
+        _configuration = GetDefaultSystemBackdropConfiguration(connectedTarget, xamlRoot);
+        _configuration.IsInputActive = true;
+        _controller.SetSystemBackdropConfiguration(_configuration);
         _controller.AddSystemBackdropTarget(connectedTarget);
         ApplyPalette();
     }
     protected override void OnDefaultSystemBackdropConfigurationChanged(ICompositionSupportsSystemBackdrop target, XamlRoot root)
     {
-        base.OnDefaultSystemBackdropConfigurationChanged(target, root);
-        var configuration = GetDefaultSystemBackdropConfiguration(target, root);
-        configuration.IsInputActive = true;
-        _controller?.SetSystemBackdropConfiguration(configuration);
+        // The framework maintains this same configuration object. The base override
+        // throws E_INVALIDARG on theme changes in this custom controller host.
+        // Do not reconnect the target or forward the notification back to the base.
+        // It can also arrive during base.OnTargetConnected, before our setup finishes.
+        if (_controller is null || _configuration is null) return;
+        _configuration.IsInputActive = true;
+        ApplyPalette();
     }
     private void ApplyPalette()
     {
@@ -53,6 +57,7 @@ public sealed class HaloAcrylicBackdrop : SystemBackdrop
     {
         _controller?.RemoveSystemBackdropTarget(target);
         _controller?.Dispose(); _controller = null;
+        _configuration = null;
         base.OnTargetDisconnected(target);
     }
 }

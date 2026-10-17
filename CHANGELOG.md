@@ -1,6 +1,18 @@
 # Changelog
 
-## Nagi V1.0 — 2026-10-17
+## Nagi v0.1.1 — 2026-10-17
+
+- Fixed crashes when switching Akeno → Light or between day/night themes. The custom acrylic callback no longer calls the failing base configuration handler or reconnects an already connected configuration.
+- Fixed the glass pill behind the resting teardrop by disabling forced Windows corner rounding. Acrylic now runs only on the open dock and panels; the teardrop paints its own clipped shape with transparent surrounding layers.
+- Empty Default profile with search, CPU/GPU and now playing.
+- Work/Gaming presets and Stream profile; microphone, weather and battery are optional.
+- OBS hover controls for recording, streaming and three scene shortcuts.
+- Single-line app buttons, up to four per row; extra dock apps group into a folder that expands on hover.
+- Music fallback links for YouTube Music, Spotify and Apple Music, with a preferred-service setting.
+- Automatic update downloads; Settings → Updates → Install and restart applies the downloaded release.
+- Fresh portable EXE in the project root, ZIP and setup for v0.1.1. Nagi remains in early v0.1.x releases; v1 waits for explicit approval.
+
+## Nagi v0.1 — 2026-10-17
 
 Nagi is a glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.
 
