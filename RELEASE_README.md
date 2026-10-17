@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-logo.png" width="96" alt="Nagi logo">
+  <img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-logo.png" width="96" alt="Nagi logo">
   <h1>Nagi</h1>
   <p><strong>A little space. More control.</strong></p>
   <p>A glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.</p>
-  <p><strong>V1.0 · Windows 11 x64</strong> · Portable EXE / ZIP · EXE installer · No account required</p>
-  <p><a href="#download">Download</a> · <a href="#make-yourself-at-home">First launch</a> · <a href="#your-desktop-your-rhythm">Features</a> · <a href="https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/USER-GUIDE.md">Full guide</a></p>
+  <p><strong>v0.1 · Windows 11 x64</strong> · Portable EXE / ZIP · EXE installer · No account required</p>
+  <p><a href="#download">Download</a> · <a href="#make-yourself-at-home">First launch</a> · <a href="#your-desktop-your-rhythm">Features</a> · <a href="https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/USER-GUIDE.md">Full guide</a></p>
 </div>
 
 ---
@@ -17,7 +17,7 @@
 | **Portable ZIP** | [Nagi-win-x64.zip](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-win-x64.zip) | Extract the whole folder, then open **Nagi.exe**. Keep its files together. |
 | **Install** | [Nagi-Setup.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Setup.exe) | Run setup, then open Nagi from Start. Installs for your Windows user without administrator rights. |
 
-[Open the Nagi V1.0 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) for all downloads and SHA256 checksums. Windows 11 **22H2 or newer**, x64. The runtime is included. The app and installer are unsigned.
+[Open the Nagi v0.1 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) for all downloads and SHA256 checksums. Windows 11 **22H2 or newer**, x64. The runtime is included. The app and installer are unsigned.
 
 ## Make yourself at home
 
@@ -33,7 +33,7 @@ Finish saves your choices. Nagi takes its place at the edge, dims the surroundin
 <details>
 <summary>Meet your tiny desk buddy</summary>
 
-<img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-first-run-v1.png" width="440" alt="Nagi first-run thank-you and dock position introduction">
+<img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-first-run.png" width="440" alt="Nagi first-run thank-you and dock position introduction">
 
 </details>
 
@@ -53,7 +53,7 @@ Later launches go straight to your dock. Change anything in Settings, or revisit
 | **A personal touch** | Lua colors, spacing, cards, labels and overview sections, with a native editor, presets, reload and validation. |
 
 <div align="center">
-  <img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-settings-v1.png" width="820" alt="Nagi settings organized into category cards">
+  <img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-settings.png" width="820" alt="Nagi settings organized into category cards">
   <p><em>Pick a category. Make it yours.</em></p>
 </div>
 
@@ -67,19 +67,19 @@ Open **Profiles → Customize Default / Work / Gaming / Stream / Focus**. Add or
 
 Nagi rests as a small teardrop at your screen edge. **Hover the teardrop to reveal the dock**, then hover a widget for its controls. Move away to tuck it back. Click the logo to open the control center.
 
-<p><strong>Resting teardrop</strong><br><img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-teardrop.png" width="165" alt="Nagi's small resting teardrop attached to the bottom screen edge"></p>
-<p><strong>Dock revealed on hover</strong><br><img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-dock.png" width="760" alt="Nagi dock with search, three apps, an extra-app folder, CPU, GPU, music, microphone and battery"></p>
+<p><strong>Resting teardrop</strong><br><img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-teardrop.png" width="165" alt="Nagi's small resting teardrop attached to the bottom screen edge"></p>
+<p><strong>Dock revealed on hover</strong><br><img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-dock.png" width="760" alt="Nagi dock with search, three apps, an extra-app folder, CPU, GPU, music, microphone and battery"></p>
 
 The dock shows up to **three app shortcuts**. Any extra apps share a **folder tile** with a count. Hover or click the folder to expand those apps, then click an app to open it. The folder stays open while you move into it.
 
-<p><img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-app-folder.png" width="760" alt="Hovering Nagi's app folder expands the additional Steam and OBS Studio shortcuts above the dock"></p>
+<p><img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-app-folder.png" width="760" alt="Hovering Nagi's app folder expands the additional Steam and OBS Studio shortcuts above the dock"></p>
 
 ### Give it some character
 
 Choose **Settings → Appearance & dock → Akeno** for the samurai artwork. Prefer something quieter? Choose **Gradient** or **None**. Glass remains available for a theme that follows Windows.
 
 <div align="center">
-  <img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v1/docs/images/nagi-akeno-v1.png" width="820" alt="Akeno black and red appearance with optional samurai art">
+  <img src="https://github.com/alaaeddinemekkaoui/Nagi/raw/refs/tags/v0.1/docs/images/nagi-akeno.png" width="820" alt="Akeno black and red appearance with optional samurai art">
 </div>
 
 Or try this in **Settings → Lua UI studio → Edit Lua UI**:
@@ -94,7 +94,7 @@ return {
 }
 ```
 
-[Commented example](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/examples/simple-ui.lua) · [Complete Lua guide](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/LUA-UI.md) · [Appearance and logo assets](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/BRANDING.md)
+[Commented example](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/examples/simple-ui.lua) · [Complete Lua guide](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/LUA-UI.md) · [Appearance and logo assets](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/BRANDING.md)
 
 ## A few useful moves
 
@@ -122,11 +122,11 @@ Weather is optional: explicit city searches and selected coordinates go to Open-
 
 GPU counters depend on the driver. Temperatures require a supported Libre Hardware Monitor/Open Hardware Monitor WMI provider; FPS requires PresentMon tracing permission; OBS requires its local WebSocket v5 server. Media artwork and transport depend on the player. Nagi shows unavailable states rather than invented readings.
 
-The current validation record covers automated behavior and Windows integration tests, isolated welcome/workspace UI checks, native window clipping and installer preference retention. Broader physical monitor, player, sign-in, clean-machine and accessibility coverage remains documented in [Validation](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/VALIDATION.md).
+The current validation record covers automated behavior and Windows integration tests, isolated welcome/workspace UI checks, native window clipping and installer preference retention. Broader physical monitor, player, sign-in, clean-machine and accessibility coverage remains documented in [Validation](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/VALIDATION.md).
 
 ## Explore further
 
-[Complete app guide](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/USER-GUIDE.md) · [Documentation index](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/README.md) · [Welcome and layouts](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/WELCOME-AND-LAYOUT.md) · [Hardware and OBS](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/INTEGRATIONS.md) · [Build from source](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/docs/BUILD.md) · [Changelog](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/CHANGELOG.md) · [Third-party notices](https://github.com/alaaeddinemekkaoui/Nagi/blob/v1/THIRD-PARTY-NOTICES.md)
+[Complete app guide](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/USER-GUIDE.md) · [Documentation index](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/README.md) · [Welcome and layouts](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/WELCOME-AND-LAYOUT.md) · [Hardware and OBS](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/INTEGRATIONS.md) · [Build from source](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/docs/BUILD.md) · [Changelog](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/CHANGELOG.md) · [Third-party notices](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.1/THIRD-PARTY-NOTICES.md)
 
 Built with WinUI 3, Win2D and .NET.
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## Nagi V1.0 — 2026-10-17
+## Nagi v0.1 — 2026-10-17
 
 Nagi is a glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.
 

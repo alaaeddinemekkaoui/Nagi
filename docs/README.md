@@ -1,6 +1,6 @@
 # Nagi documentation
 
-Documentation for Nagi V1.0, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the new setup flow.
+Documentation for Nagi v0.1, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the new setup flow.
 
 Its dock rests as a small teardrop; hover it to reveal the dock, then hover the app folder to expand shortcuts beyond the first three.
 

@@ -1,6 +1,6 @@
 # Nagi UI design
 
-Nagi V1.0 is a native Windows desktop companion with a small resting teardrop, a revealed dock and inward-opening controls.
+Nagi v0.1 is a native Windows desktop companion with a small resting teardrop, a revealed dock and inward-opening controls.
 
 ## Dock and app folder
 

@@ -1,4 +1,4 @@
-# Nagi V1.0 validation
+# Nagi v0.1 validation
 
 ## Automated checks
 

@@ -1,4 +1,4 @@
-param([switch]$NoRestore, [switch]$SkipPortable, [string]$ReleaseTag='v1', [string]$PackageDirectory='')
+param([switch]$NoRestore, [switch]$SkipPortable, [string]$ReleaseTag='v0.1', [string]$PackageDirectory='')
 $ErrorActionPreference = 'Stop'
 $pulseRoot = Split-Path $PSScriptRoot -Parent
 $pulseOutput = if($PackageDirectory){[IO.Path]::GetFullPath($PackageDirectory)}else{Join-Path $pulseRoot 'artifacts/Nagi-win-x64'}
