@@ -1,6 +1,6 @@
 <div align="center">
   <img src="docs/images/nagi-logo.png" width="96" alt="Nagi logo">
-  <h1>Nagi version 1</h1>
+  <h1>Nagi </h1>
   <p><strong>A little space. More control.</strong></p>
   <p>A glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.</p>
   <p><strong>Windows 11 x64</strong> · Portable ZIP · EXE installer · No account required</p>
