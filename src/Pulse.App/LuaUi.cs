@@ -109,7 +109,7 @@ public sealed partial class MainWindow
             foreach (var key in new[] { "SliderTrackValueFill", "SliderTrackValueFillPointerOver", "SliderTrackValueFillPressed", "SliderThumbBackground", "SliderThumbBackgroundPointerOver", "SliderThumbBackgroundPressed" })
                 slider.Resources[key] = accentBrush;
         }
-        foreach (var metric in new[] { CpuMetric, RamMetric, PeekCpuMetric, PeekRamMetric })
+        foreach (var metric in new[] { CpuMetric, RamMetric, GpuMetric, PeekCpuMetric, PeekRamMetric })
             metric.Customize(_luaStyle.CardRadius, accentBrush);
         CpuMetric.Rename(_luaStyle.CpuLabel); PeekCpuMetric.Rename(_luaStyle.CpuLabel);
         RamMetric.Rename(_luaStyle.MemoryLabel); PeekRamMetric.Rename(_luaStyle.MemoryLabel);

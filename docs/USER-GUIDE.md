@@ -21,7 +21,7 @@ This guide covers Nagi on Windows 11 x64, version 22H2 or newer. Start with the 
 
 ## Install, update and start
 
-Extract **the entire Nagi-win-x64.zip** into a folder and open `Nagi.exe`. Keep the DLLs, assets and other files together. The self-contained release includes the application runtimes; it needs no .NET SDK. The current package is unsigned.
+Open **Nagi-Portable.exe** directly, or extract **the entire Nagi-win-x64.zip** into a folder and open `Nagi.exe`. The portable EXE prepares its bundled files automatically and needs no installation. Keep the DLLs, assets and other files together. The self-contained release includes the application runtimes; it needs no .NET SDK. The current package is unsigned.
 
 For a per-user installation, open PowerShell in the extracted folder and run:
 
@@ -35,16 +35,22 @@ Only one Nagi instance runs in the current Windows session. Launching it again r
 
 ## Rail and window controls
 
-Nagi normally rests as a narrow tab attached to the right screen edge. Your saved position or **Open expanded on startup** preference can change its initial state.
+Nagi normally rests as a small teardrop attached to your selected screen edge. Hovering reveals the dock. Your saved layout or **Open expanded on startup** preference can change its initial state.
 
-1. Hover over the tab to reveal the vertical rail.
+1. Hover the teardrop to reveal the dock, horizontal or vertical.
 2. Click once to pin the revealed controls open.
-3. Click again to expand the detail panel inward.
+3. Click the Nagi logo to open the control center. A second click on the pinned edge control expands details inward.
 4. Use **Collapse Nagi** or Escape to return toward the resting edge state.
 
 Moving away retracts an unpinned reveal. A hover preview lets you inspect details without taking keyboard focus from the current app. Move into that preview to use its controls, or select **Show more** for the full panel.
 
-The rail contains the Nagi logo, search, CPU, GPU, media, microphone and battery. Hover CPU/GPU for system details, media for playback/audio, and battery for charging information. Drag the Nagi logo to adjust height or move to the opposite edge. Under **Settings → Appearance & placement**, select **Left edge** or **Right edge** and the preferred display. Panels open inward, adapt to DPI/work area, and the rail can scroll when available height is limited.
+The dock contains the Nagi logo, search, profile apps and enabled widgets. Up to three apps appear directly; additional apps share a folder tile with a count. **Hover or click the folder to expand it**, then click an app to open it. Moving from the folder tile into its app list keeps the folder open. Default starts without apps, so it has no folder. Removing extra apps hides the folder when three or fewer remain. Overview continues to show every app, up to four per row.
+
+<p><strong>Resting teardrop</strong><br><img src="images/nagi-teardrop.png" width="165" alt="Small resting Nagi teardrop at the screen edge"></p>
+<p><strong>Hover reveals the dock</strong><br><img src="images/nagi-dock.png" width="760" alt="Nagi's revealed dock with an app folder after the first three shortcuts"></p>
+<p><strong>Hover expands extra apps</strong><br><img src="images/nagi-app-folder.png" width="760" alt="Additional app shortcuts expanded from the dock's folder tile"></p>
+
+Hover CPU/GPU for system details, media for playback/audio, and OBS for studio controls when enabled. Drag the Nagi logo to reposition the dock. Under **Settings → Appearance & dock**, select Horizontal with the top/bottom edge or Vertical with the left/right edge, and choose a display. Panels open inward, adapt to DPI/work area, and the dock can scroll when space is limited.
 
 The expanded panel provides **Overview**, profile/rule controls and **Settings**. Overview combines system metrics, media, output audio, integration status and quick actions. Hide removes Nagi from view while keeping Nagi running; Quit stops the application.
 
@@ -106,13 +112,13 @@ Configure indexing under **Settings → Quick search**. Standard roots are your 
 
 ## Profiles, rules and quick actions
 
-Nagi provides **Work**, **Gaming** and **Focus**. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus quiets the dock and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize app docks, visible widgets, context and shortcuts. They do not tune hardware or game settings.
+Nagi provides **Default**, **Work**, **Gaming**, **Stream** and **Focus**. Default starts with search, CPU/GPU and now playing, with no apps. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus quiets the dock and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize app docks, visible widgets, context and shortcuts. They do not tune hardware or game settings.
 
 After first-time welcome, a dimmed introduction points out the edge drop. Hover it or choose Okay to dismiss; Escape also closes the introduction. Welcome and this introduction are skipped on ordinary later launches. Your saved choices persist.
 
-Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Work/Gaming/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. The first four appear on the edge rail; Overview lists every app in the workspace. Missing suggestions show an actionable error rather than downloading or installing software.
+Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Default/Work/Gaming/Stream/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. The first three appear on the dock, with remaining apps grouped in a folder that expands on hover or click; Overview lists every app in rows of up to four single-line buttons. Missing suggestions show an actionable error rather than downloading or installing software.
 
-Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery checkboxes. Widget choices also filter the rail. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
+Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery checkboxes. Widget choices also filter the rail. Microphone, Weather and Battery can each be turned off independently per profile. Stream includes OBS controls; hover its OBS rail button to open OBS, start/stop recording or streaming, and switch between three scenes. Choose the scene shortcuts under Hardware & studio; Automatic uses the first three OBS scenes. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
 
 
 To map an app to a profile:
@@ -128,7 +134,7 @@ Under **Quick actions**, use **+ Add quick action** to create an application, fo
 
 ## Appearance and settings
 
-Settings opens a category grid. Choose a category to open its controls, then use **All settings** to go back. Individual categories scroll when needed. The default **Glass (system)** appearance follows Windows light/dark mode and respects transparency and high contrast preferences. Akeno can display the generated Samurai artwork, a Gradient, or None. Microphone status and mute controls sit directly below the media card and inside the media preview.
+Settings always opens the category menu. Select a category to open its own page, then use **Back to settings** to return to the menu. The back button stays visible while the page scrolls. **Profiles & apps** stays inside Settings, including profile customization; **All profiles** returns to that category and **Back to settings** returns to the menu. The default **Glass (system)** appearance follows Windows light/dark mode and respects transparency and high contrast preferences. Akeno can display the generated Samurai artwork, a Gradient, or None. Microphone status and mute controls sit directly below the media card and inside the media preview.
 
 | Group | Options |
 | --- | --- |
@@ -250,4 +256,10 @@ dotnet test Pulse.sln -c Release --no-build
 
 The publish script creates the self-contained portable directory, ZIP and SHA256 file. Trusted signing requires a valid code-signing certificate; it is a separate release step. Source is split into WinUI presentation, Core policy/models, Windows integrations and Infrastructure persistence/Lua/indexing.
 
-Use the [documentation index](README.md) for architecture, build prerequisites, licenses, feature status and release history. [Validation](VALIDATION.md) records the prior 1.7 checks and the Nagi 1.8 rename validation while distinguishing remaining physical-monitor, media-player, sign-in and accessibility coverage from completed checks.
+Use the [documentation index](README.md) for architecture, build prerequisites, licenses, validation and the V1.0 changelog. [Validation](VALIDATION.md) records Nagi V1.0 checks while distinguishing remaining physical-monitor, media-player, sign-in and accessibility coverage from completed checks.
+
+## Music and app updates
+
+When no media is detected, now playing offers YouTube Music, Spotify and Apple Music links. Under **Settings → Music**, choose All or one preferred service; only that service is offered when selected. Empty, inactive Windows media sessions do not hide these links. Paused tracks with metadata keep their playback controls.
+
+Open **Settings → Updates → Check for updates**. A newer stable GitHub release can be downloaded and installed directly from the app. **Download updates automatically** checks at startup and every six hours and downloads verified packages; **Install and restart** completes the update when you are ready. Manual **Download and update** downloads and restarts in one action. SHA256 and package checks finish before the app closes. The updater replaces the current portable or installed app in place, retains preferences/scripts, and backs up replaced files for rollback. Update failures appear after restarting; a diagnostic log stays in the staging folder. A release needs the Windows x64 ZIP plus a GitHub SHA256 digest or matching `.sha256` asset.

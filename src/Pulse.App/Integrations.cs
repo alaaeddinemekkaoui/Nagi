@@ -59,6 +59,7 @@ public sealed partial class MainWindow
     }
     private void RenderIntegrations()
     {
+        GpuMetric.Update("GPU", _gpuSnapshot.Usage is { } usage ? $"{usage:0}%" : "—", _gpuSnapshot.Name, _gpuSnapshot.Usage);
         RailGpuValue.Text = _gpuSnapshot.Usage is { } gpu ? $"{gpu:0}%" : "—";
         ToolTipService.SetToolTip(RailGpuButton, _gpuSnapshot.Name + " · " + _gpuSnapshot.Status);
         RailMicrophoneButton.IsEnabled = _microphoneSnapshot.Volume.HasValue;
@@ -78,23 +79,63 @@ public sealed partial class MainWindow
         PeekMicrophoneButton.Content = _microphoneSnapshot.Muted ? "Unmute mic" : "Mute mic";
         PeekMicrophoneText.Text = micLine;
         var obsLine = !_obsSnapshot.Connected ? _obsSnapshot.Status : "OBS · " + (_obsSnapshot.Recording ? "Recording" : "Not recording") + (_obsSnapshot.Streaming ? " · Live" : "") + (_obsSnapshot.RenderFps is { } of ? $" · {of:0} render FPS" : "");
-        IntegrationSummary.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine + "\n" + micLine + "\n" + obsLine;
+        IntegrationSummary.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine + (ViewModel.Settings.Workspace(ViewModel.Profile).Shows("Microphone") ? "\n" + micLine : "") + "\n" + obsLine;
         PeekIntegrations.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine;
-        ObsRecordButton.IsEnabled = ViewModel.Settings.ObsEnabled && _obsSnapshot.Connected && !_obsActionInFlight;
-        ObsRecordButton.Content = _obsSnapshot.Recording ? "Stop recording" : "OBS record";
+        PeekObsStatus.Text = obsLine + (_obsSnapshot.CurrentScene is { } scene ? "\nScene: " + scene : "");
+        ObsRecordButton.IsEnabled = PeekObsRecordButton.IsEnabled = ObsStreamButton.IsEnabled = PeekObsStreamButton.IsEnabled = ViewModel.Settings.ObsEnabled && _obsSnapshot.Connected && !_obsActionInFlight;
+        ObsRecordButton.Content = PeekObsRecordButton.Content = _obsSnapshot.Recording ? "Stop recording" : "Start recording";
+        ObsStreamButton.Content = PeekObsStreamButton.Content = _obsSnapshot.Streaming ? "Stop streaming" : "Start streaming";
+        RenderObsScenes();
     }
     private async void Microphone_Click(object sender, RoutedEventArgs args)
     {
         var result = await Task.Run(() => { var current = _microphone.Sample(); return current.Volume.HasValue ? _microphone.SetMute(!current.Muted) : OperationResult.Fail("No default communications microphone is available."); });
         Report(result); _microphoneSnapshot = await Task.Run(_microphone.Sample); if (!_closed) RenderIntegrations();
     }
-    private async void ObsRecord_Click(object sender, RoutedEventArgs args)
+    private async void ObsOpen_Click(object sender, RoutedEventArgs args)
     {
-        if (!ViewModel.Settings.ObsEnabled || _obsActionInFlight) return;
-        _obsActionInFlight = true;
-        ObsRecordButton.IsEnabled = false;
-        try { Report(await _obs.ToggleRecordingAsync(ViewModel.Settings.ObsPort, Volatile.Read(ref _obsPassword), _shutdown.Token)); }
+        try { Report(await OpenProfileAppAsync(new("OBS Studio", "obs", "Suggested"))); }
+        catch (OperationCanceledException) { }
+    }
+    private async void ObsRecord_Click(object sender, RoutedEventArgs args) => await RunObsActionAsync(() => _obs.ToggleRecordingAsync(ViewModel.Settings.ObsPort, Volatile.Read(ref _obsPassword), _shutdown.Token));
+    private async void ObsStream_Click(object sender, RoutedEventArgs args) => await RunObsActionAsync(() => _obs.ToggleStreamingAsync(ViewModel.Settings.ObsPort, Volatile.Read(ref _obsPassword), _shutdown.Token));
+    private async Task RunObsActionAsync(Func<Task<OperationResult>> action)
+    {
+        if (!ViewModel.Settings.ObsEnabled || !_obsSnapshot.Connected || _obsActionInFlight) return;
+        _obsActionInFlight = true; RenderIntegrations();
+        try
+        {
+            Report(await action());
+            var snapshot = await _obs.SampleAsync(ViewModel.Settings.ObsEnabled, ViewModel.Settings.ObsPort, Volatile.Read(ref _obsPassword), _shutdown.Token);
+            if (!_closed) _obsSnapshot = snapshot;
+        }
+        catch (OperationCanceledException) { }
         finally { _obsActionInFlight = false; if (!_closed) RenderIntegrations(); }
+    }
+    private string? _obsScenesKey;
+    private void RenderObsScenes()
+    {
+        var configured = ViewModel.Settings.ObsScenes;
+        var scenes = Enumerable.Range(0, 3).Select(i => string.IsNullOrEmpty(configured[i]) ? _obsSnapshot.Scenes.ElementAtOrDefault(i) : configured[i]).ToArray();
+        var enabled = ViewModel.Settings.ObsEnabled && _obsSnapshot.Connected && !_obsActionInFlight;
+        var key = System.Text.Json.JsonSerializer.Serialize(new { scenes, enabled, current = _obsSnapshot.CurrentScene, available = _obsSnapshot.Scenes });
+        if (_obsScenesKey == key) return; _obsScenesKey = key;
+        foreach (var panel in new[] { ObsScenesPanel, PeekObsScenesPanel })
+        {
+            panel.Children.Clear();
+            for (var i = 0; i < 3; i++)
+            {
+                var scene = scenes[i];
+                var button = Button(scene ?? "Scene " + (i + 1), async (_, _) => await RunObsActionAsync(() => _obs.SwitchSceneAsync(ViewModel.Settings.ObsPort, Volatile.Read(ref _obsPassword), scene ?? "", _shutdown.Token)));
+                button.IsEnabled = enabled && scene is not null && _obsSnapshot.Scenes.Contains(scene);
+                button.FontSize = 12; button.Padding = new(8); button.HorizontalAlignment = HorizontalAlignment.Stretch;
+                Grid.SetColumn(button, i);
+                button.Content = new TextBlock { Text = (_obsSnapshot.CurrentScene == scene && scene is not null ? "* " : "") + (scene ?? "Scene " + (i + 1)), TextTrimming = TextTrimming.CharacterEllipsis, MaxLines = 1 };
+                AutomationProperties.SetName(button, "Switch OBS scene " + (i + 1) + ": " + (scene ?? "Not configured"));
+                ToolTipService.SetToolTip(button, scene ?? "Connect OBS and choose a scene in Hardware & studio settings.");
+                panel.Children.Add(button);
+            }
+        }
     }
     private void BuildIntegrationSettings()
     {
@@ -107,7 +148,7 @@ public sealed partial class MainWindow
         integrations.Children.Add(Note("Controls the default communications microphone. Nagi does not record audio. Device: " + _microphoneSnapshot.Device));
         SettingsPage.Children.Add(Card(integrations));
         var obs = Stack(); obs.Children.Add(Heading("OBS Studio"));
-        obs.Children.Add(Note("Enable the OBS WebSocket server in OBS → Tools → WebSocket Server Settings. Nagi connects only to this computer. Recording changes require a button click."));
+        obs.Children.Add(Note("Enable the OBS WebSocket server in OBS → Tools → WebSocket Server Settings. Nagi connects only to this computer. Recording, streaming and scene changes require a button click."));
         obs.Children.Add(Toggle("Connect to OBS", "Read recording, stream and rendering status through OBS WebSocket v5.", ViewModel.Settings.ObsEnabled, (s, enabled) => s with { ObsEnabled = enabled }));
         var port = new NumberBox { Header = "OBS WebSocket port", Minimum = 1024, Maximum = 65535, Value = ViewModel.Settings.ObsPort, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact };
         obs.Children.Add(port);
@@ -121,6 +162,26 @@ public sealed partial class MainWindow
             await CommitAsync(s => s with { ObsPort = (int)port.Value }); BuildSettingsPage();
         }));
         obs.Children.Add(Button("Clear saved OBS password", (_, _) => { _obsSecret.Clear(); Volatile.Write(ref _obsPassword, ""); BuildSettingsPage(); }));
+        obs.Children.Add(Heading("Three scene shortcuts"));
+        obs.Children.Add(Note("Connect OBS, then choose the scenes for your three buttons. Automatic uses the first three scenes in OBS."));
+        for (var i = 0; i < 3; i++)
+        {
+            var slot = i;
+            var names = new[] { "Automatic" }.Concat(_obsSnapshot.Scenes).Concat(ViewModel.Settings.ObsScenes.Where(n => n.Length > 0)).Distinct().ToArray();
+            var choice = Select(names, ViewModel.Settings.ObsScenes[i].Length > 0 ? ViewModel.Settings.ObsScenes[i] : "Automatic", "OBS scene shortcut " + (i + 1));
+            choice.SelectionChanged += async (_, _) =>
+            {
+                if (choice.SelectedItem is not string scene) return;
+                await CommitAsync(s => s with { ObsScenes = s.ObsScenes.Select((name, index) => index == slot ? scene == "Automatic" ? "" : scene : name).ToArray() });
+                RenderIntegrations();
+            };
+            obs.Children.Add(Labeled("Scene button " + (i + 1), choice));
+        }
+        obs.Children.Add(Button("Refresh OBS scenes", async (_, _) =>
+        {
+            var snapshot = await _obs.SampleAsync(ViewModel.Settings.ObsEnabled, ViewModel.Settings.ObsPort, Volatile.Read(ref _obsPassword), _shutdown.Token);
+            if (!_closed) { _obsSnapshot = snapshot; RenderIntegrations(); BuildSettingsPage(); }
+        }));
         obs.Children.Add(Note(_obsSnapshot.Status + " · Passwords are protected for your Windows user account, separately from settings.json."));
         SettingsPage.Children.Add(Card(obs));
     }

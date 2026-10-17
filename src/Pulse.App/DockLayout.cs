@@ -12,11 +12,11 @@ public sealed partial class MainWindow
         _horizontalRail = horizontal;
         Compact.RowDefinitions.Clear(); Compact.ColumnDefinitions.Clear();
         var buttons = new FrameworkElement[] { CompactBrand, RailSearchButton, ProfileDockPanel, CompactCpuButton, RailGpuButton,
-            CompactMediaButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
+            CompactMediaButton, RailObsButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
         for (var i = 0; i < buttons.Length; i++)
         {
             Grid.SetRow(buttons[i], horizontal ? 0 : i); Grid.SetColumn(buttons[i], horizontal ? i : 0);
-            buttons[i].Width = horizontal ? new[] { 40d, 40, double.NaN, 54, 54, double.NaN, 40, 54, 48 }[i] : double.NaN;
+            buttons[i].Width = horizontal ? new[] { 40d, 40, double.NaN, 54, 54, double.NaN, 40, 40, 54, 48 }[i] : double.NaN;
             if (horizontal) Compact.ColumnDefinitions.Add(new() { Width = i == 5 ? new(1, GridUnitType.Star) : GridLength.Auto });
             else Compact.RowDefinitions.Add(new() { Height = i == 5 ? new(1, GridUnitType.Star) : GridLength.Auto });
         }
@@ -90,7 +90,8 @@ public sealed partial class MainWindow
             EdgeDrop.VerticalAlignment = VerticalAlignment.Center;
         }
         EdgeDrop.IsHitTestVisible = resting; Compact.IsHitTestVisible = !resting;
-        CompactCpuButton.Visibility = CompactSecondaryValue.Visibility = Visibility.Visible;
+        CompactSecondaryValue.Visibility = Visibility.Visible;
+        ApplyWorkspaceVisibility();
         DockPinIndicator.Visibility = _dock.Pinned ? Visibility.Visible : Visibility.Collapsed;
     }
 }

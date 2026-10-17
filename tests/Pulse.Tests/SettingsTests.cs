@@ -60,7 +60,7 @@ public sealed class SettingsTests : IDisposable
     {
         await Write("""{"PollingIntervalMs":1,"Theme":"invalid","DefaultProfile":999,"Hotkey":null,"Rules":null,"QuickActions":null,"Position":{"Anchor":"lost","OffsetX":1e10}}""");
         var settings = await _service.LoadAsync();
-        Assert.Equal(500, settings.PollingIntervalMs); Assert.Equal("System", settings.Theme); Assert.Equal(Profile.Work, settings.DefaultProfile);
+        Assert.Equal(500, settings.PollingIntervalMs); Assert.Equal("System", settings.Theme); Assert.Equal(Profile.Default, settings.DefaultProfile);
         Assert.NotNull(settings.Hotkey); Assert.Equal("Right edge", settings.Position.Anchor); Assert.InRange(settings.Position.OffsetX, -100000, 100000);
     }
     [Fact] public async Task SavesAreAtomicAndLeavePreviousBackup()

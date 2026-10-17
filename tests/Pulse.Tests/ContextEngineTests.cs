@@ -18,8 +18,8 @@ public sealed class ContextEngineTests
     {
         var engine = new ContextEngine();
         var settings = new PulseSettings { Rules = [new("game.exe", Profile.Focus, 10), new("game.exe", Profile.Gaming, 20)] };
-        Assert.Equal(Profile.Work, engine.Evaluate(Game, settings, Now));
-        Assert.Equal(Profile.Work, engine.Evaluate(Game, settings, Now.AddSeconds(1)));
+        Assert.Equal(Profile.Default, engine.Evaluate(Game, settings, Now));
+        Assert.Equal(Profile.Default, engine.Evaluate(Game, settings, Now.AddSeconds(1)));
         Assert.Equal(Profile.Gaming, engine.Evaluate(Game, settings, Now.AddSeconds(2)));
     }
     [Fact] public void RapidForegroundChangesDoNotSwitchProfiles()
@@ -28,8 +28,8 @@ public sealed class ContextEngineTests
         var settings = new PulseSettings { Rules = [new("game.exe", Profile.Gaming)] };
         engine.Evaluate(Game, settings, Now);
         engine.Evaluate(new(1, "editor", null), settings, Now.AddSeconds(1));
-        Assert.Equal(Profile.Work, engine.Evaluate(Game, settings, Now.AddMilliseconds(1500)));
-        Assert.Equal(Profile.Work, engine.Evaluate(Game, settings, Now.AddSeconds(2)));
+        Assert.Equal(Profile.Default, engine.Evaluate(Game, settings, Now.AddMilliseconds(1500)));
+        Assert.Equal(Profile.Default, engine.Evaluate(Game, settings, Now.AddSeconds(2)));
         Assert.Equal(Profile.Gaming, engine.Evaluate(Game, settings, Now.AddSeconds(4)));
     }
     [Fact] public void DisablingAutomaticUsesFallbackImmediately()
@@ -40,7 +40,7 @@ public sealed class ContextEngineTests
     {
         var engine = new ContextEngine(); var settings = new PulseSettings { Rules = [] };
         engine.Evaluate(Game, settings, Now);
-        Assert.Equal(Profile.Work, engine.Evaluate(Game, settings, Now.AddMinutes(1)));
+        Assert.Equal(Profile.Default, engine.Evaluate(Game, settings, Now.AddMinutes(1)));
     }
     [Fact] public void DisabledRulesAreIgnoredAndTiesUseStableOrder()
     {

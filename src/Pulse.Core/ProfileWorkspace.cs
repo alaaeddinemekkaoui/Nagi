@@ -17,19 +17,28 @@ public sealed record ProfileWorkspace(Profile Profile, ProfileApp[] Apps, string
 
 public static class ProfileWorkspaces
 {
+    public static readonly Profile[] Profiles = [Profile.Default, Profile.Work, Profile.Gaming, Profile.Stream, Profile.Focus];
     public static readonly string[] WidgetNames = ["Performance", "Network", "Media", "Audio", "Microphone", "Weather", "Studio", "Battery"];
     public static readonly IReadOnlyDictionary<string, string[]> Suggestions = new Dictionary<string, string[]>
     {
         ["code"] = ["Visual Studio Code", "VS Code"], ["terminal"] = ["Windows Terminal", "Terminal"],
-        ["browser"] = ["Google Chrome", "Microsoft Edge", "Firefox", "Brave"], ["steam"] = ["Steam"]
+        ["browser"] = ["Google Chrome", "Microsoft Edge", "Firefox", "Brave"], ["steam"] = ["Steam"], ["obs"] = ["OBS Studio", "OBS Studio (64bit)"]
     };
     public static ProfileWorkspace Default(Profile profile) => new(profile, profile switch
     {
         Profile.Work => [new("VS Code", "code", "Suggested"), new("Terminal", "terminal", "Suggested"), new("Browser", "browser", "Suggested")],
         Profile.Gaming => [new("Steam", "steam", "Suggested"), new("Browser", "browser", "Suggested")],
+        Profile.Default => [],
+        Profile.Stream => [new("OBS Studio", "obs", "Suggested")],
         _ => [new("Browser", "browser", "Suggested")]
-    }, profile == Profile.Focus ? ["Media", "Audio", "Microphone", "Battery"] : [.. WidgetNames]);
-    public static ProfileWorkspace[] Normalize(ProfileWorkspace[]? workspaces) => Enum.GetValues<Profile>()
+    }, profile switch
+    {
+        Profile.Default => ["Performance", "Media"],
+        Profile.Focus => ["Media", "Audio", "Microphone", "Weather", "Battery"],
+        Profile.Stream => ["Performance", "Media", "Audio", "Studio", "Microphone", "Weather", "Battery"],
+        _ => ["Performance", "Media", "Audio", "Microphone", "Weather", "Battery"]
+    });
+    public static ProfileWorkspace[] Normalize(ProfileWorkspace[]? workspaces) => Profiles
         .Select(profile => (workspaces?.FirstOrDefault(w => w is not null && w.Profile == profile) ?? Default(profile)).Normalize()).ToArray();
     public static SearchEntry? Resolve(ProfileApp app, IEnumerable<SearchEntry> catalog)
     {

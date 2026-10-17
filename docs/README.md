@@ -1,12 +1,15 @@
 # Nagi documentation
 
-Documentation for Nagi version 1, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the new setup flow.
+Documentation for Nagi V1.0, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the new setup flow.
+
+Its dock rests as a small teardrop; hover it to reveal the dock, then hover the app folder to expand shortcuts beyond the first three.
 
 Start with the [complete app guide](USER-GUIDE.md). For a first customization, copy the [commented Lua example](examples/simple-ui.lua) into **Settings → Lua UI studio → Edit Lua UI**, then select **Apply script**.
 
 | Document | Contents |
 | --- | --- |
-| [Branding and logo](BRANDING.md) | Name, logo assets, generation prompt and upgrade compatibility |
+| [Branding and logo](BRANDING.md) | Name, logo assets and local file locations |
+| [Dock, teardrop and layouts](WELCOME-AND-LAYOUT.md#teardrop-dock-and-app-folder) | Screenshots of the resting teardrop, revealed dock and app folder, with hover/click behavior |
 | [App guide](USER-GUIDE.md) | Installation, daily use, controls, profiles, settings, data, troubleshooting and removal |
 | [Quick search](QUICK-SEARCH.md) | Query syntax, shortcuts, app catalog, indexing and limits |
 | [Lua UI reference](LUA-UI.md) | Every appearance option, theme/profile context, reload and error recovery |
@@ -19,7 +22,6 @@ Start with the [complete app guide](USER-GUIDE.md). For a first customization, c
 | [Validation](VALIDATION.md) | Tests, observed runtime checks and remaining environment coverage |
 | [Roadmap](ROADMAP.md) | Current limitations, external requirements and future scope |
 | [Changelog](../CHANGELOG.md) | Release history |
-| [Feature status](../TASKS.md) | Implemented and verified feature tracking |
 | [Third-party notices](../THIRD-PARTY-NOTICES.md) | Libraries and bundled-tool licensing |
 
 These documents and the Lua example ship in the portable ZIP and per-user installation. Developer commands assume a source checkout; end users can run the extracted release without installing a .NET SDK.

@@ -7,6 +7,14 @@ namespace Pulse.Tests;
 public sealed class MediaDesignTests
 {
     [Theory]
+    [InlineData("", "", false, false)]
+    [InlineData(null, null, false, false)]
+    [InlineData(" ", "", false, false)]
+    [InlineData("Track", "Artist", false, true)]
+    [InlineData("", "", true, true)]
+    public void EmptyWindowsSessionsShowMusicLinksButPausedTracksRemainDetected(string? title, string? artist, bool playing, bool detected)
+        => Assert.Equal(detected, MediaSnapshot.IsDetected(title, artist, playing));
+    [Theory]
     [InlineData("Left edge", 18, 132)]
     [InlineData("Right edge", 18, 132)]
     [InlineData("Top edge", 132, 18)]

@@ -102,6 +102,7 @@ public sealed partial class MainWindow
         foreach (var (id, title, detail) in new[] {
             ("settings", "Open Nagi settings", "Appearance, shortcuts and indexed folders"), ("halo", "Show Nagi", "Open the control center"),
             ("hide", "Hide Nagi", "Keep Nagi running in the tray"), ("work", "Switch to Work", "Lock the Work profile"),
+            ("default", "Switch to Default", "Lock the Default profile"), ("stream", "Switch to Stream", "Lock the Stream profile"),
             ("gaming", "Switch to Gaming", "Lock the Gaming profile"), ("focus", "Switch to Focus", "Lock the Focus profile"),
             ("automatic", "Automatic profiles", "Release the manual profile lock"), ("mute", "Toggle output mute", "Mute or unmute Windows output"),
             ("volume-up", "Volume up", "Increase Windows output by 5%"), ("volume-down", "Volume down", "Decrease Windows output by 5%"),
@@ -131,8 +132,8 @@ public sealed partial class MainWindow
             case "settings": _searchWindow?.Hide(); OpenControlCenter("Settings"); break;
             case "halo": _searchWindow?.Hide(); Navigate("Overview"); Reveal(); break;
             case "hide": HideHalo(); break;
-            case "work": case "gaming": case "focus":
-                var profile = entry.Target == "work" ? Profile.Work : entry.Target == "gaming" ? Profile.Gaming : Profile.Focus;
+            case "default": case "work": case "gaming": case "stream": case "focus":
+                var profile = Enum.Parse<Profile>(entry.Target, true);
                 await ActivateProfileAsync(profile); break;
             case "automatic": await ActivateProfileAsync(null); break;
             case "mute": return await Task.Run(() => { var audio = _audio.Sample(); return audio.Volume.HasValue ? _audio.SetMute(!audio.Muted) : OperationResult.Fail("Audio output unavailable."); });

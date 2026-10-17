@@ -61,6 +61,8 @@ public sealed partial class MainWindow : Window
         ViewModel = new(configuration);
         InitializeComponent();
         Root.DataContext = ViewModel;
+        ProfilePicker.ItemsSource = new[] { "Automatic" }.Concat(ProfileWorkspaces.Profiles.Select(p => p.ToString())).ToArray();
+        BuildMusicLinks();
         foreach (var railButton in Compact.Children.OfType<Button>()) railButton.Padding = new(4);
         var presenter = (OverlappedPresenter)AppWindow.Presenter;
         presenter.SetBorderAndTitleBar(false, false);
@@ -131,6 +133,7 @@ public sealed partial class MainWindow : Window
         _searchStarted = true; RebuildSearchIndex(); _indexTimer.Start();
         _integrationPolling = Task.Run(PollIntegrationsAsync);
         _weatherPolling = Task.Run(PollWeatherAsync);
+        InitializeUpdates();
     }
     public void Reveal()
     {
@@ -354,9 +357,10 @@ public sealed partial class MainWindow : Window
         PeekPlayButton.IsEnabled = PlayButton.IsEnabled;
         PeekNextButton.IsEnabled = NextButton.IsEnabled;
         PeekPlayIcon.Glyph = PlayIcon.Glyph;
+        RenderMusicLinks();
         PeekPlaybackState.Text = media.Available ? media.Playing ? "Playing" : "Paused" : "No active session";
-        CompactSecondaryLabel.Text = media.Available && ViewModel.Settings.ShowMedia ? "♫" : "RAM";
-        CompactSecondaryValue.Text = media.Available && ViewModel.Settings.ShowMedia ? media.Playing ? "Playing" : "Paused" : ViewModel.RamText;
+        CompactSecondaryLabel.Text = "♫";
+        CompactSecondaryValue.Text = media.Available && ViewModel.Settings.ShowMedia ? media.Playing ? "Playing" : "Paused" : "Music";
         if (!ReferenceEquals(_artwork, media.Artwork))
         {
             _artwork = media.Artwork;
@@ -388,7 +392,7 @@ public sealed partial class MainWindow : Window
         _updating = true;
         Shell.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
         ApplyGlass(); UpdateTabs();
-        ProfilePicker.SelectedIndex = settings.LockedProfile is { } locked ? (int)locked + 1 : settings.AutomaticSwitching ? 0 : (int)settings.DefaultProfile + 1;
+        ProfilePicker.SelectedItem = settings.LockedProfile is { } locked ? locked.ToString() : settings.AutomaticSwitching ? "Automatic" : settings.DefaultProfile.ToString();
         LockIcon.Glyph = settings.LockedProfile.HasValue ? "\uE72E" : "\uE785";
         ApplyLuaVisuals();
         _ = ReloadLuaUiAsync();
@@ -406,7 +410,7 @@ public sealed partial class MainWindow : Window
             await _settings.SaveAsync(next, _shutdown.Token);
             ViewModel.Settings = next;
             Volatile.Write(ref _pollSettings, next);
-            ApplyPreferences(); BuildQuickActions(); BuildProfileDock(); ApplyWorkspaceVisibility();
+            ApplyPreferences(); BuildQuickActions(); BuildProfileDock(); BuildMusicLinks(); ApplyWorkspaceVisibility();
             return true;
         }
         catch (OperationCanceledException) { return false; }
@@ -428,6 +432,8 @@ public sealed partial class MainWindow : Window
     private void Navigate(string page)
     {
         ResetPreview();
+        if (page == "Settings") _settingsCategory = null;
+        SettingsNavigationHeader.Visibility = Visibility.Collapsed;
         _page = page; _expanded = true; _dashboard = page != "Overview";
         HomePage.Visibility = page == "Overview" ? Visibility.Visible : Visibility.Collapsed;
         RulesPage.Visibility = page == "Profiles" ? Visibility.Visible : Visibility.Collapsed;
@@ -473,8 +479,8 @@ public sealed partial class MainWindow : Window
     private async void Profile_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (_updating || ProfilePicker.SelectedIndex < 0) return;
-        var index = ProfilePicker.SelectedIndex;
-        await ActivateProfileAsync(index == 0 ? null : (Profile)(index - 1));
+        var selected = ProfilePicker.SelectedItem as string;
+        await ActivateProfileAsync(Enum.TryParse<Profile>(selected, out var profile) ? profile : null);
     }
     private async void Lock_Click(object sender, RoutedEventArgs e) => await CommitAsync(s => s with { LockedProfile = s.LockedProfile.HasValue ? null : ViewModel.Profile });
     private async void Previous_Click(object sender, RoutedEventArgs e) => Report(await _media.SendAsync("previous"), false);
@@ -539,7 +545,7 @@ public sealed partial class MainWindow : Window
     private async Task ShutdownAsync()
     {
         if (_closed) return;
-        _closed = true; DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
+        _closed = true; DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
         _indexTimer.Stop(); _searchCancellation?.Cancel(); _searchWindow?.DisposeWindow();
         ResetPreview();
         _motion.Dispose(); _tray?.Dispose(); _windowManager.Dispose();

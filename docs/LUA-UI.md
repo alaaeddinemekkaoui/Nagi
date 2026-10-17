@@ -44,4 +44,4 @@ The engine lives in `Pulse.Infrastructure/LuaUiService.cs`; `Pulse.App/LuaUi.cs`
 
 Host Akeno colors apply first; validated script accents/surfaces override them while enabled. A Lua script does not switch the host theme or change the native window shape. System High Contrast remains authoritative.
 
-Nagi 1.8 exposes `nagi.theme` and `nagi.profile`. The earlier `pulse.theme` and `pulse.profile` names remain aliases to the same context, so existing scripts continue to work. The saved script path stays in the inherited Pulse data folder.
+Nagi exposes `nagi.theme` and `nagi.profile`. The `pulse.theme` and `pulse.profile` aliases refer to the same context. Scripts are saved in the app data folder.

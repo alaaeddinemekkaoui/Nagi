@@ -21,6 +21,9 @@ public sealed class MediaSessionService : IMediaSessionService
             if (session is null) { _artKey = null; _artwork = null; return MediaSnapshot.Empty; }
             var properties = await session.TryGetMediaPropertiesAsync().AsTask(cancellationToken);
             var playback = session.GetPlaybackInfo();
+            // Windows can keep an empty session for tools such as screen capture after playback ends.
+            if (!MediaSnapshot.IsDetected(properties.Title, properties.Artist, playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing))
+            { _session = null; _artKey = null; _artwork = null; return MediaSnapshot.Empty; }
             var key = session.SourceAppUserModelId + properties.Title + "\0" + properties.Artist;
             if (_artKey != key) { _artKey = key; _artwork = null; _nextArtRead = 0; }
             if (Environment.TickCount64 >= _nextArtRead)

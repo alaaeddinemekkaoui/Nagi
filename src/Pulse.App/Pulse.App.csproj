@@ -27,6 +27,7 @@
     <ProjectReference Include="../Pulse.Windows/Pulse.Windows.csproj" />
   </ItemGroup>
   <ItemGroup><Content Include="Assets/Tools/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
+  <ItemGroup><Content Include="../../scripts/Apply-NagiUpdate.ps1" Link="Apply-NagiUpdate.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><Content Include="Assets/Nagi.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <ItemGroup><Content Include="Assets/Akeno.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <!-- The unpackaged WinUI publish pipeline omits app XBF/PRI files. Export them explicitly. -->

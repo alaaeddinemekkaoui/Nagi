@@ -18,32 +18,64 @@ public sealed class ObsService
             var record = await session.RequestAsync("GetRecordStatus", timeout.Token);
             var stream = await session.RequestAsync("GetStreamStatus", timeout.Token);
             var fps = stats.TryGetProperty("activeFps", out var f) && f.TryGetDouble(out var value) && double.IsFinite(value) ? value : (double?)null;
-            return new(true, record.GetProperty("outputActive").GetBoolean(), stream.GetProperty("outputActive").GetBoolean(), fps, "OBS WebSocket connected");
+            var scenes = session.Supports("GetSceneList") ? await session.RequestAsync("GetSceneList", timeout.Token) : default;
+            return new(true, record.GetProperty("outputActive").GetBoolean(), stream.GetProperty("outputActive").GetBoolean(), fps, "OBS WebSocket connected")
+            {
+                Scenes = scenes.ValueKind == JsonValueKind.Object && scenes.TryGetProperty("scenes", out var list)
+                    ? list.EnumerateArray().Select(s => s.GetProperty("sceneName").GetString()!).Where(n => !string.IsNullOrEmpty(n)).ToArray() : [],
+                CurrentScene = scenes.ValueKind == JsonValueKind.Object && scenes.TryGetProperty("currentProgramSceneName", out var scene) ? scene.GetString() : null
+            };
         }
         catch (OperationCanceledException) when (!token.IsCancellationRequested) { return new(false, false, false, null, "OBS connection timed out"); }
         catch (Exception ex) when (ex is WebSocketException or JsonException or InvalidDataException or ObsAuthenticationException or InvalidOperationException or KeyNotFoundException)
         { return new(false, false, false, null, ex is ObsAuthenticationException ? "OBS password required or incorrect" : "OBS unavailable · check WebSocket server and port"); }
     }
-    public async Task<OperationResult> ToggleRecordingAsync(int port, string password, CancellationToken token)
+    public Task<OperationResult> ToggleRecordingAsync(int port, string password, CancellationToken token) => ToggleOutputAsync(port, password, false, token);
+    public Task<OperationResult> ToggleStreamingAsync(int port, string password, CancellationToken token) => ToggleOutputAsync(port, password, true, token);
+    private async Task<OperationResult> ToggleOutputAsync(int port, string password, bool streaming, CancellationToken token)
     {
+        var label = streaming ? "streaming" : "recording";
+        var statusRequest = streaming ? "GetStreamStatus" : "GetRecordStatus";
         try
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token); timeout.CancelAfter(5000);
             using var session = await Session.ConnectAsync(port, password, timeout.Token);
-            var current = await session.RequestAsync("GetRecordStatus", timeout.Token);
+            var current = await session.RequestAsync(statusRequest, timeout.Token);
             var start = !current.GetProperty("outputActive").GetBoolean();
-            await session.RequestAsync(start ? "StartRecord" : "StopRecord", timeout.Token);
+            await session.RequestAsync(streaming ? start ? "StartStream" : "StopStream" : start ? "StartRecord" : "StopRecord", timeout.Token);
             for (var attempt = 0; attempt < 15; attempt++)
             {
                 await Task.Delay(150, timeout.Token);
-                var state = await session.RequestAsync("GetRecordStatus", timeout.Token);
+                var state = await session.RequestAsync(statusRequest, timeout.Token);
                 if (state.GetProperty("outputActive").GetBoolean() == start)
-                    return OperationResult.Ok(start ? "OBS recording started" : "OBS recording stopped");
+                    return OperationResult.Ok("OBS " + label + (start ? " started" : " stopped"));
             }
-            return OperationResult.Fail("OBS did not change recording state. Check its output folder and encoder.");
+            return OperationResult.Fail("OBS did not change " + label + " state. Check its output setup.");
         }
         catch (Exception ex) when (ex is WebSocketException or JsonException or InvalidDataException or ObsAuthenticationException or InvalidOperationException or KeyNotFoundException or OperationCanceledException)
-        { return OperationResult.Fail("OBS recording could not be changed. Check the connection and recording setup."); }
+        { return OperationResult.Fail("OBS " + label + " could not be changed. Check the connection and output setup."); }
+    }
+    public async Task<OperationResult> SwitchSceneAsync(int port, string password, string scene, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(scene)) return OperationResult.Fail("Choose an OBS scene in Hardware & studio settings.");
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token); timeout.CancelAfter(5000);
+            using var session = await Session.ConnectAsync(port, password, timeout.Token);
+            var scenes = await session.RequestAsync("GetSceneList", timeout.Token);
+            if (!scenes.GetProperty("scenes").EnumerateArray().Any(s => s.GetProperty("sceneName").GetString() == scene))
+                return OperationResult.Fail("That OBS scene is unavailable. Choose another scene in settings.");
+            await session.RequestAsync("SetCurrentProgramScene", timeout.Token, requestData: new { sceneName = scene });
+            for (var attempt = 0; attempt < 15; attempt++)
+            {
+                var current = await session.RequestAsync("GetSceneList", timeout.Token);
+                if (current.GetProperty("currentProgramSceneName").GetString() == scene) return OperationResult.Ok("OBS scene: " + scene);
+                await Task.Delay(150, timeout.Token);
+            }
+            return OperationResult.Fail("OBS did not switch scenes.");
+        }
+        catch (Exception ex) when (ex is WebSocketException or JsonException or InvalidDataException or ObsAuthenticationException or InvalidOperationException or KeyNotFoundException or OperationCanceledException)
+        { return OperationResult.Fail("OBS scene could not be changed. Check the connection."); }
     }
     private sealed class ObsAuthenticationException : Exception { }
     private sealed class Session(ClientWebSocket socket) : IDisposable
@@ -86,10 +118,11 @@ public sealed class ObsService
             }
             using var document = JsonDocument.Parse(stream.ToArray()); return document.RootElement.Clone();
         }
-        public async Task<JsonElement> RequestAsync(string type, CancellationToken token, bool check = true)
+        public bool Supports(string type) => _requests.Contains(type);
+        public async Task<JsonElement> RequestAsync(string type, CancellationToken token, bool check = true, object? requestData = null)
         {
             if (check && !_requests.Contains(type)) throw new InvalidDataException("Unsupported OBS request.");
-            var id = Guid.NewGuid().ToString("N"); await WriteAsync(new { op = 6, d = new { requestType = type, requestId = id } }, token);
+            var id = Guid.NewGuid().ToString("N"); await WriteAsync(new { op = 6, d = new { requestType = type, requestId = id, requestData } }, token);
             for (var attempt = 0; attempt < 16; attempt++)
             {
                 var response = await ReadAsync(token); if (response.GetProperty("op").GetInt32() != 7) continue;

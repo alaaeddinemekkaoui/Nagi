@@ -9,6 +9,17 @@ Nagi version 1 includes a native setup executable and a four-step welcome window
 
 The water drop touches the selected edge before hovering. Hover reveals controls, click pins them, and the next click expands details inward. Horizontal docking follows the work area so the taskbar remains accessible. Layout, edge, name and city can be changed in Settings. Closing welcome saves no draft; the next launch starts setup again. Finish saves your choices, then a dimmed introduction points out the dock. Hover the uncovered drop or choose Okay to dismiss it. Once completed, ordinary launches go straight to the dock. Installer Finish launches Nagi normally; welcome appears only when setup has not been completed. To revisit it later, choose **Settings → General → Run welcome setup**, or run `Nagi.exe --setup`. Existing choices are prefilled; closing a replay keeps the saved configuration.
 
+## Teardrop, dock and app folder
+
+Nagi's dock rests as a small teardrop. Hover the teardrop to reveal the dock; moving away retracts an unpinned dock. The same interaction works at the top, bottom, left or right edge.
+
+<p><strong>Resting teardrop</strong><br><img src="images/nagi-teardrop.png" width="165" alt="Nagi resting as a small teardrop"></p>
+<p><strong>Revealed dock</strong><br><img src="images/nagi-dock.png" width="760" alt="The Nagi dock revealed by hovering its teardrop"></p>
+
+Profiles with up to three apps show their shortcuts directly. More apps add a folder tile after the first three shortcuts. Hover or click the tile to expand the remaining apps; move into the expanded folder and click the app you want. The dock stays in place while the folder opens. No app opens just from hovering. Click the logo for the full control center, where Overview lists all apps in rows of up to four.
+
+<p><img src="images/nagi-app-folder.png" width="760" alt="Hovering the app folder reveals extra apps above the dock"></p>
+
 ## Weather
 
 Search text goes to Open-Meteo only when Search cities is pressed. Enabled weather sends the selected coordinates and units. Nagi makes no GPS or IP lookup. Conditions cache for 15 minutes; failures retry after two minutes and retain a clearly labelled last reading where available. Disabled weather makes no forecast requests. These are model-based current conditions, not a local sensor reading. Attribution appears on the weather card.

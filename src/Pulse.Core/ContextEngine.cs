@@ -4,7 +4,7 @@ public sealed class ContextEngine : IContextEngine
 {
     private Profile? _candidate;
     private DateTimeOffset _candidateSince;
-    public Profile Current { get; private set; } = Profile.Work;
+    public Profile Current { get; private set; } = Profile.Default;
     public TimeSpan Debounce { get; init; } = TimeSpan.FromMilliseconds(1800);
 
     public Profile Evaluate(ForegroundApplication application, PulseSettings settings, DateTimeOffset now)

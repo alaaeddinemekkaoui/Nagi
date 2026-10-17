@@ -8,7 +8,11 @@ public sealed record GpuSnapshot(double? Usage, string Name, string Status);
 public sealed record TemperatureReading(string Name, double Celsius);
 public sealed record TemperatureSnapshot(TemperatureReading[] Readings, string Status);
 public sealed record FpsSnapshot(double? Fps, int ProcessId, string Status);
-public sealed record ObsSnapshot(bool Connected, bool Recording, bool Streaming, double? RenderFps, string Status);
+public sealed record ObsSnapshot(bool Connected, bool Recording, bool Streaming, double? RenderFps, string Status)
+{
+    public string[] Scenes { get; init; } = [];
+    public string? CurrentScene { get; init; }
+}
 
 public static class IntegrationMath
 {

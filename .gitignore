@@ -11,6 +11,10 @@ graphify-out/
 .env.*
 !.env.example
 !.env.sample
+/Nagi-Portable.exe
+/Nagi-Portable.exe.sha256
+/AGENTS.md
+/AI_CONTEXT.md
 *.pfx
 *.p12
 *.key

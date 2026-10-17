@@ -3,7 +3,8 @@ using System.Text.Json.Serialization;
 
 namespace Pulse.Core;
 
-public enum Profile { Work, Gaming, Focus }
+// Keep the original numeric values for existing settings.
+public enum Profile { Work, Gaming, Focus, Default, Stream }
 public enum ActionKind { Application, Folder, File, Url, Profile, ToggleHalo }
 public sealed record AppRule(string Identity, Profile Profile, int Priority = 100, bool Enabled = true);
 public sealed record QuickAction(string Label, ActionKind Kind, string Target, Profile? Profile = null);
@@ -31,11 +32,14 @@ public sealed record PulseSettings
     public bool FpsEnabled { get; init; }
     public bool ObsEnabled { get; init; }
     public int ObsPort { get; init; } = 4455;
+    public string[] ObsScenes { get; init; } = ["", "", ""];
+    public string PreferredMusicPlayer { get; init; } = "All";
+    public bool AutomaticUpdates { get; init; } = true;
     public string[] SearchFolders { get; init; } = [];
     public bool GlassEnabled { get; init; } = true;
     public bool LuaUiEnabled { get; init; }
     public int PollingIntervalMs { get; init; } = 1500;
-    public Profile DefaultProfile { get; init; } = Profile.Work;
+    public Profile DefaultProfile { get; init; } = Profile.Default;
     public Profile? LockedProfile { get; init; }
     public bool AutomaticSwitching { get; init; } = true;
     public bool CloseOnDeactivate { get; init; } = true;
@@ -59,6 +63,8 @@ public sealed record PulseSettings
         WeatherUnit = WeatherUnit == "Fahrenheit" ? "Fahrenheit" : "Celsius",
         PollingIntervalMs = Math.Clamp(PollingIntervalMs, 500, 10000),
         ObsPort = Math.Clamp(ObsPort, 1024, 65535),
+        ObsScenes = Enumerable.Range(0, 3).Select(i => i < (ObsScenes?.Length ?? 0) ? (ObsScenes![i] ?? "").Trim() : "").ToArray(),
+        PreferredMusicPlayer = MusicPlayers.Names.Contains(PreferredMusicPlayer) ? PreferredMusicPlayer : "All",
         Position = Position is { } p ? p with
         {
             Monitor = p.Monitor ?? "",
@@ -73,7 +79,7 @@ public sealed record PulseSettings
         HideHotkey = HideHotkey is { Key: >= 0x20 and <= 0xFE, Modifiers: > 0 and <= 15 } ? HideHotkey : new(3, 0x48),
         SearchHotkey = SearchHotkey is { Key: >= 0x20 and <= 0xFE, Modifiers: > 0 and <= 15 } ? SearchHotkey : new(1, 0x20),
         SearchFolders = (SearchFolders ?? []).Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Take(16).ToArray(),
-        DefaultProfile = Enum.IsDefined(DefaultProfile) ? DefaultProfile : Profile.Work,
+        DefaultProfile = Enum.IsDefined(DefaultProfile) ? DefaultProfile : Profile.Default,
         LockedProfile = LockedProfile.HasValue && Enum.IsDefined(LockedProfile.Value) ? LockedProfile : null,
         Rules = (Rules ?? []).Where(r => r is not null && !string.IsNullOrWhiteSpace(r.Identity) && Enum.IsDefined(r.Profile))
             .Take(200).Select(r => r with { Identity = r.Identity.Trim(), Priority = Math.Clamp(r.Priority, 0, 10000) }).ToArray(),
@@ -93,6 +99,7 @@ public sealed record ForegroundApplication(int ProcessId, string Name, string? E
 public sealed record MediaSnapshot(string Title, string Artist, bool Playing, bool Available, bool CanPlayPause = false,
     bool CanPrevious = false, bool CanNext = false, byte[]? Artwork = null, string? Error = null)
 {
+    public static bool IsDetected(string? title, string? artist, bool playing) => playing || !string.IsNullOrWhiteSpace(title) || !string.IsNullOrWhiteSpace(artist);
     public static MediaSnapshot Empty { get; } = new("Nothing playing", "Start playback in a media app", false, false);
 }
 public sealed record AudioSnapshot(double? Volume, bool Muted, string Device, string? Error = null, double? Peak = null);

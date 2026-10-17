@@ -87,7 +87,7 @@ public sealed class SystemTrayService : IDisposable
         if (message == 0x0111 && IsMenuOpen && lParam == 0)
         {
             var command = (uint)((ulong)wParam & 0xFFFF);
-            if (command is >= 1 and <= 5 or >= 10 and <= 13)
+            if (command is >= 1 and <= 5 or >= 10 and <= 15)
             { _accessibleMenuCommand = command; EndMenu(); return 0; }
         }
         if (_taskbarCreated != 0 && message == _taskbarCreated)
@@ -125,7 +125,7 @@ public sealed class SystemTrayService : IDisposable
             AppendMenu(menu, 0, 3, "Settings…");
             AppendMenu(menu, 0x800, 0, null);
             AppendMenu(menu, _lockedProfile is null ? 8u : 0u, 10, "Automatic profile");
-            foreach (var profile in Enum.GetValues<Profile>())
+            foreach (var profile in ProfileWorkspaces.Profiles)
                 AppendMenu(menu, _lockedProfile == profile ? 8u : 0u, (nuint)(11 + (int)profile), profile.ToString());
             AppendMenu(menu, 0x800, 0, null);
             AppendMenu(menu, 0, 4, "Quit Nagi");
@@ -144,7 +144,7 @@ public sealed class SystemTrayService : IDisposable
             case 4: QuitRequested?.Invoke(); break;
             case 5: SearchRequested?.Invoke(); break;
             case 10: ProfileRequested?.Invoke(null); break;
-            case >= 11 and <= 13: ProfileRequested?.Invoke((Profile)(selected - 11)); break;
+            case >= 11 and <= 15: ProfileRequested?.Invoke((Profile)(selected - 11)); break;
             default: ShellNotifyIcon(3, ref _data); break;
         }
     }

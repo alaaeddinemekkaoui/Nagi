@@ -49,13 +49,15 @@ public sealed partial class MainWindow
 
     private void BuildRulesPage()
     {
-        RulesPage.Children.Clear();
+        WorkspacePage.Children.Clear();
         if (_editingWorkspace is { } editing) { BuildWorkspaceEditor(editing); return; }
-        RulesPage.Children.Add(Heading("A desktop that follows your rhythm."));
-        RulesPage.Children.Add(Note("Choose a profile anytime. Manual selections stay locked until you choose Automatic or unlock the profile."));
+        WorkspacePage.Children.Add(Heading("A desktop that follows your rhythm."));
+        WorkspacePage.Children.Add(Note("Choose a profile anytime. Manual selections stay locked until you choose Automatic or unlock the profile."));
         var profileCards = Stack();
         foreach (var (profile, description) in new[]
         {
+            (Profile.Default, "Search, CPU, GPU and music. No apps by default."),
+            (Profile.Stream, "OBS recording, streaming and three scene shortcuts."),
             (Profile.Work, "Your apps, projects and essential system information."),
             (Profile.Gaming, "Performance at a glance, with media controls close by."),
             (Profile.Focus, "A quieter Nagi. Nonessential notices stay out of your way.")
@@ -71,15 +73,15 @@ public sealed partial class MainWindow
             Grid.SetColumn(controls, 1); row.Children.Add(controls);
             profileCards.Children.Add(row);
         }
-        RulesPage.Children.Add(Card(profileCards));
+        WorkspacePage.Children.Add(Card(profileCards));
         var automatic = Toggle("Automatic context switching", "Match the foreground application against your rules.", ViewModel.Settings.AutomaticSwitching,
             (s, enabled) => s with { AutomaticSwitching = enabled, LockedProfile = enabled ? null : s.LockedProfile });
-        RulesPage.Children.Add(automatic);
+        WorkspacePage.Children.Add(automatic);
         var defaultProfile = Select(Enum.GetNames<Profile>(), ViewModel.Settings.DefaultProfile.ToString(), "Default profile");
         defaultProfile.SelectionChanged += async (_, _) => { if (defaultProfile.SelectedItem is string selected) await CommitAsync(s => s with { DefaultProfile = Enum.Parse<Profile>(selected) }); };
-        RulesPage.Children.Add(Labeled("Fallback when no application rule matches", defaultProfile));
-        RulesPage.Children.Add(Heading("Application rules"));
-        RulesPage.Children.Add(Note("Highest priority wins. Equal priorities keep list order. A match must stay stable for 1.8 seconds. Fullscreen windows are never classified as games automatically."));
+        WorkspacePage.Children.Add(Labeled("Fallback when no application rule matches", defaultProfile));
+        WorkspacePage.Children.Add(Heading("Application rules"));
+        WorkspacePage.Children.Add(Note("Highest priority wins. Equal priorities keep list order. A match must stay stable for 1.8 seconds. Fullscreen windows are never classified as games automatically."));
         foreach (var rule in ViewModel.Settings.Rules)
         {
             var row = Stack();
@@ -91,11 +93,11 @@ public sealed partial class MainWindow
             { if (await CommitAsync(s => s with { Rules = s.Rules.Select(r => r == rule ? r with { Enabled = !r.Enabled } : r).ToArray() })) BuildRulesPage(); }));
             actions.Children.Add(Button("Remove", async (_, _) =>
             { if (await CommitAsync(s => s with { Rules = s.Rules.Where(r => r != rule).ToArray() })) BuildRulesPage(); }));
-            row.Children.Add(actions); RulesPage.Children.Add(Card(row));
+            row.Children.Add(actions); WorkspacePage.Children.Add(Card(row));
         }
-        RulesPage.Children.Add(Button("+ Add application rule", async (_, _) => await EditRuleAsync(null)));
-        RulesPage.Children.Add(Heading("Quick actions"));
-        RulesPage.Children.Add(Note("Shortcuts run only when you click them. Use local files and .exe paths without arguments, or http/https URLs."));
+        WorkspacePage.Children.Add(Button("+ Add application rule", async (_, _) => await EditRuleAsync(null)));
+        WorkspacePage.Children.Add(Heading("Quick actions"));
+        WorkspacePage.Children.Add(Note("Shortcuts run only when you click them. Use local files and .exe paths without arguments, or http/https URLs."));
         foreach (var action in ViewModel.Settings.QuickActions)
         {
             var row = Stack(); row.Children.Add(Heading(action.Label));
@@ -104,9 +106,9 @@ public sealed partial class MainWindow
             buttons.Children.Add(Button("Edit", async (_, _) => await EditActionAsync(action)));
             buttons.Children.Add(Button("Remove", async (_, _) =>
             { if (await CommitAsync(s => s with { QuickActions = s.QuickActions.Where(a => a != action).ToArray() })) BuildRulesPage(); }));
-            row.Children.Add(buttons); RulesPage.Children.Add(Card(row));
+            row.Children.Add(buttons); WorkspacePage.Children.Add(Card(row));
         }
-        RulesPage.Children.Add(Button("+ Add quick action", async (_, _) => await EditActionAsync(null)));
+        WorkspacePage.Children.Add(Button("+ Add quick action", async (_, _) => await EditActionAsync(null)));
     }
 
     private async Task EditRuleAsync(AppRule? existing)
@@ -142,10 +144,10 @@ public sealed partial class MainWindow
         static string KindLabel(ActionKind value) => value == ActionKind.ToggleHalo ? "Toggle Nagi" : value.ToString();
         var kind = Select(kinds.Select(KindLabel), KindLabel(existing?.Kind ?? ActionKind.Folder), "Action type");
         var target = new TextBox { Header = "Target", Text = existing?.Target ?? "", PlaceholderText = "Absolute path, URL, or profile name" };
-        var filter = Select(new[] { "All profiles", "Work", "Gaming", "Focus" }, existing?.Profile?.ToString() ?? "All profiles", "Visible in profile");
+        var filter = Select(new[] { "All profiles" }.Concat(ProfileWorkspaces.Profiles.Select(p => p.ToString())), existing?.Profile?.ToString() ?? "All profiles", "Visible in profile");
         var error = Note(""); var content = Stack();
         content.Children.Add(label); content.Children.Add(Labeled("Action type", kind)); content.Children.Add(target);
-        content.Children.Add(Note("Application: local .exe, no arguments. Profile: Work, Gaming or Focus. Toggle Nagi: leave target empty. Scripts and command hosts are blocked."));
+        content.Children.Add(Note("Application: local .exe, no arguments. Profile: Default, Work, Gaming, Stream or Focus. Toggle Nagi: leave target empty. Scripts and command hosts are blocked."));
         content.Children.Add(Labeled("Show this action in", filter)); content.Children.Add(error);
         var dialog = Dialog(existing is null ? "Add quick action" : "Edit quick action", content);
         dialog.PrimaryButtonClick += async (_, args) =>

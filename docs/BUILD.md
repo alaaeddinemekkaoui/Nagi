@@ -1,55 +1,54 @@
-# Build and distribution
+# Build and release Nagi V1.0
 
-## Native setup executable
-
-After publishing, run `./scripts/Build-NagiInstaller.ps1 -SkipPublish`. Use PowerShell 7 and NSIS 3.12: install its compiler or pass `-CompilerPath` to `makensis.exe`. The helper also recognizes `artifacts/tooling/nsis-3.12/makensis.exe`. Official portable compiler: https://nsis.sourceforge.io/Download. The verified 3.12 compiler ZIP SHA256 used here is `56581f90db321581c5381193d796fffcf2d24b2f8fed2160a6c6a3baa67f2c4f`.
-
-The output is `artifacts/Nagi-Setup.exe` plus `.sha256`. Modern UI 2 supplies native setup pages. NSIS calls the same guarded graceful-close and shortcut helpers as the portable installer, writes an HKCU uninstall entry, and removes only files listed in the published payload. Unknown files and user data are retained. Setup adds no autostart registration unless the user previously opted in. Setup and app are unsigned in this environment.
-
-`Smoke-NagiWelcome.ps1 -ExecutablePath <exe> -DataDirectory <absolute-scratch-directory>` exercises welcome name validation, themes, horizontal hover, weather lookup and speaker UI. `-SkipWeather` checks the offline path. An owned OBS fixture can be supplied with `-ObsPort` and `-ObsPassword`. Use a dedicated scratch directory: this helper intentionally completes onboarding with a test name/city. `-ShowSetup` reopens welcome for a completed scratch profile. App launch accepts `--data-dir <absolute-path>` with independent single-instance/activation identities, so the normal user profile can remain open. `-Orientation Vertical` checks left/right choices and the vertical rail; horizontal is the default. It does not select a different speaker or start recording.
-
-Use Windows 11 x64 with the SDK pinned in `global.json`. Windows SDK 10.0.26100 is installed on the implementation machine. NuGet restores the Windows App SDK compiler and native dependencies. No Electron, browser, backend, administrator token or runtime download is required by the published application.
+Use Windows 11 x64 and the .NET SDK pinned in `global.json`. NuGet restores the Windows App SDK compiler and native dependencies. The self-contained app needs no runtime download on the target PC.
 
 ```powershell
-dotnet --info
 dotnet restore Pulse.sln
 dotnet build Pulse.sln -c Release
 dotnet test Pulse.sln -c Release --no-build --logger trx
-.\scripts\Run-Nagi.ps1 -Configuration Release
+./scripts/Publish-Nagi.ps1 -NoRestore
+./scripts/Build-NagiInstaller.ps1 -SkipPublish
 ```
 
-If building only behavior tests on another OS, use `dotnet test tests/Pulse.Tests/Pulse.Tests.csproj`; the UI and Windows integration tests require Windows. Audio/microphone tests write existing values back unchanged to verify the setters. Tests never send media controls or launch configured shortcuts. The startup registry test temporarily registers/removes a per-user value and restores the original value/type. Hotkey tests temporarily register an unused Ctrl+Alt+Shift+F13–F24 key and release it immediately.
+## Release outputs
+
+Every publish produces:
+
+- `artifacts/Nagi-win-x64/`: self-contained app folder, including XAML resources, assets, provider tools, licenses, docs and the update helper.
+- `artifacts/Nagi-win-x64.zip` and `.sha256`.
+- **`Nagi-Portable.exe` in the project root**, plus `.sha256`, with matching copies under `artifacts/`.
+
+`Build-NagiInstaller.ps1 -SkipPublish` creates `artifacts/Nagi-Setup.exe` and `.sha256`. Both EXE formats use NSIS 3.12; install its compiler or pass `-CompilerPath` to the build helper. It recognizes `artifacts/tooling/nsis-3.12/makensis.exe`. [NSIS download](https://nsis.sourceforge.io/Download).
+
+`Build-NagiPortable.ps1 -SkipPublish` rebuilds just the portable EXE from the published payload and ZIP. Normal publish always refreshes it, so every release build leaves an executable ready to open in the project root. Generated binaries are Git-ignored and uploaded as release assets.
+
+## Portable EXE
+
+Open `Nagi-Portable.exe` directly. It contains all app/runtime files, prepares them in `%LOCALAPPDATA%/Nagi/Portable/<payload-id>`, and starts Nagi without installation, shortcuts or startup registration. Later launches reuse those files, including updates installed by the app. Arguments such as `--data-dir` are forwarded unchanged. Preferences use the normal app data folder unless an isolated directory is supplied.
+
+## Release identity and GitHub
+
+The public release is **Nagi**, version **V1.0**, tag **`v1`**. `src/Pulse.App/Pulse.App.csproj` supplies version `1.0.0` to the app and EXE metadata. The changelog has one Nagi V1.0 section. Publish generates `RELEASE_README.md` from the README using links pinned to `v1`; `-ReleaseTag` supports a future tag.
+
+Upload the portable EXE, ZIP, setup and their SHA256 files. Use `RELEASE_README.md` as the release body. In-app updates require the Windows x64 ZIP and a GitHub SHA256 digest or checksum asset. `Apply-NagiUpdate.ps1` stages replacement outside the running app and backs up replaced files for rollback.
+
+## Installer and signing
+
+Setup installs in `%LOCALAPPDATA%/Programs/Nagi` without administrator rights. It closes that installation gracefully, creates the Start menu entry and registers per-user removal. Startup stays opt-in. Removal preserves preferences and unknown files; it removes only files listed in the published payload.
+
+The app and wrappers are unsigned in this workspace. `Sign-Nagi.ps1 -CertificateThumbprint YOUR_THUMBPRINT` signs the app/helpers when a current certificate/private key is available. Sign finished setup/portable EXEs as part of a certificate-backed distribution.
+
+## Desktop verification
+
+Close any copy from an output folder before rebuilding it. Helpers use dedicated data directories where supported:
 
 ```powershell
-.\scripts\Publish-Nagi.ps1
+./scripts/Smoke-NagiWorkspaces.ps1 -ExecutablePath <exe>
+./scripts/Smoke-NagiAppFolder.ps1 -ExecutablePath <exe>
+./scripts/Smoke-NagiAppFolder.ps1 -ExecutablePath <exe> -Orientation Vertical
+./scripts/Smoke-NagiUpdate.ps1
 ```
 
-This invokes `dotnet publish src/Pulse.App/Pulse.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/Nagi-win-x64`, adds installer/uninstaller scripts and README, then compresses all output and prints its SHA-256 hash. Keep all DLLs and resource folders together. A single EXE is not requested; a self-contained folder avoids extraction and app identity complications.
+Use `-DocumentationImages` with the horizontal app-folder check to refresh the screenshots. The welcome helper checks onboarding, themes, layouts, weather and speakers. `--data-dir <absolute-path>` isolates normal preferences. Coverage limits are in [Validation](VALIDATION.md) and [Integrations](INTEGRATIONS.md).
 
-The application project explicitly adds its compiled XAML (`.xbf`), app resource index (`Pulse.App.pri`) and assets to the publish graph. The standard unpackaged publish path can omit these despite a successful command; see [Windows App SDK issue 6720](https://github.com/microsoft/WindowsAppSDK/issues/6720). The package script checks required resources before creating the ZIP.
-
-Quit a running copy from the output folder before rebuilding/publishing that same folder. For interactive developer checks, `Smoke-Pulse.ps1 -PulseProcessId <pid>` exercises Nagi, and `Smoke-PulseTray.ps1 -PulseProcessId <pid> -Quit` clicks the actual English Windows 11 overflow icon/menu and exits through Quit. The latter also tests Settings recovery after hiding. These scripts change transient UI/profile state and are intended for a development session.
-
-Installation from an extracted package:
-
-```powershell
-.\Install-Nagi.ps1
-```
-
-This creates `%LOCALAPPDATA%\Programs\Nagi\Nagi.exe` and a Start menu shortcut. It does not enable startup automatically. Do not install from inside the installation directory. Installer scripts operate on the explicit per-user Nagi directory, and uninstall validates that directory before recursive removal. Source builds and user settings are not removed.
-
-Uninstall:
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\Nagi\Uninstall-Nagi.ps1"
-```
-
-The package is unsigned. A production installer should be signed and tested on clean Windows 11 machines before broad distribution. No MSIX identity, Store submission or update service is configured.
-
-For Nagi 1.3 use `Smoke-PulseEdge.ps1 -PulseProcessId <pid> -Screenshots` to check hover/minimal/pin/expand behavior on both sides. This helper changes the selected side, so save and restore your development preferences. Disable outside dismissal/fullscreen hiding temporarily for deterministic automation, then restore those preferences before normal use.
-
-For Nagi 1.4, `Smoke-PulseLua.ps1 -PulseProcessId <pid> -Screenshots` validates the native Lua editor, apply/reload/error recovery, section/label changes and opt-out. It writes `%LOCALAPPDATA%\Pulse\scripts\ui.lua` and preferences. Back up and restore both before using it against a development instance. The portable publish includes the MoonSharp runtime through NuGet and its notice in `docs/MoonSharp-LICENSE.txt`; no standalone Lua installation is needed. See `docs/LUA-UI.md` for the scripting API.
-
-For 1.7 the package checks Win2D managed/native interop, PresentMon and its full license in addition to XAML resources. Provider configuration and exact constraints are in INTEGRATIONS.md. Installer update/removal closes the matching installation gracefully through Close-Nagi.ps1; it does not force-kill unrelated copies. A certificate-backed release can be created with Sign-Nagi.ps1 -CertificateThumbprint YOUR_THUMBPRINT. No certificate is available in this development session, so the generated portable package remains unsigned.
-
-For workspaces, `Smoke-NagiWorkspaces.ps1 -ExecutablePath <exe>` creates its own isolated scratch profile and checks category navigation, profiles, widgets, microphone controls, Akeno modes and the app dock. It never changes the normal profile. After a successful restore, `Publish-Nagi.ps1 -NoRestore` avoids another online restore. This does not perform a new vulnerability audit.
+To keep a running development copy untouched, pass `-PackageDirectory artifacts/Nagi-v1-win-x64` to publish and the installer builder. `Smoke-NagiPortable.ps1` verifies the root EXE from a folder containing no DLLs, with isolated preferences, cache reuse and single-instance behavior.

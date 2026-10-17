@@ -9,4 +9,4 @@
 - **System.Management 10.0.0 / .NET runtime** — Microsoft/.NET Foundation, MIT license: https://github.com/dotnet/runtime.
 - **MoonSharp 2.0** — embedded Lua interpreter; BSD 3-Clause license: https://github.com/moonsharp-devs/moonsharp.
 
-Pulse does not bundle a hardware-monitor kernel driver, OBS Studio, or a temperature sensor application. Those integrations connect to user-provided software and retain its own licensing and system requirements.
+Nagi does not bundle a hardware-monitor kernel driver, OBS Studio, or a temperature sensor application. Those integrations connect to user-provided software and retain its own licensing and system requirements.

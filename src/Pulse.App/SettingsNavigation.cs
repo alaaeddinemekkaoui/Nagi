@@ -7,9 +7,25 @@ namespace Pulse.App;
 public sealed partial class MainWindow
 {
     private string? _settingsCategory;
+    private readonly StackPanel _settingsProfilesContent = new() { Spacing = 14 };
+    private StackPanel WorkspacePage => _page == "Settings" && _settingsCategory == "Profiles & apps" ? _settingsProfilesContent : RulesPage;
+
+    private void ShowSettingsCategory(string? category)
+    {
+        _settingsCategory = category;
+        _editingWorkspace = null;
+        BuildSettingsPage();
+        ContentScroll.ChangeView(null, 0, null, true);
+        Animate(SettingsPage);
+    }
+
+    private void SettingsBack_Click(object sender, RoutedEventArgs e) => ShowSettingsCategory(null);
+
     private void BuildSettingsPage()
     {
         SettingsPage.Children.Clear();
+        SettingsNavigationHeader.Visibility = _page == "Settings" && _settingsCategory is not null ? Visibility.Visible : Visibility.Collapsed;
+        SettingsCategoryTitle.Text = _settingsCategory ?? "Settings";
         if (_settingsCategory is null)
         {
             SettingsPage.Children.Add(Heading("Settings"));
@@ -23,6 +39,8 @@ public sealed partial class MainWindow
                 ("Hardware & studio", "GPU, microphone, FPS and OBS", "\uE7F4"),
                 ("Search & shortcuts", "App search, file indexing and search key", "\uE721"),
                 ("Lua UI studio", "Scripts, presets and custom styling", "\uE943"),
+                ("Music", "Preferred music service and now playing", "\uE8D6"),
+                ("Updates", "Check, download and install new releases", "\uE895"),
                 ("Behavior", "Shortcuts, startup, media and notifications", "\uE713"),
                 ("About & diagnostics", "Providers, recent activity and reset", "\uE946")
             };
@@ -42,8 +60,7 @@ public sealed partial class MainWindow
                 AutomationProperties.SetName(tile, category.Title + " settings");
                 tile.Click += (_, _) =>
                 {
-                    if (category.Title == "Profiles & apps") { _editingWorkspace = null; Navigate("Profiles"); return; }
-                    _settingsCategory = category.Title; BuildSettingsPage(); ContentScroll.ChangeView(null, 0, null); Animate(SettingsPage);
+                    ShowSettingsCategory(category.Title);
                 };
                 _motion.Wire(tile); Grid.SetRow(tile, i / 2); Grid.SetColumn(tile, i % 2); grid.Children.Add(tile);
             }
@@ -51,16 +68,17 @@ public sealed partial class MainWindow
         }
         else
         {
-            SettingsPage.Children.Add(Button("← All settings", (_, _) => { _settingsCategory = null; BuildSettingsPage(); ContentScroll.ChangeView(null, 0, null); Animate(SettingsPage); }));
-            SettingsPage.Children.Add(Heading(_settingsCategory));
             switch (_settingsCategory)
             {
                 case "General": BuildPersonalSettings(); break;
                 case "Appearance & dock": BuildAppearanceSettings(); break;
+                case "Profiles & apps": SettingsPage.Children.Add(_settingsProfilesContent); BuildRulesPage(); break;
                 case "Weather": BuildWeatherSettings(); break;
                 case "Hardware & studio": BuildIntegrationSettings(); break;
                 case "Search & shortcuts": BuildSearchSettings(); break;
                 case "Lua UI studio": BuildLuaSettings(); break;
+                case "Music": BuildMusicSettings(); break;
+                case "Updates": BuildUpdateSettings(); break;
                 case "Behavior": BuildBehaviorSettings(); break;
                 case "About & diagnostics": BuildDiagnosticsSettings(); break;
             }

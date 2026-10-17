@@ -1,8 +1,8 @@
 # Hardware and studio integrations
 
-For Nagi 1.9 optional Open-Meteo weather, output visualization and speaker selection, see [weather and speakers](WELCOME-AND-LAYOUT.md).
+For optional Open-Meteo weather, output visualization and speaker selection, see [weather and speakers](WELCOME-AND-LAYOUT.md).
 
-Nagi 1.8 adds a vertical edge rail and optional hardware/studio providers. Open Settings → Hardware & studio to configure them. Available values come from actual Windows or provider data; missing samples stay missing.
+Nagi V1.0 includes a vertical edge rail and optional hardware/studio providers. Open Settings → Hardware & studio to configure them. Available values come from actual Windows or provider data; missing samples stay missing.
 
 ## GPU
 
@@ -37,9 +37,9 @@ The rail microphone button toggles the default communications microphone using C
 
 ## OBS Studio
 
-Enable OBS's WebSocket server under Tools → WebSocket Server Settings. In Nagi, enable **Connect to OBS**, enter its port/password, then **Save OBS connection**. The client uses WebSocket v5 on `127.0.0.1` only, checks supported requests, and displays connected/recording/streaming/render-FPS status. The OBS record button starts/stops local recording only on a deliberate click; no stream-start command is sent.
+Enable OBS's WebSocket server under Tools → WebSocket Server Settings. In Nagi, enable **Connect to OBS**, enter its port/password, then **Save OBS connection**. The client uses WebSocket v5 on `127.0.0.1` only, checks supported requests, and displays connected/recording/streaming/render-FPS status. The Stream profile adds an OBS rail button. Hover it to open OBS, start/stop recording, start/stop streaming or switch scenes. The three scene buttons use the first three OBS scenes by default; choose specific scenes under Settings → Hardware & studio. Hover and connection checks only read status; output/scene changes require a deliberate button click.
 
-Passwords are protected with Windows DPAPI for the current user and saved separately from settings.json. Logs and diagnostics do not include the password. **Clear saved OBS password** removes that credential. Connection errors, bad passwords, unsupported responses and timeouts are explicit. A request acknowledgement is not reported as successful recording until the output state changes.
+Passwords are protected with Windows DPAPI for the current user and saved separately from settings.json. Logs and diagnostics do not include the password. **Clear saved OBS password** removes that credential. Connection errors, bad passwords, unsupported responses and timeouts are explicit. A request acknowledgement is not reported as successful recording until the observed recording, streaming or program-scene state changes.
 
 References: [OBS WebSocket project](https://github.com/obsproject/obs-websocket), [v5 protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md).
 

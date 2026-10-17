@@ -1,8 +1,8 @@
-param([string]$CompilerPath='', [switch]$SkipPublish)
+param([string]$CompilerPath='', [switch]$SkipPublish, [string]$PackageDirectory='')
 $ErrorActionPreference='Stop'
 $nagiRoot=Split-Path $PSScriptRoot -Parent
-if(!$SkipPublish){& (Join-Path $PSScriptRoot 'Publish-Nagi.ps1')}
-$nagiPublish=Join-Path $nagiRoot 'artifacts/Nagi-win-x64'
+if(!$SkipPublish){& (Join-Path $PSScriptRoot 'Publish-Nagi.ps1') -PackageDirectory $PackageDirectory}
+$nagiPublish=if($PackageDirectory){[IO.Path]::GetFullPath($PackageDirectory)}else{Join-Path $nagiRoot 'artifacts/Nagi-win-x64'}
 foreach($nagiRequired in @('Nagi.exe','Nagi.pri','Close-Nagi.ps1','Complete-NagiInstall.ps1','docs/NSIS-LICENSE.txt')){
  if(!(Test-Path -LiteralPath (Join-Path $nagiPublish $nagiRequired))){throw ('Publish Nagi first; missing '+$nagiRequired)}
 }

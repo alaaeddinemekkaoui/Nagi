@@ -39,7 +39,33 @@ public sealed class ObsProtocolTests
         var result = await new ObsService().ToggleRecordingAsync(((IPEndPoint)listener.LocalEndpoint).Port, "", cancellation.Token);
         Assert.Equal(stateChanges, result.Success); await server;
     }
-    private static async Task<string[]> ServeAsync(TcpListener listener, bool authenticated, bool reject, CancellationToken token, bool? recordingTest = null)
+    [Fact] public async Task ConnectedObsExposesScenesAndCurrentProgramScene()
+    {
+        using var cancellation = new CancellationTokenSource(8000); using var listener = new TcpListener(IPAddress.Loopback, 0); listener.Start();
+        var server = ServeAsync(listener, false, false, cancellation.Token, output: "Scene");
+        var result = await new ObsService().SampleAsync(true, ((IPEndPoint)listener.LocalEndpoint).Port, "", cancellation.Token);
+        Assert.True(result.Connected); Assert.Equal(["Starting", "Game", "Break"], result.Scenes); Assert.Equal("Starting", result.CurrentScene);
+        Assert.Contains("GetSceneList", await server);
+    }
+    [Theory] [InlineData(false, true)] [InlineData(true, true)] [InlineData(false, false)]
+    public async Task StreamingStartAndStopRequireObservedState(bool initiallyActive, bool stateChanges)
+    {
+        using var cancellation = new CancellationTokenSource(8000); using var listener = new TcpListener(IPAddress.Loopback, 0); listener.Start();
+        var server = ServeAsync(listener, false, false, cancellation.Token, stateChanges, "Stream", initiallyActive);
+        var result = await new ObsService().ToggleStreamingAsync(((IPEndPoint)listener.LocalEndpoint).Port, "", cancellation.Token);
+        Assert.Equal(stateChanges, result.Success);
+        var requests = await server; Assert.Contains(initiallyActive ? "StopStream" : "StartStream", requests);
+    }
+    [Theory] [InlineData(true)] [InlineData(false)]
+    public async Task SceneSwitchSendsSelectedNameAndVerifiesProgramScene(bool stateChanges)
+    {
+        using var cancellation = new CancellationTokenSource(8000); using var listener = new TcpListener(IPAddress.Loopback, 0); listener.Start();
+        var server = ServeAsync(listener, false, false, cancellation.Token, stateChanges, "Scene");
+        var result = await new ObsService().SwitchSceneAsync(((IPEndPoint)listener.LocalEndpoint).Port, "", "Game", cancellation.Token);
+        Assert.Equal(stateChanges, result.Success);
+        Assert.Contains("SetCurrentProgramScene", await server);
+    }
+    private static async Task<string[]> ServeAsync(TcpListener listener, bool authenticated, bool reject, CancellationToken token, bool? recordingTest = null, string output = "Record", bool initiallyActive = false)
     {
         using var client = await listener.AcceptTcpClientAsync(token); using var stream = client.GetStream();
         var header = new StringBuilder(); var single = new byte[1];
@@ -56,14 +82,22 @@ public sealed class ObsProtocolTests
         if (authenticated) Assert.Equal(IntegrationMath.ObsAuthentication("secret", "salt", "challenge"), identify.GetProperty("d").GetProperty("authentication").GetString());
         await Send(ws, new { op = 2, d = new { negotiatedRpcVersion = 1 } }, token);
         var requests = new List<string>();
-        var recording = false;
-        for (var i = 0; i < (recordingTest == false ? 18 : 4); i++)
+        var recording = initiallyActive; var currentScene = "Starting";
+        for (var i = 0; i < (recordingTest == false ? 18 : output == "Scene" && recordingTest is null ? 5 : 4); i++)
         {
             var request = (await Read(ws, token)).GetProperty("d"); var type = request.GetProperty("requestType").GetString()!; requests.Add(type);
-            if (type == "StartRecord" && recordingTest == true) recording = true;
+            if (type == "Start" + output && recordingTest == true) recording = true;
+            if (type == "Stop" + output && recordingTest == true) recording = false;
+            if (type == "SetCurrentProgramScene")
+            {
+                Assert.Equal("Game", request.GetProperty("requestData").GetProperty("sceneName").GetString());
+                if (recordingTest == true) currentScene = "Game";
+            }
             object response = type switch
             {
-                "GetVersion" => new { availableRequests = new[] { "GetStats", "GetRecordStatus", "GetStreamStatus", "StartRecord", "StopRecord" } },
+                "GetVersion" => new { availableRequests = new[] { "GetStats", "GetRecordStatus", "GetStreamStatus", "StartRecord", "StopRecord", "StartStream", "StopStream" }.Concat(output == "Scene" ? new[] { "GetSceneList", "SetCurrentProgramScene" } : []).ToArray() },
+                "GetSceneList" => new { currentProgramSceneName = currentScene, scenes = new[] { new { sceneName = "Starting" }, new { sceneName = "Game" }, new { sceneName = "Break" } } },
+                "GetStreamStatus" => new { outputActive = output == "Stream" && recording },
                 "GetStats" => new { activeFps = 60 }, "GetRecordStatus" => new { outputActive = recordingTest.HasValue ? recording : true }, _ => new { outputActive = false }
             };
             await Send(ws, new { op = 7, d = new { requestId = request.GetProperty("requestId").GetString(), requestStatus = new { result = true, code = 100 }, responseData = response } }, token);
