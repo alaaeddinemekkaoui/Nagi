@@ -29,6 +29,7 @@ public sealed partial class MainWindow : Window
     private readonly HaloWindowManager _windowManager;
     private readonly HaloMotion _motion;
     private readonly HaloAcrylicBackdrop _glass = new();
+    private readonly Dictionary<string, SolidColorBrush> _themeBrushes = new();
     private bool _surfaceIsDrop = true;
     private readonly AccessibilitySettings _themeAccessibility = new();
     private bool _lastHighContrast;
@@ -121,7 +122,11 @@ public sealed partial class MainWindow : Window
             Report(_tray.Register(), false);
         }
         catch (Exception ex) { _log.Write("tray", "Tray initialization failed", ex); ViewModel.Publish("Tray unavailable. Relaunch Nagi to recover Nagi.", true); }
-        Shell.ActualThemeChanged += (_, _) => { ApplyGlass(); UpdateTabs(); ApplyLuaVisuals(); _ = ReloadLuaUiAsync(); };
+        Shell.ActualThemeChanged += (_, _) =>
+        {
+            _log.Write("theme", $"Theme changed: preference={ViewModel.Settings.Theme}, actual={Shell.ActualTheme}, glass={ViewModel.Settings.GlassEnabled}");
+            ApplyGlass(); UpdateTabs(); ApplyLuaVisuals(); _ = ReloadLuaUiAsync();
+        };
         // HighContrastChanged registration can fail for unpackaged desktop hosts.
         // Observe the system preference on the existing UI refresh instead.
         _lastHighContrast = _themeAccessibility.HighContrast;
@@ -261,7 +266,15 @@ public sealed partial class MainWindow : Window
     {
         var dictionary = Application.Current.Resources.MergedDictionaries[1];
         var theme = _themeAccessibility.HighContrast ? "HighContrast" : Shell.ActualTheme == ElementTheme.Light ? "Light" : "Dark";
-        return (Brush)((ResourceDictionary)dictionary.ThemeDictionaries[theme])[key];
+        var resource = (Brush)((ResourceDictionary)dictionary.ThemeDictionaries[theme])[key];
+        if (resource is not SolidColorBrush solid) return resource;
+        if (!_themeBrushes.TryGetValue(key, out var shared)) _themeBrushes[key] = shared = new(solid.Color);
+        else shared.Color = solid.Color;
+        return shared;
+    }
+    private void RefreshThemeBrushes()
+    {
+        foreach (var key in _themeBrushes.Keys.ToArray()) _ = ThemeBrush(key);
     }
     private void ApplyGlass()
     {
@@ -341,6 +354,7 @@ public sealed partial class MainWindow : Window
     private async void Render()
     {
         RefreshContrast();
+        RefreshThemeBrushes();
         if (_renderedProfile != ViewModel.Profile) { _renderedProfile = ViewModel.Profile; BuildQuickActions(); BuildProfileDock(); ApplyWorkspaceVisibility(); Animate(); _ = ReloadLuaUiAsync(); }
         var metrics = ViewModel.Metrics;
         UpdateTray();
@@ -437,7 +451,7 @@ public sealed partial class MainWindow : Window
     {
         if (_closed) return result.Success;
         if (!result.Success) { _log.Write("operation", result.Message); ViewModel.Publish(result.Message, true); }
-        else if (successNotice) ViewModel.Publish(result.Message);
+        else if (successNotice) { _log.Write("activity", result.Message); ViewModel.Publish(result.Message); }
         return result.Success;
     }
     private void Navigate(string page)

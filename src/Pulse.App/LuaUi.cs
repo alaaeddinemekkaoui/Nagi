@@ -88,6 +88,7 @@ public sealed partial class MainWindow
             }
         }
         // Leave the system's HighContrast palette intact.
+        RefreshThemeBrushes();
         var ak = ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast;
         ApplyThemeBackground();
         AkenoSeal.Visibility = Visibility.Collapsed;

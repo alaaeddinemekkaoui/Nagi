@@ -78,6 +78,26 @@ function Test-DropBackground([string]$Name){
   }finally{$g.Dispose();$bitmap.Dispose()}
  }finally{[WorkspaceSmokeNative]::DeleteObject($region)|Out-Null;$back.Close();$back.Dispose()}
 }
+function Test-LightSurface {
+ $r=[WorkspaceSmokeNative+Rect]::new();[WorkspaceSmokeNative]::GetWindowRect($handle,[ref]$r)|Out-Null
+ $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top
+ $back=[Windows.Forms.Form]::new();$back.FormBorderStyle='None';$back.StartPosition='Manual';$back.ShowInTaskbar=$false;$back.TopMost=$true
+ $back.BackColor=[Drawing.Color]::Black;$back.Bounds=[Drawing.Rectangle]::new($r.Left,$r.Top,$w,$h)
+ try{
+  $back.Show();[Windows.Forms.Application]::DoEvents();[WorkspaceSmokeNative]::SetWindowPos($handle,[IntPtr](-1),0,0,0,0,0x13)|Out-Null
+  Start-Sleep -Milliseconds 500
+  $bitmap=[Drawing.Bitmap]::new($w,$h);$g=[Drawing.Graphics]::FromImage($bitmap)
+  try{
+   $g.CopyFromScreen($r.Left,$r.Top,0,0,[Drawing.Size]::new($w,$h));$bitmap.Save((Join-Path $qaDirectory 'light-desktop.png'))
+   $brightness=0
+   for($x=[int]($w/2)-10;$x -lt [int]($w/2)+10;$x++){for($y=8;$y -lt 16;$y++){$pixel=$bitmap.GetPixel($x,$y);$brightness+=($pixel.R+$pixel.G+$pixel.B)/3}}
+   $brightness/=160
+   Write-Output ('Light surface over a black background: '+[Math]::Round($brightness,1)+'/255')
+   if($brightness -lt 200){throw 'Light surface is too dark to support dark text'}
+  }finally{$g.Dispose();$bitmap.Dispose()}
+ }finally{$back.Close();$back.Dispose()}
+}
+
 try{
  for($i=0;$i -lt 100;$i++){$script:root=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$qaProcess.Id))|Where-Object {$_.Current.Name -eq 'Nagi' -and $_.Current.NativeWindowHandle -ne 0}|Select-Object -First 1;if($root){break};Start-Sleep -Milliseconds 100}
  if(!$root){throw 'No QA window'};$handle=[IntPtr]$root.Current.NativeWindowHandle
@@ -101,6 +121,7 @@ try{
   Select-Workspace 'Theme' $theme
   $transitions++
   Snapshot ('expanded-'+$theme)
+  if($theme -eq 'Light'){Test-LightSurface}
   Invoke 'Quick search'
   $search=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$qaProcess.Id))|Where-Object {$_.Current.Name -eq 'Nagi · Quick search'}|Select-Object -First 1
   if(!$search){throw ('Quick search did not reopen in '+$theme)}

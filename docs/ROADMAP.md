@@ -1,6 +1,6 @@
 # Remaining environment coverage
 
-Nagi v0.1.1 includes a WinUI/Win2D vertical rail, native GPU usage, Core Audio microphone mute, WMI temperature-provider support, optional PresentMon FPS capture, and authenticated OBS WebSocket status/recording control. See INTEGRATIONS.md for setup and metric definitions.
+Nagi v0.1.2 includes a WinUI/Win2D vertical rail, native GPU usage, Core Audio microphone mute, WMI temperature-provider support, optional PresentMon FPS capture, and authenticated OBS WebSocket status/recording control. See INTEGRATIONS.md for setup and metric definitions.
 
 Remaining external requirements and physical checks:
 

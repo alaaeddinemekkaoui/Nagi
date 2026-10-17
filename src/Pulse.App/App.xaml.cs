@@ -28,6 +28,8 @@ public partial class App : Application
         if (!first) { (LaunchOptions.ShowSetup ? _setupActivate : _activate).Set(); Environment.Exit(0); }
         InitializeComponent();
         UnhandledException += (_, args) => _log.Write("fatal", "Unhandled UI exception: " + args.Message + " | " + args.Exception.Message + " | " + args.Exception.StackTrace, args.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (_, args) => _log.Write("fatal", "Unhandled background exception", args.ExceptionObject as Exception);
+        TaskScheduler.UnobservedTaskException += (_, args) => _log.Write("error", "Unobserved background task exception", args.Exception);
     }
     private static void WaitForPreviousProcess(int parentId)
     {

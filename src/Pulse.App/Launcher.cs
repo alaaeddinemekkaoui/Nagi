@@ -72,9 +72,9 @@ public sealed partial class MainWindow
                 cancellation.Token.ThrowIfCancellationRequested();
                 await _fileIndex.LoadAsync(roots, cancellation.Token);
                 var apps = await SearchApplications.ReadAsync(cancellation.Token);
-                if (apps.Diagnostic is not null) _log.Write("search", apps.Diagnostic);
+                if (apps.Diagnostic is not null) _log.Write("error", "Application catalog: " + apps.Diagnostic);
                 cancellation.Token.ThrowIfCancellationRequested();
-                DispatcherQueue.TryEnqueue(() => { if (!_closed && ReferenceEquals(_searchCancellation, cancellation)) { _appCatalog = apps; _searchWindow?.IndexChanged(); } });
+                DispatcherQueue.TryEnqueue(() => { if (!_closed && ReferenceEquals(_searchCancellation, cancellation)) { _appCatalog = apps; BuildProfileDock(); _searchWindow?.IndexChanged(); } });
                 await _fileIndex.RefreshAsync(roots, cancellation.Token);
             }
             catch (OperationCanceledException) { }

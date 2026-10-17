@@ -1,0 +1,68 @@
+name: Build Nagi release
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing draft release tag
+        required: true
+        default: v0.1.2
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ inputs.release_tag }}
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      NAGI_RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Validate early release version
+        run: |
+          if ($env:NAGI_RELEASE_TAG -notmatch '^v0\.1\.\d+$') { throw 'Only early v0.1.x releases are enabled.' }
+          [xml]$project = Get-Content src/Pulse.App/Pulse.App.csproj
+          if ('v' + [string]$project.Project.PropertyGroup.Version -ne $env:NAGI_RELEASE_TAG) { throw 'Tag and app version differ.' }
+      - name: Install NSIS
+        run: |
+          choco install nsis --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'NSIS installation failed.' }
+      - name: Restore and test core services
+        run: |
+          dotnet restore Pulse.sln
+          if ($LASTEXITCODE -ne 0) { throw 'Restore failed.' }
+          dotnet test tests/Pulse.Tests/Pulse.Tests.csproj -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'Core tests failed.' }
+      - name: Build ZIP, root portable EXE and setup
+        run: |
+          ./scripts/Publish-Nagi.ps1 -NoRestore -ReleaseTag $env:NAGI_RELEASE_TAG
+          ./scripts/Build-NagiInstaller.ps1 -SkipPublish
+      - name: Upload verified packages to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $release = gh release view $env:NAGI_RELEASE_TAG --json isDraft | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or !$release.isDraft) { throw 'An existing draft release is required.' }
+          $files = @('Nagi-Portable.exe','Nagi-Portable.exe.sha256','artifacts/Nagi-win-x64.zip','artifacts/Nagi-win-x64.zip.sha256','artifacts/Nagi-Setup.exe','artifacts/Nagi-Setup.exe.sha256','RELEASE_README.md')
+          gh release upload $env:NAGI_RELEASE_TAG @files --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed.' }
+          $assets = (gh release view $env:NAGI_RELEASE_TAG --json assets | ConvertFrom-Json).assets
+          if ($LASTEXITCODE -ne 0) { throw 'Asset verification failed.' }
+          foreach ($file in $files) {
+            $item = Get-Item -LiteralPath $file
+            $asset = $assets | Where-Object name -eq $item.Name
+            if (!$asset -or $asset.size -ne $item.Length -or $asset.digest -ne ('sha256:' + (Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant())) { throw ('Checksum mismatch: ' + $item.Name) }
+          }
+          'All packages verified. The release stays in draft for desktop update validation.' >> $env:GITHUB_STEP_SUMMARY

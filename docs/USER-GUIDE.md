@@ -256,10 +256,16 @@ dotnet test Pulse.sln -c Release --no-build
 
 The publish script creates the self-contained portable directory, ZIP and SHA256 file. Trusted signing requires a valid code-signing certificate; it is a separate release step. Source is split into WinUI presentation, Core policy/models, Windows integrations and Infrastructure persistence/Lua/indexing.
 
-Use the [documentation index](README.md) for architecture, build prerequisites, licenses, validation and the v0.1.1 changelog. [Validation](VALIDATION.md) records Nagi v0.1.1 checks while distinguishing remaining physical-monitor, media-player, sign-in and accessibility coverage from completed checks.
+Use the [documentation index](README.md) for architecture, build prerequisites, licenses, validation and the v0.1.2 changelog. [Validation](VALIDATION.md) records Nagi v0.1.2 checks while distinguishing remaining physical-monitor, media-player, sign-in and accessibility coverage from completed checks.
 
 ## Music and app updates
 
 When no media is detected, now playing offers YouTube Music, Spotify and Apple Music links. Under **Settings → Music**, choose All or one preferred service; only that service is offered when selected. Empty, inactive Windows media sessions do not hide these links. Paused tracks with metadata keep their playback controls.
 
 Open **Settings → Updates → Check for updates**. A newer stable GitHub release can be downloaded and installed directly from the app. **Download updates automatically** checks at startup and every six hours and downloads verified packages; **Install and restart** completes the update when you are ready. Manual **Download and update** downloads and restarts in one action. SHA256 and package checks finish before the app closes. The updater replaces the current portable or installed app in place, retains preferences/scripts, and backs up replaced files for rollback. Update failures appear after restarting; a diagnostic log stays in the staging folder. A release needs the Windows x64 ZIP plus a GitHub SHA256 digest or matching `.sha256` asset.
+
+## Activity, errors and updates
+
+Settings → About & diagnostics opens the activity log (`logs/pulse.jsonl`) and the separate error log (`logs/errors.jsonl`) in your Nagi data folder. Logs include UTC timestamps, app version, theme and update events. Error entries include the exception and stack trace. Each file rotates independently at 1 MB.
+
+When Nagi detects a newer release, it shows the changelog with **Update now** and **Later**. Update now downloads, verifies, installs and restarts. Later keeps Nagi running; with automatic downloads enabled, the verified download stays ready in Settings → Updates → Install and restart. A temporary failed check retries after two minutes. Preferences remain in the data folder across updates.

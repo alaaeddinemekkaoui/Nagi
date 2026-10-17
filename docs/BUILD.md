@@ -1,4 +1,4 @@
-# Build and release Nagi v0.1.1
+# Build and release Nagi v0.1.2
 
 Use Windows 11 x64 and the .NET SDK pinned in `global.json`. NuGet restores the Windows App SDK compiler and native dependencies. The self-contained app needs no runtime download on the target PC.
 
@@ -28,7 +28,7 @@ Open `Nagi-Portable.exe` directly. It contains all app/runtime files, prepares t
 
 ## Release identity and GitHub
 
-The current release is **Nagi v0.1.1**, tag **`v0.1.1`**, following the early **v0.1** baseline. `src/Pulse.App/Pulse.App.csproj` supplies version `0.1.1` to the app and EXE metadata. Publish generates `RELEASE_README.md` from the README using links pinned to `v0.1.1`; `-ReleaseTag` supports a future tag. Keep releases in **v0.1.x** until the owner explicitly approves v1.
+The current release is **Nagi v0.1.2**, tag **`v0.1.2`**, following the early **v0.1** baseline. `src/Pulse.App/Pulse.App.csproj` supplies version `0.1.2` to the app and EXE metadata. Publish generates `RELEASE_README.md` from the README using links pinned to `v0.1.2`; `-ReleaseTag` supports a future tag. Keep releases in **v0.1.x** until the owner explicitly approves v1.
 
 Upload the portable EXE, ZIP, setup and their SHA256 files. Use `RELEASE_README.md` as the release body. In-app updates require the Windows x64 ZIP and a GitHub SHA256 digest or checksum asset. `Apply-NagiUpdate.ps1` stages replacement outside the running app and backs up replaced files for rollback.
 
@@ -52,4 +52,14 @@ Close any copy from an output folder before rebuilding it. Helpers use dedicated
 
 Use `-DocumentationImages` with the horizontal app-folder check to refresh the screenshots. The welcome helper checks onboarding, themes, layouts, weather and speakers. `--data-dir <absolute-path>` isolates normal preferences. Coverage limits are in [Validation](VALIDATION.md) and [Integrations](INTEGRATIONS.md).
 
-To keep a running development copy untouched, pass `-PackageDirectory artifacts/Nagi-v0.1.1-win-x64` to publish and the installer builder. `Smoke-NagiPortable.ps1` verifies the root EXE from a folder containing no DLLs, with isolated preferences, cache reuse and single-instance behavior.
+To keep a running development copy untouched, pass `-PackageDirectory artifacts/Nagi-v0.1.2-win-x64` to publish and the installer builder. `Smoke-NagiPortable.ps1` verifies the root EXE from a folder containing no DLLs, with isolated preferences, cache reuse and single-instance behavior.
+
+## GitHub release builder
+
+The manually dispatched `Build Nagi release` workflow builds a pushed `v0.1.x` tag on Windows, runs core tests, builds all three packages and verifies their uploaded hashes. Create the draft release first, then run:
+
+```powershell
+gh workflow run release.yml -f release_tag=v0.1.2
+```
+
+The workflow leaves the release in draft for desktop validation. Download the verified portable EXE into the project root after a cloud build. Local `Publish-Nagi.ps1` continues to create the root EXE automatically. The workflow accepts only v0.1.x tags; changing to v1 requires the owner's approval.

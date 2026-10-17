@@ -6,7 +6,8 @@ using System.Text.RegularExpressions;
 
 namespace Pulse.Infrastructure;
 
-public sealed record AppRelease(Version Version, Uri Download, long Size, string? Sha256, Uri? Checksum);
+public sealed record AppRelease(Version Version, Uri Download, long Size, string? Sha256, Uri? Checksum,
+    string Notes = "", Uri? ReleasePage = null);
 public sealed record PreparedUpdate(AppRelease Release, string Directory, string Payload);
 
 public sealed class AppUpdateService(HttpClient client)
@@ -48,7 +49,12 @@ public sealed class AppUpdateService(HttpClient client)
         if (hash is null && (checksum is null || !IsReleaseDownload(checksum))) throw new InvalidDataException("The release has no SHA256 checksum yet.");
         var size = asset.GetProperty("size").GetInt64();
         if (size is <= 0 or > 1024L * 1024 * 1024) throw new InvalidDataException("The release package size is invalid.");
-        return new(version, url, size, hash, checksum);
+        var notes = root.TryGetProperty("body", out var body) ? body.GetString() ?? "" : "";
+        Uri? page = null;
+        if (root.TryGetProperty("html_url", out var html) && Uri.TryCreate(html.GetString(), UriKind.Absolute, out var candidate)
+            && candidate.Scheme == "https" && candidate.Host == "github.com"
+            && candidate.AbsolutePath.StartsWith("/" + Repository + "/releases/tag/", StringComparison.Ordinal)) page = candidate;
+        return new(version, url, size, hash, checksum, notes.Length > 24000 ? notes[..24000] : notes, page);
     }
 
     public async Task<PreparedUpdate> PrepareAsync(AppRelease release, string updateRoot, IProgress<double>? progress, CancellationToken token)

@@ -1,12 +1,15 @@
-# Nagi v0.1.1 validation
+# Nagi v0.1.2 validation
 
 ## Automated checks
 
-The Windows Release build passes. The automated suite contains **203 core/infrastructure tests and 53 Windows integration tests (256 total)**. It covers settings recovery, profile rules, workspaces, search, media policies, motion, power status, providers, native geometry, OBS protocol handling and verified update preparation.
+The Windows Release build passes. The automated suite contains **211 core/infrastructure tests and 54 Windows integration tests (265 total)**. It covers settings recovery, profile rules, workspaces, search, media policies, motion, power status, providers, native geometry, OBS protocol handling and verified update preparation.
 
 OBS tests use an owned loopback fixture and confirm observed recording, streaming and program-scene states. They do not start the user's recording or stream. Update tests cover stable versions, download URLs, SHA256 and length verification, archive completeness and path rejection. NuGet vulnerability-data retrieval was unavailable during the recorded build (NU1900).
 
 ## Isolated desktop checks
+
+- `Smoke-NagiLiveUpdate.ps1`: installs a real GitHub release into an isolated copy, checks automatic detection, release notes, Later without exiting, verified download, explicit Update now, process restart, installed version and preserved preferences. `-LegacyClient` covers clients from before the update dialog.
+- `Smoke-NagiThemes.ps1` also captures the expanded light surface over an owned black background to verify readable light material, in addition to theme switches, quick-search reopening and teardrop clipping.
 
 - `Smoke-NagiThemes.ps1`: the old build crashes on its first Akeno → Light change with `E_INVALIDARG` (`0x80070057`) in the base acrylic configuration-change handler. The fixed build exercises repeated Akeno/Light/Dark/System changes, saved choices, glass on/off and collapse/reveal. An owned solid-color window behind the actual desktop capture checks pixels outside the native teardrop region; forced DWM rounding reproduced the unwanted pill, and disabling it removes those pixels.
 - `Smoke-NagiWorkspaces.ps1`: control center, app add/remove, optional widgets, settings navigation, Akeno choices, music preference, Default/Stream profiles, four-app rows and OBS hover controls.

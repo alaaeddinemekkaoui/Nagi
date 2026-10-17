@@ -11,6 +11,8 @@ public sealed class AppUpdateTests
 {
     [Theory]
     [InlineData("v2", "2.0.0.0")]
+    [InlineData("v0.1", "0.1.0.0")]
+    [InlineData("v0.1.1", "0.1.1.0")]
     [InlineData("1.2.3", "1.2.3.0")]
     [InlineData("v1.2.3.4", "1.2.3.4")]
     [InlineData("v1.2.3-beta", null)]
@@ -38,6 +40,25 @@ public sealed class AppUpdateTests
         })) }));
         var release = await new AppUpdateService(client).CheckAsync(new(1, 0, 0), default);
         Assert.Equal(available, release is not null);
+    }
+
+    [Theory]
+    [InlineData("0.1.0", "v0.1.1", true)]
+    [InlineData("0.1.1", "v0.1.1", false)]
+    [InlineData("0.1.1", "v0.1.2", true)]
+    [InlineData("0.1.2", "v0.1.1", false)]
+    public async Task EarlyVersionsDetectOnlyNewerReleasesAndCarryTheirChangelog(string current, string tag, bool available)
+    {
+        const string notes = "- Fixed light theme\n- Added separate error logs";
+        using var client = new HttpClient(new Handler(_ => new(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(new
+        {
+            tag_name = tag, draft = false, prerelease = false, body = notes,
+            html_url = "https://github.com/alaaeddinemekkaoui/Nagi/releases/tag/" + tag,
+            assets = new[] { new { name = "Nagi-win-x64.zip", browser_download_url = Download, size = 12, digest = "sha256:" + new string('a', 64) } }
+        })) }));
+        var release = await new AppUpdateService(client).CheckAsync(Version.Parse(current), default);
+        Assert.Equal(available, release is not null);
+        if (available) { Assert.Equal(notes, release!.Notes); Assert.NotNull(release.ReleasePage); }
     }
 
     [Theory] [InlineData(false)] [InlineData(true)]

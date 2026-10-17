@@ -92,7 +92,10 @@ public sealed class QuickSearchWindow : Window
     public void Open(PulseSettings settings)
     {
         var foreground = SearchWindowPlacement.Foreground;
-        _root.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
+        // Acrylic reads XamlRoot.Content, so the theme belongs on the outer surface.
+        // Setting only the child Grid can leave light controls over a dark backdrop.
+        if (Content is FrameworkElement themedSurface)
+            themedSurface.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
         _root.Background = _brush("CanvasBrush");
         var highContrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
         _glass.SetLight(_root.ActualTheme == ElementTheme.Light); _glass.SetAkeno(settings.Theme == "Akeno");
@@ -126,7 +129,9 @@ public sealed class QuickSearchWindow : Window
         {
             var row = new Grid { ColumnSpacing = 14, Padding = new(4, 7, 8, 7) };
             row.ColumnDefinitions.Add(new() { Width = new(32) }); row.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) });
-            row.Children.Add(new FontIcon { Glyph = entry.Kind switch { SearchKind.Application => "\uE71D", SearchKind.File => "\uE8A5", SearchKind.Folder => "\uE8B7", SearchKind.Calculation => "\uE8EF", SearchKind.Web => "\uE774", _ => "\uE713" }, FontSize = 18, Foreground = _brush("PulseAccentBrush") });
+            row.Children.Add(entry.Kind == SearchKind.Application
+                ? new Controls.AppIcon(entry.Title, entry.Target, _brush("InkBrush"))
+                : new FontIcon { Glyph = entry.Kind switch { SearchKind.File => "\uE8A5", SearchKind.Folder => "\uE8B7", SearchKind.Calculation => "\uE8EF", SearchKind.Web => "\uE774", _ => "\uE713" }, FontSize = 18, Foreground = _brush("PulseAccentBrush") });
             var text = new StackPanel { Spacing = 3 }; text.Children.Add(new TextBlock { Text = entry.Title, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = _brush("InkBrush") });
             text.Children.Add(new TextBlock { Text = entry.Detail, FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis, Foreground = _brush("MutedBrush") }); Grid.SetColumn(text, 1); row.Children.Add(text);
             var item = new ListViewItem { Content = row, Tag = entry, HorizontalContentAlignment = HorizontalAlignment.Stretch, CornerRadius = new(10), Margin = new(0, 2, 0, 2) };

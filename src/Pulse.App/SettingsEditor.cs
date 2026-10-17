@@ -242,7 +242,7 @@ public sealed partial class MainWindow
     private void BuildDiagnosticsSettings()
     {
         var diagnostics = Stack(); diagnostics.Children.Add(Heading("Integrations & diagnostics"));
-        diagnostics.Children.Add(Note($"Nagi version 1 · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
+        diagnostics.Children.Add(Note($"Nagi {CurrentVersion.ToString(3)} · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}"));
         diagnostics.Children.Add(Note("CPU: " + (ViewModel.Metrics.Cpu.HasValue ? "available · GetSystemTimes" : "waiting / unavailable")
             + "\nMemory: " + (ViewModel.Metrics.TotalMemory > 0 ? $"{GiB(ViewModel.Metrics.AvailableMemory):0.0} GB available of {GiB(ViewModel.Metrics.TotalMemory):0.0} GB" : "unavailable")
             + "\nNetwork: " + (ViewModel.Metrics.ReceiveBytesPerSecond.HasValue ? "available · aggregate active adapters" : "waiting / unavailable")
@@ -254,7 +254,9 @@ public sealed partial class MainWindow
             + "\nSystem tray: " + (_tray?.IsRegistered == true ? "registered · right-click for controls" : "unavailable")
             + "\nGlass material: " + _glass.MaterialStatus
             + "\nGPU: " + _gpuSnapshot.Status + "\nTemperatures: " + _temperatureSnapshot.Status + "\nFPS: " + _fpsSnapshot.Status + "\nMicrophone: " + _microphoneSnapshot.Device + "\nOBS: " + _obsSnapshot.Status));
-        diagnostics.Children.Add(Note("Settings: " + _settings.FilePath + "\nLogs: " + _log.FilePath));
+        diagnostics.Children.Add(Note("Settings: " + _settings.FilePath + "\nActivity log: " + _log.FilePath + "\nError log: " + _log.ErrorFilePath));
+        diagnostics.Children.Add(Button("Open activity log", (_, _) => Report(ActionLauncher.Launch(new("Activity log", ActionKind.File, _log.FilePath)))));
+        diagnostics.Children.Add(Button("Open error log", (_, _) => Report(ActionLauncher.Launch(new("Error log", ActionKind.File, _log.ErrorFilePath)))));
         diagnostics.Children.Add(Note($"Audio refresh: 50 ms · Signal meter: {(ViewModel.Audio.Peak.HasValue ? "available" : "unavailable")} · Frames: {_audioFrameCount}"));
         diagnostics.Children.Add(Note("Media artwork: " + (_artwork is { Length: > 0 } ? "provided by media app" : "not provided by the current session")));
         diagnostics.Children.Add(Button("Open Nagi data folder", (_, _) => Report(ActionLauncher.Launch(new("Nagi data", ActionKind.Folder, Path.GetDirectoryName(_settings.FilePath)!)))));

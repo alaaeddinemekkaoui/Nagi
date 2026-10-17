@@ -1,5 +1,13 @@
 # Changelog
 
+## Nagi v0.1.2 — 2026-10-17
+
+- Separate activity and error logs, with timestamps, app versions and full exception details. Both are available in About & diagnostics.
+- Clear outline icons where available, with native installed-app icons for the dock and app search, plus outline music-service links.
+- Improved light-mode contrast and live theme colors. Quick search and its acrylic surface now use the same theme and follow system changes.
+- Automatic update detection shows the changelog with Update now and Later. Later keeps Nagi running; the downloaded update remains available in Settings → Updates.
+- Failed automatic checks retry after a temporary network failure. Update checks, choices, downloads, verification and restarts are recorded in the logs.
+
 ## Nagi v0.1.1 — 2026-10-17
 
 - Fixed crashes when switching Akeno → Light or between day/night themes. The custom acrylic callback no longer calls the failing base configuration handler or reconnects an already connected configuration.

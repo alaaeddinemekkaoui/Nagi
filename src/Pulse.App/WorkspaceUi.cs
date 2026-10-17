@@ -26,6 +26,7 @@ public sealed partial class MainWindow
     }
     private async Task ActivateProfileAsync(Profile? profile)
     {
+        _log.Write("profiles", profile is { } selected ? "Activating " + selected : "Activating automatic profiles");
         var generation = ++_workspaceActivation;
         if (!await CommitAsync(s => profile is null ? s with { LockedProfile = null, AutomaticSwitching = true } : s with { LockedProfile = profile })) return;
         if (profile is not { } active) return;
@@ -83,7 +84,8 @@ public sealed partial class MainWindow
             {
                 var copy = new Grid { ColumnSpacing = 6, VerticalAlignment = VerticalAlignment.Center };
                 copy.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); copy.ColumnDefinitions.Add(new());
-                copy.Children.Add(new FontIcon { Glyph = app.Target switch { "code" => "\uE943", "terminal" => "\uE756", "browser" => "\uE774", "steam" => "\uE7FC", _ => "\uE8A5" }, FontSize = rail ? 15 : 18 });
+                var resolved = ProfileWorkspaces.Resolve(app, _appCatalog.Entries);
+                copy.Children.Add(new Controls.AppIcon(app.Name, resolved?.Target ?? (app.Target == "terminal" ? "terminal" : null), ThemeBrush("InkBrush"), rail ? 18 : 20));
                 copy.Children.Add(new TextBlock { Text = app.Name, FontSize = rail ? 8 : 12, MaxWidth = rail ? 56 : 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center });
                 Grid.SetColumn((FrameworkElement)copy.Children[1], 1);
                 var button = new Button { Content = copy, CornerRadius = new(10), Padding = new(rail ? 4 : 12), MinHeight = rail ? 36 : 44, HorizontalAlignment = HorizontalAlignment.Stretch };

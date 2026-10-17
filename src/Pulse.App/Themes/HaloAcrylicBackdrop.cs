@@ -23,6 +23,7 @@ public sealed class HaloAcrylicBackdrop : SystemBackdrop
         if (!IsSupported) return;
         _controller = new DesktopAcrylicController { Kind = DesktopAcrylicKind.Thin };
         _configuration = GetDefaultSystemBackdropConfiguration(connectedTarget, xamlRoot);
+        _light = _configuration.Theme == SystemBackdropTheme.Light;
         _configuration.IsInputActive = true;
         _controller.SetSystemBackdropConfiguration(_configuration);
         _controller.AddSystemBackdropTarget(connectedTarget);
@@ -35,6 +36,7 @@ public sealed class HaloAcrylicBackdrop : SystemBackdrop
         // Do not reconnect the target or forward the notification back to the base.
         // It can also arrive during base.OnTargetConnected, before our setup finishes.
         if (_controller is null || _configuration is null) return;
+        _light = _configuration.Theme == SystemBackdropTheme.Light;
         _configuration.IsInputActive = true;
         ApplyPalette();
     }
@@ -50,8 +52,8 @@ public sealed class HaloAcrylicBackdrop : SystemBackdrop
         }
         _controller.TintColor = _light ? Color.FromArgb(255, 246, 248, 253) : Color.FromArgb(255, 24, 27, 38);
         _controller.FallbackColor = _light ? Color.FromArgb(255, 241, 244, 249) : Color.FromArgb(255, 27, 30, 40);
-        _controller.TintOpacity = _light ? .35f : .30f;
-        _controller.LuminosityOpacity = _light ? .72f : .58f;
+        _controller.TintOpacity = _light ? .78f : .30f;
+        _controller.LuminosityOpacity = _light ? .90f : .58f;
     }
     protected override void OnTargetDisconnected(ICompositionSupportsSystemBackdrop target)
     {
