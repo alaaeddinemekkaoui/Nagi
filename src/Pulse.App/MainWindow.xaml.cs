@@ -46,6 +46,7 @@ public sealed partial class MainWindow : Window
     private bool _expanded { get => _dock.Stage == DockStage.Expanded; set { if (value) _dock.Expand(); else _dock.Collapse(); } }
     private bool _dashboard, _updating, _dialogOpen, _closed, _userHidden, _revealFullscreen, _controlCenter;
     private bool _hotkeyAvailable;
+    private bool _presenterControlCenter;
     private bool _hideHotkeyAvailable, _hiding, _active, _quickMenuOpen;
     private int _visibilityGeneration;
     private int _lastForeground;
@@ -63,8 +64,8 @@ public sealed partial class MainWindow : Window
         ViewModel = new(configuration);
         InitializeComponent();
         Root.DataContext = ViewModel;
+        L.Options(ProfilePicker);
         ProfilePicker.ItemsSource = new[] { "Automatic" }.Concat(ProfileWorkspaces.Profiles.Select(p => p.ToString())).ToArray();
-        BuildMusicLinks();
         foreach (var railButton in Compact.Children.OfType<Button>()) railButton.Padding = new(4);
         var presenter = (OverlappedPresenter)AppWindow.Presenter;
         presenter.SetBorderAndTitleBar(false, false);
@@ -75,13 +76,21 @@ public sealed partial class MainWindow : Window
         _windowManager = new HaloWindowManager(handle);
         _windowManager.FrameApplied += frame =>
         {
+            _hasPresentedFrame = true;
             WindowSurface.SetShape(frame.DropAmount, ViewModel.Settings.Position.Anchor);
             var drop = frame.DropAmount > .001;
-            if (_surfaceIsDrop == drop) return;
+            if (_surfaceIsDrop == drop && _materialResting == SettledNotch) return;
             _surfaceIsDrop = drop;
             ApplyGlass();
         };
-        _motion = new HaloMotion(_windowManager, () => !ViewModel.Settings.ReducedMotion && new UISettings().AnimationsEnabled);
+        _windowManager.ControlCenterResized += frame =>
+        {
+            if (!_controlCenter || _closed) return;
+            _motion?.Stop(); PlaceDockContent(false, frame.Width / frame.Scale, frame.Height / frame.Scale);
+        };
+        _notchSystemColors.ColorValuesChanged += NotchColorsChanged;
+        _motion = new HaloMotion(_windowManager, () => !ViewModel.Settings.ReducedMotion && _audioMotion.AnimationsEnabled);
+        BuildMusicLinks();
         _windowManager.ToggleRequested += () => { if (_expanded && !_userHidden) Collapse(); else Reveal(); };
         _windowManager.HideRequested += () => { if (_userHidden) Reveal(); else HideHalo(); };
         _windowManager.EscapeRequested += () => { if (!_dialogOpen) Collapse(); };
@@ -106,6 +115,8 @@ public sealed partial class MainWindow : Window
         try
         {
             _tray = new SystemTrayService(handle, Path.Combine(AppContext.BaseDirectory, "Assets", "Nagi.Tray.ico"));
+            _tray.Translate = L.T;
+            _tray.Translate = L.T;
             _tray.ShowRequested += Reveal;
             _tray.SearchRequested += ToggleQuickSearch;
             _tray.HideRequested += HideHalo;
@@ -121,7 +132,7 @@ public sealed partial class MainWindow : Window
             _tray.RegistrationChanged += result => { Report(result, false); UpdateTray(); };
             Report(_tray.Register(), false);
         }
-        catch (Exception ex) { _log.Write("tray", "Tray initialization failed", ex); ViewModel.Publish("Tray unavailable. Relaunch Nagi to recover Nagi.", true); }
+        catch (Exception ex) { _log.Write("tray", "Tray initialization failed", ex); ViewModel.Publish(L.T("Tray unavailable. Relaunch Nagi to recover Nagi."), true); }
         Shell.ActualThemeChanged += (_, _) =>
         {
             _log.Write("theme", $"Theme changed: preference={ViewModel.Settings.Theme}, actual={Shell.ActualTheme}, glass={ViewModel.Settings.GlassEnabled}");
@@ -133,6 +144,8 @@ public sealed partial class MainWindow : Window
         Root.Loaded += (_, _) => { WireButtons(Root); ApplyLuaVisuals(); };
         _expanded = configuration.StartExpanded && ViewModel.Profile != Profile.Focus;
         ApplyPreferences();
+        ContentScroll.FlowDirection = L.Direction;
+        PeekHost.FlowDirection = L.Direction;
         BuildRulesPage(); BuildSettingsPage(); BuildQuickActions(); BuildProfileDock();
         if (settings.RecoveryMessage is { } recovery) ViewModel.Publish(recovery, true);
     }
@@ -167,14 +180,23 @@ public sealed partial class MainWindow : Window
     }
     private void Layout(bool animate = false)
     {
+        if (_presenterControlCenter != _controlCenter)
+        {
+            _presenterControlCenter = _controlCenter;
+            var presenter = (OverlappedPresenter)AppWindow.Presenter;
+            if (!_controlCenter && presenter.State != OverlappedPresenterState.Restored) presenter.Restore();
+            presenter.IsResizable = presenter.IsMaximizable = presenter.IsMinimizable = _controlCenter;
+            presenter.IsAlwaysOnTop = !_controlCenter; AppWindow.IsShownInSwitchers = _controlCenter;
+        }
         ApplyThemeBackground();
         if (!_closed && !_expanded && !_userHidden) _previewWatch.Start(); else _previewWatch.Stop();
         var wasExpanded = Expanded.Visibility == Visibility.Visible;
         var wasPreview = PeekHost.Visibility == Visibility.Visible;
         var wasDrop = EdgeDrop.Visibility == Visibility.Visible;
         var resting = _dock.Stage == DockStage.Resting;
+        ApplyGlass(); // Connect acrylic before the first expanding frame, not at the end of the morph.
         var frame = _controlCenter ? _windowManager.PrepareControlCenter(ViewModel.Settings.Position)
-            : _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting);
+            : _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting, RequestedRailExtent, ViewModel.Settings.Position.Orientation == "Horizontal" ? DockPresentation.HorizontalHeight : DockPresentation.VerticalWidth);
         var logicalWidth = frame.Width / frame.Scale; var logicalHeight = frame.Height / frame.Scale;
         PlaceDockContent(resting, logicalWidth, logicalHeight);
         if (resting)
@@ -195,26 +217,28 @@ public sealed partial class MainWindow : Window
             Expanded.Visibility = Visibility.Visible; Expanded.IsHitTestVisible = true;
             Compact.Visibility = Visibility.Visible;
             RailViewport.Visibility = _controlCenter ? Visibility.Collapsed : Visibility.Visible;
-            if (animate) { _motion.Reveal(Expanded, 0, 260, .985f); RevealCards(); }
+            if (animate && !wasExpanded) { _motion.Reveal(Expanded, 0, 200, 1); RevealCards(); }
             else _motion.Reset(Expanded);
         }
         else
         {
             Compact.Visibility = Visibility.Visible; Expanded.IsHitTestVisible = false;
-            if (animate && (wasExpanded || wasDrop)) { _motion.Fade(Expanded, false, 95); _motion.Fade(EdgeDrop, false, 90); _motion.Reveal(Compact, 0, 220); }
+            if (animate && (wasExpanded || wasDrop)) { _motion.Fade(Expanded, false, 95); _motion.Fade(EdgeDrop, false, 90); _motion.Reveal(Compact, 0, 180, 1); }
             else { Expanded.Visibility = Visibility.Collapsed; _motion.Reset(Compact); }
             PeekHost.IsHitTestVisible = PreviewVisible;
             if (PreviewVisible)
             {
                 PeekHost.Visibility = Visibility.Visible;
-                if (animate) _motion.Reveal(PeekHost, 0, 220, .99f); else _motion.Reset(PeekHost);
+                if (animate && !wasPreview) _motion.Reveal(PeekHost, 0, 180, 1); else _motion.Reset(PeekHost);
             }
             else if (animate && wasPreview) _motion.Fade(PeekHost, false, 90);
             else PeekHost.Visibility = Visibility.Collapsed;
         }
+        if (!resting) RenderAudio(_lastAudio);
         Shell.CornerRadius = new(0); // DWM clips the outer corners; avoid an opaque seam behind a second XAML clip.
         _motion.Move(frame, animate && !_userHidden, () =>
         {
+            ApplyGlass();
             if (!_expanded) Expanded.Visibility = Visibility.Collapsed;
             if (!PreviewVisible) PeekHost.Visibility = Visibility.Collapsed;
             if (_dock.Stage != DockStage.Resting) EdgeDrop.Visibility = Visibility.Collapsed;
@@ -225,22 +249,22 @@ public sealed partial class MainWindow : Window
     private void Animate(FrameworkElement? target = null)
     {
         if (_closed) return;
-        _motion.Reveal(target ?? (_expanded ? Expanded : _dock.Stage == DockStage.Resting ? EdgeDrop : Compact), duration: 200, scale: .99f);
+        _motion.Reveal(target ?? (_expanded ? Expanded : _dock.Stage == DockStage.Resting ? EdgeDrop : Compact), duration: 160, scale: 1);
     }
     private void RevealCards()
     {
         if (_page != "Overview") return;
-        _motion.Reveal(MetricsGrid, 95, 260);
-        _motion.Reveal(MediaCard, 125, 280);
-        _motion.Reveal(AudioCard, 150, 280);
-        _motion.Reveal(QuickActionsPanel, 170, 280);
+        _motion.Reveal(MetricsGrid, 30, 180, 1);
+        _motion.Reveal(MediaCard, 45, 180, 1);
+        _motion.Reveal(AudioCard, 60, 180, 1);
+        _motion.Reveal(QuickActionsPanel, 75, 180, 1);
     }
     private async void HideHalo()
     {
         DismissDockIntroduction();
         if (_closed || _dialogOpen || _userHidden) return;
         if (!_hotkeyAvailable && !_hideHotkeyAvailable && _tray?.IsRegistered != true)
-        { ViewModel.Publish("Set a working shortcut or restore the system tray before hiding Nagi.", true); return; }
+        { ViewModel.Publish(L.T("Set a working shortcut or restore the system tray before hiding Nagi."), true); return; }
         var generation = ++_visibilityGeneration;
         ResetPreview();
         _userHidden = true; _hiding = true; _motion.Stop(); UpdateTray();
@@ -254,8 +278,8 @@ public sealed partial class MainWindow : Window
     private void UpdateTray()
     {
         _tray?.Update(ViewModel.Profile, ViewModel.Settings.LockedProfile ?? (ViewModel.Settings.AutomaticSwitching ? null : ViewModel.Profile), _userHidden, PulseViewModel.FormatHotkey(ViewModel.Settings.HideHotkey));
-        ToolTipService.SetToolTip(HideHeaderButton, "Hide Nagi · " + (_hideHotkeyAvailable ? PulseViewModel.FormatHotkey(ViewModel.Settings.HideHotkey) : "Shortcut unavailable"));
-        TrayStatusText.Text = _tray?.IsRegistered == true ? "In system tray" : "Local & private";
+        ToolTipService.SetToolTip(HideHeaderButton, L.T("Hide Nagi · ") + (_hideHotkeyAvailable ? PulseViewModel.FormatHotkey(ViewModel.Settings.HideHotkey) : L.T("Shortcut unavailable")));
+        TrayStatusText.Text = _tray?.IsRegistered == true ? L.T("In system tray") : L.T("Local & private");
     }
     private void WireButtons(DependencyObject parent)
     {
@@ -269,7 +293,7 @@ public sealed partial class MainWindow : Window
         var resource = (Brush)((ResourceDictionary)dictionary.ThemeDictionaries[theme])[key];
         if (resource is not SolidColorBrush solid) return resource;
         if (!_themeBrushes.TryGetValue(key, out var shared)) _themeBrushes[key] = shared = new(solid.Color);
-        else shared.Color = solid.Color;
+        else if (!shared.Color.Equals(solid.Color)) shared.Color = solid.Color;
         return shared;
     }
     private void RefreshThemeBrushes()
@@ -278,10 +302,13 @@ public sealed partial class MainWindow : Window
     }
     private void ApplyGlass()
     {
+        var previousGlass = SystemBackdrop is not null;
+        var previousResting = _materialResting;
         _glass.SetAkeno(ViewModel.Settings.Theme == "Akeno");
         _glass.SetLight(Shell.ActualTheme == ElementTheme.Light);
-        if (!_surfaceIsDrop && ViewModel.Settings.GlassEnabled && HaloAcrylicBackdrop.IsSupported && !_themeAccessibility.HighContrast)
-        { if (!ReferenceEquals(SystemBackdrop, _glass)) SystemBackdrop = _glass; Shell.Background = ThemeBrush("CanvasBrush"); }
+        _materialResting = SettledNotch;
+        if (!_materialResting && ViewModel.Settings.GlassEnabled && HaloAcrylicBackdrop.IsSupported && !_themeAccessibility.HighContrast)
+        { if (!ReferenceEquals(SystemBackdrop, _glass)) SystemBackdrop = _glass; Shell.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent); }
         else
         {
             SystemBackdrop = null;
@@ -290,9 +317,13 @@ public sealed partial class MainWindow : Window
                     : Shell.ActualTheme == ElementTheme.Light ? global::Windows.UI.Color.FromArgb(255, 241, 244, 249) : global::Windows.UI.Color.FromArgb(255, 27, 30, 40));
         }
         if (_surfaceIsDrop) Shell.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-        Root.Background = _surfaceIsDrop || ViewModel.Settings.Theme == "Akeno"
-            ? new SolidColorBrush(Microsoft.UI.Colors.Transparent) : ThemeBrush("HeaderGlowBrush");
+        Root.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         UpdateSurfaceMaterial();
+        if (previousGlass != (SystemBackdrop is not null) || previousResting != _materialResting)
+        {
+            _windowManager.SuppressSystemCorners();
+            _log.Write("appearance", $"Glass={SystemBackdrop is not null}; resting={_materialResting}; stage={_dock.Stage}");
+        }
     }
     private void UpdateTabs()
     {
@@ -333,7 +364,9 @@ public sealed partial class MainWindow : Window
                     if (_closed) return;
                     if (foreground.ProcessId != _lastForeground && foreground.ProcessId != Environment.ProcessId)
                     { _lastForeground = foreground.ProcessId; _revealFullscreen = false; }
-                    ViewModel.Apply(metrics, foreground, media, audio);
+                    var local = _localMedia?.Snapshot;
+                    _usingLocalMedia = config.ShowMedia && local?.Available == true;
+                    ViewModel.Apply(metrics, foreground, _usingLocalMedia ? local! : media, audio);
                     Render();
                     var hide = _userHidden || (config.HideInFullscreen && foreground.ProcessId != Environment.ProcessId && foreground.IsFullscreen && !_revealFullscreen);
                     if (hide && PreviewVisible) { ResetPreview(); Layout(); }
@@ -344,7 +377,7 @@ public sealed partial class MainWindow : Window
             catch (Exception ex)
             {
                 _log.Write("poll", "Integration sampling failed", ex);
-                DispatcherQueue.TryEnqueue(() => { if (!_closed) ViewModel.Publish("An integration failed. See diagnostics.", true); });
+                DispatcherQueue.TryEnqueue(() => { if (!_closed) ViewModel.Publish(L.T("An integration failed. See diagnostics."), true); });
             }
             try { await Task.Delay(config.PollingIntervalMs, token); }
             catch (OperationCanceledException) { break; }
@@ -362,16 +395,16 @@ public sealed partial class MainWindow : Window
         BatteryFill.Width = (power.Percent ?? 0) * .12;
         BatteryFill.Fill = ThemeBrush(power.Charging == true ? "PulseAccentBrush" : "MutedBrush");
         BatteryGlyph.Visibility = power.HasBattery == false ? Visibility.Collapsed : Visibility.Visible;
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(CompactBatteryButton, power.Detail);
-        CpuMetric.Update(_luaStyle.CpuLabel, ViewModel.CpuText, "System utilization", metrics.Cpu);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(CompactBatteryButton, ViewModel.BatteryDetail);
+        CpuMetric.Update(_luaStyle.CpuLabel, ViewModel.CpuText, L.T("System utilization"), metrics.Cpu);
         RamMetric.Update(_luaStyle.MemoryLabel, ViewModel.RamText, metrics.TotalMemory > 0
             ? $"{GiB(metrics.TotalMemory - metrics.AvailableMemory):0.0} / {GiB(metrics.TotalMemory):0.0} GB" : "Unavailable", metrics.MemoryPercent);
-        PeekCpuMetric.Update(_luaStyle.CpuLabel, ViewModel.CpuText, "System utilization", metrics.Cpu);
+        PeekCpuMetric.Update(_luaStyle.CpuLabel, ViewModel.CpuText, L.T("System utilization"), metrics.Cpu);
         PeekRamMetric.Update(_luaStyle.MemoryLabel, ViewModel.RamText, metrics.TotalMemory > 0
             ? $"{GiB(metrics.TotalMemory - metrics.AvailableMemory):0.0} / {GiB(metrics.TotalMemory):0.0} GB" : "Unavailable", metrics.MemoryPercent);
         NetworkValue.Text = metrics.ReceiveBytesPerSecond.HasValue
-            ? $"↓ {Rate(metrics.ReceiveBytesPerSecond)}    ↑ {Rate(metrics.SendBytesPerSecond)}" : "No reliable sample";
-        PeekNetwork.Text = "Network  " + NetworkValue.Text;
+            ? L.F($"↓ {Rate(metrics.ReceiveBytesPerSecond)}    ↑ {Rate(metrics.SendBytesPerSecond)}") : L.T("No reliable sample");
+        PeekNetwork.Text = L.T("Network  ") + NetworkValue.Text;
         RenderAudio(ViewModel.Audio);
         var media = ViewModel.Media;
         PreviousButton.IsEnabled = media.Available && media.CanPrevious;
@@ -383,9 +416,9 @@ public sealed partial class MainWindow : Window
         PeekNextButton.IsEnabled = NextButton.IsEnabled;
         PeekPlayIcon.Glyph = PlayIcon.Glyph;
         RenderMusicLinks();
-        PeekPlaybackState.Text = media.Available ? media.Playing ? "Playing" : "Paused" : "No active session";
-        CompactSecondaryLabel.Text = "♫";
-        CompactSecondaryValue.Text = media.Available && ViewModel.Settings.ShowMedia ? media.Playing ? "Playing" : "Paused" : "Music";
+        PeekPlaybackState.Text = media.Available ? media.Playing ? L.T("Playing") : L.T("Paused") : L.T("No active session");
+        CompactSecondaryLabel.Text = L.T("♫");
+        CompactSecondaryValue.Text = media.Available && ViewModel.Settings.ShowMedia ? media.Playing ? L.T("Playing") : L.T("Paused") : L.T("Music");
         if (!ReferenceEquals(_artwork, media.Artwork))
         {
             _artwork = media.Artwork;
@@ -405,8 +438,11 @@ public sealed partial class MainWindow : Window
             }
         }
         var hasArt = ViewModel.Settings.ShowMedia && media.Available && CompactAlbumArt.Source is not null;
-        CompactArtworkHost.Visibility = hasArt ? Visibility.Visible : Visibility.Collapsed;
-        CompactSecondaryLabel.Visibility = hasArt ? Visibility.Collapsed : Visibility.Visible;
+        CompactArtworkHost.Visibility = Visibility.Visible;
+        CompactSecondaryLabel.Visibility = Visibility.Collapsed;
+        CompactTrackTitle.Text = DockPresentation.ShortTitle(ViewModel.MediaTitle);
+        ToolTipService.SetToolTip(CompactMediaButton, ViewModel.MediaTitle + "\n" + ViewModel.MediaArtist);
+        if (!_controlCenter && Math.Abs(RequestedRailExtent - _railExtent) > .5) Layout(_motion.IsMoving);
         ApplyWorkspaceVisibility();
     }
 
@@ -442,7 +478,7 @@ public sealed partial class MainWindow : Window
         catch (Exception ex)
         {
             _log.Write("settings", "Could not save settings", ex);
-            ViewModel.Publish("Settings were not saved: " + ex.Message, true);
+            ViewModel.Publish(L.T("Settings were not saved: ") + ex.Message, true);
             ApplyPreferences(); return false;
         }
         finally { _settingsGate.Release(); }
@@ -460,6 +496,7 @@ public sealed partial class MainWindow : Window
         if (page == "Settings") _settingsCategory = null;
         SettingsNavigationHeader.Visibility = Visibility.Collapsed;
         _page = page; _expanded = true; _dashboard = page != "Overview";
+        ContextCard.Visibility = page == "Settings" ? Visibility.Collapsed : Visibility.Visible;
         HomePage.Visibility = page == "Overview" ? Visibility.Visible : Visibility.Collapsed;
         RulesPage.Visibility = page == "Profiles" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPage.Visibility = page == "Settings" ? Visibility.Visible : Visibility.Collapsed;
@@ -470,8 +507,8 @@ public sealed partial class MainWindow : Window
         if (page == "Profiles") BuildRulesPage();
         if (page == "Settings") BuildSettingsPage();
         ContentScroll.ChangeView(null, 0, null, true);
-        Layout(true);
-        _motion.Reveal(page == "Overview" ? HomePage : page == "Profiles" ? RulesPage : SettingsPage, 50, 220);
+        Layout(!_controlCenter);
+        _motion.Reveal(page == "Overview" ? HomePage : page == "Profiles" ? RulesPage : SettingsPage, 0, 160, 1);
     }
 
     private void Expand_Click(object sender, RoutedEventArgs e) => Dock_Click(sender, e);
@@ -491,10 +528,10 @@ public sealed partial class MainWindow : Window
         _quickMenuOpen = true; Layout();
         var menu = new MenuFlyout();
         menu.Closed += (_, _) => { _quickMenuOpen = false; if (!_closed) Layout(); };
-        var open = new MenuFlyoutItem { Text = "Open Nagi", Icon = new FontIcon { Glyph = "\uE8A7" } }; open.Click += (_, _) => Reveal();
-        var hide = new MenuFlyoutItem { Text = "Hide Nagi", Icon = new FontIcon { Glyph = "\uED1A" } }; hide.Click += (_, _) => HideHalo();
-        var settings = new MenuFlyoutItem { Text = "Settings", Icon = new FontIcon { Glyph = "\uE713" } }; settings.Click += (_, _) => OpenControlCenter("Settings");
-        var quit = new MenuFlyoutItem { Text = "Quit Nagi", Icon = new FontIcon { Glyph = "\uE8BB" } }; quit.Click += (_, _) => Close();
+        var open = new MenuFlyoutItem { Text = L.T("Open Nagi"), Icon = new FontIcon { Glyph = "\uE8A7" } }; open.Click += (_, _) => Reveal();
+        var hide = new MenuFlyoutItem { Text = L.T("Hide Nagi"), Icon = new FontIcon { Glyph = "\uED1A" } }; hide.Click += (_, _) => HideHalo();
+        var settings = new MenuFlyoutItem { Text = L.T("Settings"), Icon = new FontIcon { Glyph = "\uE713" } }; settings.Click += (_, _) => OpenControlCenter("Settings");
+        var quit = new MenuFlyoutItem { Text = L.T("Quit Nagi"), Icon = new FontIcon { Glyph = "\uE8BB" } }; quit.Click += (_, _) => Close();
         menu.Items.Add(open); menu.Items.Add(hide); menu.Items.Add(settings); menu.Items.Add(new MenuFlyoutSeparator()); menu.Items.Add(quit);
         var point = e.GetPosition(Root);
         if (_windowManager.TryGetPointerPosition(out var x, out var y)) point = new(x, y);
@@ -508,9 +545,9 @@ public sealed partial class MainWindow : Window
         await ActivateProfileAsync(Enum.TryParse<Profile>(selected, out var profile) ? profile : null);
     }
     private async void Lock_Click(object sender, RoutedEventArgs e) => await CommitAsync(s => s with { LockedProfile = s.LockedProfile.HasValue ? null : ViewModel.Profile });
-    private async void Previous_Click(object sender, RoutedEventArgs e) => Report(await _media.SendAsync("previous"), false);
-    private async void Play_Click(object sender, RoutedEventArgs e) => Report(await _media.SendAsync("toggle"), false);
-    private async void Next_Click(object sender, RoutedEventArgs e) => Report(await _media.SendAsync("next"), false);
+    private async void Previous_Click(object sender, RoutedEventArgs e) => Report(await SendMediaAsync("previous"), false);
+    private async void Play_Click(object sender, RoutedEventArgs e) => Report(await SendMediaAsync("toggle"), false);
+    private async void Next_Click(object sender, RoutedEventArgs e) => Report(await SendMediaAsync("next"), false);
     private async void Mute_Click(object sender, RoutedEventArgs e)
     {
         var result = await Task.Run(() => _audio.SetMute(!_lastAudio.Muted));
@@ -542,7 +579,7 @@ public sealed partial class MainWindow : Window
             var button = new Button { Content = action.Label, CornerRadius = new(10), Margin = new(0, 0, 8, 4), HorizontalAlignment = HorizontalAlignment.Stretch, FontSize = 11 };
             button.Background = ThemeBrush("SurfaceBrush"); button.BorderBrush = ThemeBrush("EdgeBrush");
             _motion.Wire(button);
-            ToolTipService.SetToolTip(button, action.Kind + " · " + action.Target);
+            ToolTipService.SetToolTip(button, action.Kind + L.T(" · ") + action.Target);
             button.Click += async (_, _) =>
             {
                 if (action.Kind == ActionKind.Profile)
@@ -559,7 +596,7 @@ public sealed partial class MainWindow : Window
         }
         if (QuickActionsPanel.Children.Count < 24)
         {
-            var add = new Button { Content = "+ Add a shortcut", FontSize = 11, CornerRadius = new(10), Margin = new(0, 0, 8, 4), HorizontalAlignment = HorizontalAlignment.Stretch };
+            var add = new Button { Content = L.T("+ Add a shortcut"), FontSize = 11, CornerRadius = new(10), Margin = new(0, 0, 8, 4), HorizontalAlignment = HorizontalAlignment.Stretch };
             add.Click += async (_, _) => await EditActionAsync(null);
             add.Background = ThemeBrush("InsetBrush"); add.BorderBrush = ThemeBrush("EdgeBrush");
             _motion.Wire(add);
@@ -570,7 +607,10 @@ public sealed partial class MainWindow : Window
     private async Task ShutdownAsync()
     {
         if (_closed) return;
-        _closed = true; DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
+        _closed = true;
+        _notchSystemColors.ColorValuesChanged -= NotchColorsChanged;
+        _localMedia?.ClosePlayer();
+        DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
         _indexTimer.Stop(); _searchCancellation?.Cancel(); _searchWindow?.DisposeWindow();
         ResetPreview();
         _motion.Dispose(); _tray?.Dispose(); _windowManager.Dispose();

@@ -9,8 +9,8 @@ public sealed partial class MainWindow
     public void RestartWelcome()
     {
         if (_closed || _setupRestarting) return;
-        if (_dialogOpen) { ViewModel.Publish("Close the current dialog, then choose Run welcome setup again.", true); return; }
-        if (ViewModel.Settings.SchemaVersion > 1) { ViewModel.Publish("Setup is unavailable while newer settings are read-only.", true); return; }
+        if (_dialogOpen) { ViewModel.Publish(L.T("Close the current dialog, then choose Run welcome setup again."), true); return; }
+        if (ViewModel.Settings.SchemaVersion > 1) { ViewModel.Publish(L.T("Setup is unavailable while newer settings are read-only."), true); return; }
         try
         {
             var start = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false, CreateNoWindow = true };
@@ -22,6 +22,6 @@ public sealed partial class MainWindow
             _setupRestarting = true; Close();
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
-        { ViewModel.Publish("Could not open welcome setup: " + ex.Message, true); }
+        { ViewModel.Publish(L.T("Could not open welcome setup: ") + ex.Message, true); }
     }
 }

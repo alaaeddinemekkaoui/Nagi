@@ -26,8 +26,9 @@ public sealed class HaloSurface : UserControl
         };
         SizeChanged += (_, _) => _canvas.Invalidate();
     }
-    public void SetColor(Color color) { _color = color; _canvas.Invalidate(); }
-    public void SetShape(double drop, string edge) { _drop = drop; _edge = edge; _canvas.Invalidate(); }
+    public void SetColor(Color color) { if (_color.Equals(color)) return; _color = color; _canvas.Invalidate(); }
+    public void SetShape(double drop, string edge)
+    { if (Math.Abs(_drop - drop) < .00001 && _edge == edge) return; _drop = drop; _edge = edge; _canvas.Invalidate(); }
     private CanvasGeometry Geometry(float width, float height, float radius)
     {
         if (_drop <= .001) return CanvasGeometry.CreateRectangle(_canvas, 0, 0, width, height);

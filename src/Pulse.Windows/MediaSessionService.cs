@@ -16,14 +16,29 @@ public sealed class MediaSessionService : IMediaSessionService
         try
         {
             _manager ??= await GlobalSystemMediaTransportControlsSessionManager.RequestAsync().AsTask(cancellationToken);
-            var session = _manager.GetCurrentSession();
+            var current = _manager.GetCurrentSession();
+            GlobalSystemMediaTransportControlsSession? session = null;
+            GlobalSystemMediaTransportControlsSessionMediaProperties? properties = null;
+            GlobalSystemMediaTransportControlsSessionPlaybackInfo? playback = null;
+            var candidates = new List<(GlobalSystemMediaTransportControlsSession Session, GlobalSystemMediaTransportControlsSessionPlaybackInfo Playback)>();
+            foreach (var candidate in _manager.GetSessions())
+            {
+                try { candidates.Add((candidate, candidate.GetPlaybackInfo())); }
+                catch (System.Runtime.InteropServices.COMException) { } // A closing player cannot hide another session.
+            }
+            foreach (var candidate in candidates.OrderByDescending(c => c.Playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                .ThenByDescending(c => c.Session == current))
+            {
+                try
+                {
+                    var metadata = await candidate.Session.TryGetMediaPropertiesAsync().AsTask(cancellationToken);
+                    if (!MediaSnapshot.IsDetected(metadata.Title, metadata.Artist, candidate.Playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)) continue;
+                    session = candidate.Session; properties = metadata; playback = candidate.Playback; break;
+                }
+                catch (System.Runtime.InteropServices.COMException) { }
+            }
             _session = session;
-            if (session is null) { _artKey = null; _artwork = null; return MediaSnapshot.Empty; }
-            var properties = await session.TryGetMediaPropertiesAsync().AsTask(cancellationToken);
-            var playback = session.GetPlaybackInfo();
-            // Windows can keep an empty session for tools such as screen capture after playback ends.
-            if (!MediaSnapshot.IsDetected(properties.Title, properties.Artist, playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing))
-            { _session = null; _artKey = null; _artwork = null; return MediaSnapshot.Empty; }
+            if (session is null || properties is null || playback is null) { _artKey = null; _artwork = null; return MediaSnapshot.Empty; }
             var key = session.SourceAppUserModelId + properties.Title + "\0" + properties.Artist;
             if (_artKey != key) { _artKey = key; _artwork = null; _nextArtRead = 0; }
             if (Environment.TickCount64 >= _nextArtRead)
@@ -49,7 +64,7 @@ public sealed class MediaSessionService : IMediaSessionService
             return new(string.IsNullOrWhiteSpace(properties.Title) ? "Untitled media" : properties.Title,
                 string.IsNullOrWhiteSpace(properties.Artist) ? session.SourceAppUserModelId : properties.Artist,
                 playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing, true,
-                controls.IsPlayPauseToggleEnabled, controls.IsPreviousEnabled, controls.IsNextEnabled, _artwork);
+                controls.IsPlayPauseToggleEnabled || controls.IsPlayEnabled || controls.IsPauseEnabled, controls.IsPreviousEnabled, controls.IsNextEnabled, _artwork);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -71,6 +86,8 @@ public sealed class MediaSessionService : IMediaSessionService
                 "toggle" => await session.TryTogglePlayPauseAsync(),
                 _ => false
             };
+            if (!success && command == "toggle") success = session.GetPlaybackInfo().PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing
+                ? await session.TryPauseAsync() : await session.TryPlayAsync();
             return success ? OperationResult.Ok("Media command accepted") : OperationResult.Fail("The media app did not accept this control.");
         }
         catch (Exception ex) { return OperationResult.Fail("Media control unavailable: " + ex.GetType().Name); }

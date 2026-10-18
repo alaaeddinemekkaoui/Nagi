@@ -25,14 +25,17 @@ public sealed partial class MainWindow
     {
         SettingsPage.Children.Clear();
         SettingsNavigationHeader.Visibility = _page == "Settings" && _settingsCategory is not null ? Visibility.Visible : Visibility.Collapsed;
-        SettingsCategoryTitle.Text = _settingsCategory ?? "Settings";
+        SettingsNavigationHeader.FlowDirection = L.Direction;
+        SettingsCategoryTitle.Text = L.T(_settingsCategory ?? "Settings");
+        ToolTipService.SetToolTip(SettingsCategoryTitle, SettingsCategoryTitle.Text);
         if (_settingsCategory is null)
         {
-            SettingsPage.Children.Add(Heading("Settings"));
-            SettingsPage.Children.Add(Note("Choose a category to personalize your space."));
+            SettingsPage.Children.Add(Heading(L.T("Settings")));
+            SettingsPage.Children.Add(Note(L.T("Choose a category to personalize your space.")));
             var categories = new (string Title, string Description, string Glyph)[]
             {
                 ("General", "Name and welcome setup", "\uE77B"),
+                ("Language", L.F($"Current language: {L.Catalog.Selected.NativeName}"), "\uE774"),
                 ("Appearance & dock", "Glass, Akeno background, layout and display", "\uE790"),
                 ("Profiles & apps", "Workspaces, app docks and visible widgets", "\uE8A5"),
                 ("Weather", "City, units and current conditions", "\uE753"),
@@ -52,12 +55,13 @@ public sealed partial class MainWindow
                 var category = categories[i];
                 var content = new Grid { ColumnSpacing = 12 }; content.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); content.ColumnDefinitions.Add(new()); content.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
                 content.Children.Add(new FontIcon { Glyph = category.Glyph, FontSize = 21, Foreground = ThemeBrush("PulseAccentBrush"), VerticalAlignment = VerticalAlignment.Center });
-                var text = Stack(); text.Spacing = 4; text.Children.Add(new TextBlock { Text = category.Title, FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
-                text.Children.Add(new TextBlock { Text = category.Description, FontSize = 11, Foreground = ThemeBrush("MutedBrush"), TextWrapping = TextWrapping.Wrap });
+                var text = Stack(); text.Spacing = 4; text.Children.Add(new TextBlock { Text = L.T(category.Title), FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+                text.Children.Add(new TextBlock { Text = L.T(category.Description), FontSize = 11, Foreground = ThemeBrush("MutedBrush"), TextWrapping = TextWrapping.Wrap });
                 Grid.SetColumn(text, 1); content.Children.Add(text);
                 var arrow = new FontIcon { Glyph = "\uE76C", FontSize = 11 }; Grid.SetColumn(arrow, 2); content.Children.Add(arrow);
                 var tile = new Button { Content = content, MinHeight = 90, Padding = new(16), HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, CornerRadius = new(16), Background = ThemeBrush("SurfaceBrush"), BorderThickness = new(0) };
-                AutomationProperties.SetName(tile, category.Title + " settings");
+                AutomationProperties.SetName(tile, L.F($"{L.T(category.Title)} settings"));
+                AutomationProperties.SetAutomationId(tile, "SettingsCategory" + string.Concat(category.Title.Where(char.IsLetterOrDigit)));
                 tile.Click += (_, _) =>
                 {
                     ShowSettingsCategory(category.Title);
@@ -71,6 +75,8 @@ public sealed partial class MainWindow
             switch (_settingsCategory)
             {
                 case "General": BuildPersonalSettings(); break;
+                case "Language":
+                    var language = Stack(); AddLanguageSettings(language); SettingsPage.Children.Add(Card(language)); break;
                 case "Appearance & dock": BuildAppearanceSettings(); break;
                 case "Profiles & apps": SettingsPage.Children.Add(_settingsProfilesContent); BuildRulesPage(); break;
                 case "Weather": BuildWeatherSettings(); break;

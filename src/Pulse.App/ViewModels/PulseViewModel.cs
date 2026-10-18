@@ -15,18 +15,27 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
     public AudioSnapshot Audio { get; private set; } = new(null, false, "Checking output…");
     public Profile Profile => _engine.Current;
     public ObservableCollection<ActivityEntry> Activity { get; } = [];
-    private string _notice = "Your desktop, in rhythm.";
+    private string _notice = L.T("Your desktop, in rhythm.");
     public string Notice { get => _notice; private set { _notice = value; OnPropertyChanged(); } }
     public string CpuText => Metrics.Cpu is { } cpu ? $"{cpu:0}%" : "—";
     public string RamText => Metrics.MemoryPercent is { } ram ? $"{ram:0}%" : "—";
     public string Clock => DateTime.Now.ToString("HH:mm");
     public string BatteryText => (Metrics.Power ?? PowerSnapshot.Unknown).CompactText;
-    public string BatteryDetail => (Metrics.Power ?? PowerSnapshot.Unknown).Detail;
-    public string ProfileText => Profile.ToString();
-    public string ContextText => Settings.LockedProfile.HasValue ? Profile + " · Profile locked" : Settings.AutomaticSwitching ? Profile + " · Automatic" : Profile + " · Manual";
+    public string BatteryDetail
+    {
+        get
+        {
+            var power = Metrics.Power ?? PowerSnapshot.Unknown;
+            return power.HasBattery == false ? L.T("No system battery detected") : power.Percent is { } percent
+                ? L.F($"Battery {percent}% · {L.T(power.Charging == true ? "Charging" : power.PluggedIn == true ? "Plugged in" : power.PluggedIn == false ? "On battery" : "Power source unavailable")}")
+                : L.T("Battery percentage unavailable");
+        }
+    }
+    public string ProfileText => L.T(Profile.ToString());
+    public string ContextText => Settings.LockedProfile.HasValue ? L.F($"{ProfileText} · Profile locked") : Settings.AutomaticSwitching ? L.F($"{ProfileText} · Automatic") : L.F($"{ProfileText} · Manual");
     public string ForegroundText => Foreground.Name;
-    public string MediaTitle => Media.Title;
-    public string MediaArtist => Media.Artist;
+    public string MediaTitle => Media.Available ? Media.Title : L.T("Nothing playing");
+    public string MediaArtist => Media.Available ? Media.Artist : L.T("Start playback in a media app");
     public string AudioDevice => Audio.Device;
     public string HotkeyText => FormatHotkey(Settings.Hotkey);
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -51,7 +60,7 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
         _engine.Evaluate(Foreground, Settings, DateTimeOffset.UtcNow);
         if (previous != Profile)
         {
-            Publish(Profile + " profile activated", true);
+            Publish(Profile + L.T(" profile activated"), true);
             if (Profile == Profile.Focus) FocusActivated?.Invoke();
         }
     }

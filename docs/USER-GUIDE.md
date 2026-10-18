@@ -44,10 +44,10 @@ Nagi normally rests as a small teardrop attached to your selected screen edge. H
 
 Moving away retracts an unpinned reveal. A hover preview lets you inspect details without taking keyboard focus from the current app. Move into that preview to use its controls, or select **Show more** for the full panel.
 
-The dock contains the Nagi logo, search, profile apps and enabled widgets. Up to three apps appear directly; additional apps share a folder tile with a count. **Hover or click the folder to expand it**, then click an app to open it. Moving from the folder tile into its app list keeps the folder open. Default starts without apps, so it has no folder. Removing extra apps hides the folder when three or fewer remain. Overview continues to show every app, up to four per row.
+The dock contains the Nagi logo, search, profile apps and enabled widgets. Up to two apps appear directly; profiles with more apps use one folder tile with a count. **Hover or click the folder to expand it**, then click an app to open it. Moving from the folder tile into its app list keeps the folder open. Default starts without apps, so it has no folder. Removing extra apps hides the folder when two or fewer remain. Overview continues to show every app, up to four per row.
 
 <p><strong>Resting teardrop</strong><br><img src="images/nagi-teardrop.png" width="165" alt="Small resting Nagi teardrop at the screen edge"></p>
-<p><strong>Hover reveals the dock</strong><br><img src="images/nagi-dock.png" width="760" alt="Nagi's revealed dock with an app folder after the first three shortcuts"></p>
+<p><strong>Hover reveals the dock</strong><br><img src="images/nagi-dock.png" width="760" alt="Nagi's revealed dock with an app folder for profiles with more than two apps"></p>
 <p><strong>Hover expands extra apps</strong><br><img src="images/nagi-app-folder.png" width="760" alt="Additional app shortcuts expanded from the dock's folder tile"></p>
 
 Hover CPU/GPU for system details, media for playback/audio, and OBS for studio controls when enabled. Drag the Nagi logo to reposition the dock. Under **Settings → Appearance & dock**, select Horizontal with the top/bottom edge or Vertical with the left/right edge, and choose a display. Panels open inward, adapt to DPI/work area, and the dock can scroll when space is limited.
@@ -116,7 +116,7 @@ Nagi provides **Default**, **Work**, **Gaming**, **Stream** and **Focus**. Defau
 
 After first-time welcome, a dimmed introduction points out the edge drop. Hover it or choose Okay to dismiss; Escape also closes the introduction. Welcome and this introduction are skipped on ordinary later launches. Your saved choices persist.
 
-Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Default/Work/Gaming/Stream/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. The first three appear on the dock, with remaining apps grouped in a folder that expands on hover or click; Overview lists every app in rows of up to four single-line buttons. Missing suggestions show an actionable error rather than downloading or installing software.
+Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Default/Work/Gaming/Stream/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. Up to two appear directly on the dock; profiles with more apps use one folder that expands on hover or click; Overview lists every app in rows of up to four single-line buttons. Missing suggestions show an actionable error rather than downloading or installing software.
 
 Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery checkboxes. Widget choices also filter the rail. Microphone, Weather and Battery can each be turned off independently per profile. Stream includes OBS controls; hover its OBS rail button to open OBS, start/stop recording or streaming, and switch between three scenes. Choose the scene shortcuts under Hardware & studio; Automatic uses the first three OBS scenes. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
 
@@ -134,6 +134,8 @@ Under **Quick actions**, use **+ Add quick action** to create an application, fo
 
 ## Appearance and settings
 
+Drag an edge or corner of the control center to resize it. Its size is retained while navigating settings; the compact dock keeps its own dimensions. In **Appearance & dock**, choose **Notch color**: Theme, System (Windows accent), or Custom, then pick a color. Glass is prepared before expansion so the revealed surface stays consistent. The dock fits one row without scrolling; on a narrow display, media reduces to artwork and volume. Long titles show their first words and expand to full details on hover. Battery controls appear only when Windows detects a physical battery; AC means the device is connected to power.
+
 Settings always opens the category menu. Select a category to open its own page, then use **Back to settings** to return to the menu. The back button stays visible while the page scrolls. **Profiles & apps** stays inside Settings, including profile customization; **All profiles** returns to that category and **Back to settings** returns to the menu. The default **Glass (system)** appearance follows Windows light/dark mode and respects transparency and high contrast preferences. Akeno can display the generated Samurai artwork, a Gradient, or None. Microphone status and mute controls sit directly below the media card and inside the media preview.
 
 | Group | Options |
@@ -149,6 +151,10 @@ Settings always opens the category menu. Select a category to open its own page,
 **Akeno** uses ink-black glass, red accents and Japanese details. **System** follows the Windows light/dark theme. Windows high contrast remains authoritative. Glass can become opaque because of Windows transparency, power, remote-session or accessibility policy; diagnostics reports the material state. **Reduce motion** and Windows animation preferences disable motion effects while preserving the final layout.
 
 With **Hide over fullscreen apps** enabled, Nagi hides over detected fullscreen applications. An explicit shortcut reveal can recover it. Turn **Dismiss when clicking outside** off if you want the detail panel to remain open while working elsewhere.
+
+## Local music and video
+
+Open **Settings → Music → Open local music or video**, or use the local-file button when no music session is detected. Select one or several files to create a queue. Nagi opens a resizable player with playback controls; the dock follows this player, including pause/resume and previous/next. Closing the player stops local playback and returns the dock to other Windows media sessions. Playback formats depend on installed Windows codecs; unsupported files show an error and log the decoder failure. Other local players are detected when they expose Windows media controls.
 
 ## Lua customization
 
@@ -269,3 +275,8 @@ Open **Settings → Updates → Check for updates**. A newer stable GitHub relea
 Settings → About & diagnostics opens the activity log (`logs/pulse.jsonl`) and the separate error log (`logs/errors.jsonl`) in your Nagi data folder. Logs include UTC timestamps, app version, theme and update events. Error entries include the exception and stack trace. Each file rotates independently at 1 MB.
 
 When Nagi detects a newer release, it shows the changelog with **Update now** and **Later**. Update now downloads, verifies, installs and restarts. Later keeps Nagi running; with automatic downloads enabled, the verified download stays ready in Settings → Updates → Install and restart. A temporary failed check retries after two minutes. Preferences remain in the data folder across updates.
+
+
+### Interface language
+
+Nagi starts in your Windows display language and falls back to English if it is unsupported. Welcome first shows the drawn Nagi / ナギ greeting, then a language selector displaying the current language. You can switch immediately before continuing. After setup, use **Settings → Language → Restart Nagi**. English, French, Spanish, German, Russian and Arabic are included. To add a language or improve a translation, see [Languages and translations](LANGUAGES.md).

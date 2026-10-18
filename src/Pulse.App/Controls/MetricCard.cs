@@ -36,7 +36,7 @@ public sealed class MetricCard : UserControl
         Content = border;
         ActualThemeChanged += (_, _) => UpdateChartColor();
         UpdateChartColor();
-        AutomationProperties.SetName(this, "System metric");
+        AutomationProperties.SetName(this, L.T("System metric"));
     }
     private void UpdateChartColor() => _line.Stroke = _customAccent ?? new SolidColorBrush(ActualTheme == ElementTheme.Light
         ? global::Windows.UI.Color.FromArgb(255, 172, 36, 76) : global::Windows.UI.Color.FromArgb(255, 255, 139, 163));

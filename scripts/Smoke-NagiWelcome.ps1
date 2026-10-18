@@ -54,6 +54,11 @@ function Save-NagiImage([string]$Name){
  try{$nagiGraphics.CopyFromScreen($nagiRect.Left,$nagiRect.Top,0,0,$nagiBitmap.Size);$nagiFolder=Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/validation';[IO.Directory]::CreateDirectory($nagiFolder)|Out-Null;$nagiBitmap.Save((Join-Path $nagiFolder ($Name+'.png')))}finally{$nagiGraphics.Dispose();$nagiBitmap.Dispose()}
 }
 if($nagiRoot.Current.Name -notlike '*Welcome*'){throw 'Use a fresh -DataDirectory or pass -ShowSetup to reopen welcome.'}
+Save-NagiImage 'welcome-greeting'
+Invoke-Nagi 'WelcomeNext'
+Find-Nagi 'WelcomeLanguage'|Out-Null
+Save-NagiImage 'welcome-language'
+Invoke-Nagi 'WelcomeNext'
 Set-NagiText 'WelcomeName' ''
 Invoke-Nagi 'WelcomeNext'
 Find-Nagi 'WelcomeName'|Out-Null

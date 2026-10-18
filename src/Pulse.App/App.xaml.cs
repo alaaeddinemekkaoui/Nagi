@@ -51,6 +51,7 @@ public partial class App : Application
     {
         var settings = new SettingsService(LaunchOptions.DataDirectory);
         var configuration = await settings.LoadAsync();
+        L.Select(configuration.Language);
         _wait = ThreadPool.RegisterWaitForSingleObject(_activate, (_, _) =>
         {
             var welcome = _welcome; var window = _window;

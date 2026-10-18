@@ -1,7 +1,8 @@
-<Application x:Class="Pulse.App.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Application x:Class="Pulse.App.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Pulse.App">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls"/><ResourceDictionary Source="Themes/Tokens.xaml"/></ResourceDictionary.MergedDictionaries>
+    <local:LanguageLabelConverter x:Key="LanguageLabelConverter"/><DataTemplate x:Key="LocalizedChoiceTemplate"><TextBlock Text="{Binding Converter={StaticResource LanguageLabelConverter}}" TextWrapping="Wrap"/></DataTemplate>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

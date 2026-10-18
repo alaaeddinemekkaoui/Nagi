@@ -15,7 +15,10 @@ public sealed record PulseSettings
 {
     public int SchemaVersion { get; init; } = 1;
     public string Theme { get; init; } = "System";
+    public string Language { get; init; } = "System";
     public string AkenoBackground { get; init; } = "Samurai";
+    public string NotchColorMode { get; init; } = "Theme";
+    public string NotchColor { get; init; } = "#D94952";
     public ProfileWorkspace[] Workspaces { get; init; } = ProfileWorkspaces.Normalize(null);
     public ProfileWorkspace Workspace(Profile profile) => Workspaces.FirstOrDefault(w => w.Profile == profile) ?? ProfileWorkspaces.Default(profile);
     public bool WelcomeCompleted { get; init; }
@@ -55,7 +58,10 @@ public sealed record PulseSettings
     public PulseSettings Normalize() => this with
     {
         Theme = Theme is "Dark" or "Light" or "System" or "Akeno" ? Theme : "System",
+        Language = !string.IsNullOrWhiteSpace(Language) && Language.Length <= 35 && Language.All(c => char.IsAsciiLetterOrDigit(c) || c == '-') ? Language : "System",
         AkenoBackground = AkenoBackground is "Samurai" or "Gradient" or "None" ? AkenoBackground : "Samurai",
+        NotchColorMode = NotchColorMode is "System" or "Custom" ? NotchColorMode : "Theme",
+        NotchColor = NotchColor is { Length: 7 } && NotchColor[0] == '#' && NotchColor.Skip(1).All(char.IsAsciiHexDigit) ? NotchColor.ToUpperInvariant() : "#D94952",
         Workspaces = ProfileWorkspaces.Normalize(Workspaces),
         UserName = new string((UserName ?? "").Where(c => !char.IsControl(c)).Take(32).ToArray()).Trim(),
         WeatherEnabled = WeatherEnabled && WeatherLocation is { IsValid: true },

@@ -1,5 +1,18 @@
 # Changelog
 
+## Nagi v0.1.3 — 2026-10-18
+
+- Add English, French, Spanish, German, Russian and Arabic language files, system-language detection, welcome language selection, and Settings → Language with a restart control. Contributors can add a JSON file without changing code.
+- Draw Nagi, fade it out, then draw ナギ during welcome; respect reduced motion and Windows animation settings.
+- Keep the dock compact without scrolling. Show up to two app shortcuts directly; larger profiles use one hover folder. Show full long media titles on hover and retain artwork/volume on narrow displays.
+- Add theme, Windows accent and custom notch colors. Connect glass before expansion and remove native frame/shadow flashes.
+- Fix repeated panel entrance animations, shifting hover effects, overlapping preview headings, Arabic navigation and widget padding. Preserve motion and corner radius when a transition is interrupted.
+- Make the control center resizable and retain its size across Settings navigation. Hide the workspace banner on global Settings pages.
+- Add local music/video playback, multiple-file queues and dock controls. Improve Windows media-session selection and clean shutdown with the local player open. Supported formats depend on Windows codecs.
+- Hide battery/AC controls when no battery is detected; fit vertical media/battery and full CPU/GPU percentages within the dock.
+- Skip hidden audio animations, reuse visualizer transitions and avoid unchanged brush/surface redraws.
+- Thank Reddit user [u/alkidnn](https://www.reddit.com/user/alkidnn/) in the README and Settings → About & diagnostics for suggestions to improve Nagi.
+
 ## Nagi v0.1.2 — 2026-10-17
 
 - Separate activity and error logs, with timestamps, app versions and full exception details. Both are available in About & diagnostics.

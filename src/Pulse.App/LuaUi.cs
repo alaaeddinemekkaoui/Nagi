@@ -47,7 +47,7 @@ public sealed partial class MainWindow
             if (_closed || generation != _luaGeneration) return;
             SetLuaStatus("Lua error · " + ex.Message);
             _log.Write("lua-ui", "UI script could not be applied", ex);
-            ViewModel.Publish("Lua: " + ex.Message + " Previous appearance kept.", true);
+            ViewModel.Publish(L.T("Lua: ") + ex.Message + L.T(" Previous appearance kept."), true);
         }
     }
 
@@ -93,8 +93,8 @@ public sealed partial class MainWindow
         ApplyThemeBackground();
         AkenoSeal.Visibility = Visibility.Collapsed;
         HeaderMark.Visibility = Visibility.Visible;
-        BrandSubtitle.Text = (ak ? "凪 · " : "") + (string.IsNullOrWhiteSpace(ViewModel.Settings.UserName) ? "Calm, within reach." : "Welcome, " + ViewModel.Settings.UserName + ".");
-        Root.Background = ak || _surfaceIsDrop ? new SolidColorBrush(Microsoft.UI.Colors.Transparent) : ThemeBrush("HeaderGlowBrush");
+        BrandSubtitle.Text = (ak ? L.T("凪 · ") : "") + (string.IsNullOrWhiteSpace(ViewModel.Settings.UserName) ? L.T("Calm, within reach.") : L.T("Welcome, ") + ViewModel.Settings.UserName + ".");
+        Root.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         UpdateSurfaceMaterial();
         HomePage.Spacing = _luaStyle.Spacing;
         MetricsGrid.ColumnSpacing = _luaStyle.Spacing;
@@ -127,18 +127,18 @@ public sealed partial class MainWindow
     private void BuildLuaSettings()
     {
         var content = Stack();
-        content.Children.Add(Heading("Lua UI studio"));
-        content.Children.Add(Note("Style Nagi with Lua: accents, glass cards, spacing, labels and overview sections. Theme and profile changes reapply your script."));
-        content.Children.Add(Toggle("Enable Lua UI", "Use your saved script. Turn off to restore the built-in design.", ViewModel.Settings.LuaUiEnabled, (s, v) => s with { LuaUiEnabled = v }));
+        content.Children.Add(Heading(L.T("Lua UI studio")));
+        content.Children.Add(Note(L.T("Style Nagi with Lua: accents, glass cards, spacing, labels and overview sections. Theme and profile changes reapply your script.")));
+        content.Children.Add(Toggle(L.T("Enable Lua UI"), L.T("Use your saved script. Turn off to restore the built-in design."), ViewModel.Settings.LuaUiEnabled, (s, v) => s with { LuaUiEnabled = v }));
         _luaStatusText = Note(_luaStatus);
-        AutomationProperties.SetName(_luaStatusText, "Lua UI status");
+        AutomationProperties.SetName(_luaStatusText, L.T("Lua UI status"));
         AutomationProperties.SetLiveSetting(_luaStatusText, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
         content.Children.Add(_luaStatusText);
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        actions.Children.Add(Button("Edit Lua UI", async (_, _) => await EditLuaUiAsync()));
-        actions.Children.Add(Button("Reload Lua UI", async (_, _) => await ReloadLuaUiAsync(true)));
+        actions.Children.Add(Button(L.T("Edit Lua UI"), async (_, _) => await EditLuaUiAsync()));
+        actions.Children.Add(Button(L.T("Reload Lua UI"), async (_, _) => await ReloadLuaUiAsync(true)));
         content.Children.Add(actions);
-        content.Children.Add(Note("Script: " + Lua.FilePath));
+        content.Children.Add(Note(L.T("Script: ") + Lua.FilePath));
         SettingsPage.Children.Add(Card(content));
     }
 
@@ -147,7 +147,7 @@ public sealed partial class MainWindow
         string source;
         try { source = await Lua.ReadAsync(_shutdown.Token); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.DecoderFallbackException)
-        { source = LuaUiService.Presets["Rose glass"]; ViewModel.Publish("Could not read UI script: " + ex.Message, true); }
+        { source = LuaUiService.Presets["Rose glass"]; ViewModel.Publish(L.T("Could not read UI script: ") + ex.Message, true); }
         var content = Stack();
         var presets = Select(new[] { "Saved script" }.Concat(LuaUiService.Presets.Keys), "Saved script", "Lua UI preset");
         var editor = new TextBox
@@ -156,16 +156,16 @@ public sealed partial class MainWindow
             FontFamily = new("Cascadia Code, Consolas"), FontSize = 12, MaxLength = LuaUiService.MaximumBytes,
             IsSpellCheckEnabled = false, IsTextPredictionEnabled = false
         };
-        AutomationProperties.SetName(editor, "Lua UI source");
+        AutomationProperties.SetName(editor, L.T("Lua UI source"));
         ScrollViewer.SetHorizontalScrollBarVisibility(editor, ScrollBarVisibility.Auto);
         ScrollViewer.SetVerticalScrollBarVisibility(editor, ScrollBarVisibility.Auto);
         presets.SelectionChanged += (_, _) => { if (presets.SelectedItem is string name && LuaUiService.Presets.TryGetValue(name, out var preset)) editor.Text = preset; };
         content.Children.Add(presets); content.Children.Add(editor);
-        content.Children.Add(Note("Return a table. Options: name, accent (#RRGGBB), surface (#AARRGGBB), card_radius (8–28), spacing (6–20), labels = { cpu, memory }, sections = { metrics, network, media, audio }. nagi.theme and nagi.profile are available. Lua arithmetic, functions, loops, tables and math are supported."));
-        var error = Note(""); AutomationProperties.SetName(error, "Lua UI error");
+        content.Children.Add(Note(L.T("Return a table. Options: name, accent (#RRGGBB), surface (#AARRGGBB), card_radius (8–28), spacing (6–20), labels = { cpu, memory }, sections = { metrics, network, media, audio }. nagi.theme and nagi.profile are available. Lua arithmetic, functions, loops, tables and math are supported.")));
+        var error = Note(""); AutomationProperties.SetName(error, L.T("Lua UI error"));
         AutomationProperties.SetLiveSetting(error, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Assertive);
         content.Children.Add(error);
-        var dialog = Dialog("Lua UI studio", content); dialog.PrimaryButtonText = "Apply script";
+        var dialog = Dialog(L.T("Lua UI studio"), content); dialog.PrimaryButtonText = L.T("Apply script");
         dialog.PrimaryButtonClick += async (_, args) =>
         {
             var deferral = args.GetDeferral();
@@ -176,9 +176,9 @@ public sealed partial class MainWindow
                 var profile = ViewModel.Profile.ToString();
                 await Task.Run(() => LuaUiService.Evaluate(text, theme, profile), _shutdown.Token);
                 await Lua.SaveAsync(text, _shutdown.Token);
-                if (!await CommitAsync(s => s with { LuaUiEnabled = true })) { args.Cancel = true; error.Text = "Could not enable Lua. Your script was saved; try again."; return; }
+                if (!await CommitAsync(s => s with { LuaUiEnabled = true })) { args.Cancel = true; error.Text = L.T("Could not enable Lua. Your script was saved; try again."); return; }
                 await ReloadLuaUiAsync(true);
-                ViewModel.Publish("Lua UI applied.", true);
+                ViewModel.Publish(L.T("Lua UI applied."), true);
             }
             catch (Exception ex) { args.Cancel = true; error.Text = ex.Message; }
             finally { deferral.Complete(); }

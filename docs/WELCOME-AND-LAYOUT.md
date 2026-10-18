@@ -1,6 +1,6 @@
 # Welcome, layout, weather and speakers
 
-Nagi version 1 includes a native setup executable and a four-step welcome window. Run **Nagi-Setup.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
+Nagi’s early 0.1 series includes a native setup executable and welcome setup. A hand-drawn Nagi / ナギ greeting leads to a language selector before the four setup steps. System default follows your Windows display language; you can switch immediately before continuing. See [languages and translation contributions](LANGUAGES.md). Run **Nagi-Setup.exe**, then open Nagi from Start. Setup installs for the current Windows account without administrator rights. The app and setup are unsigned. The portable ZIP remains available.
 
 1. Enter a local display name. No account is created.
 2. Choose Akeno, Dark, Light or System. Choose Vertical with left/right edge, or Horizontal with top/bottom edge.
@@ -16,7 +16,7 @@ Nagi's dock rests as a small teardrop. Hover the teardrop to reveal the dock; mo
 <p><strong>Resting teardrop</strong><br><img src="images/nagi-teardrop.png" width="165" alt="Nagi resting as a small teardrop"></p>
 <p><strong>Revealed dock</strong><br><img src="images/nagi-dock.png" width="760" alt="The Nagi dock revealed by hovering its teardrop"></p>
 
-Profiles with up to three apps show their shortcuts directly. More apps add a folder tile after the first three shortcuts. Hover or click the tile to expand the remaining apps; move into the expanded folder and click the app you want. The dock stays in place while the folder opens. No app opens just from hovering. Click the logo for the full control center, where Overview lists all apps in rows of up to four.
+Profiles with up to two apps show their shortcuts directly. More apps group all shortcuts into one folder tile. Hover or click the tile to expand those apps; move into the expanded folder and click the app you want. The dock stays in place while the folder opens. No app opens just from hovering. Click the logo for the full control center, where Overview lists all apps in rows of up to four.
 
 <p><img src="images/nagi-app-folder.png" width="760" alt="Hovering the app folder reveals extra apps above the dock"></p>
 

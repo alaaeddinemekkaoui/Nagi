@@ -143,5 +143,5 @@ try{
  throw
 }finally{
  [WorkspaceSmokeNative]::SetCursorPos($qaPointer.X,$qaPointer.Y)|Out-Null
- if(!$qaProcess.HasExited){[WorkspaceSmokeNative]::PostMessage($handle,16,[IntPtr]::Zero,[IntPtr]::Zero)|Out-Null;$qaProcess.WaitForExit(10000)|Out-Null}
+ if(!$qaProcess.HasExited){if($handle){[WorkspaceSmokeNative]::PostMessage($handle,16,[IntPtr]::Zero,[IntPtr]::Zero)|Out-Null};if(!$qaProcess.WaitForExit(5000)){Stop-Process -Id $qaProcess.Id -Force}}
 }

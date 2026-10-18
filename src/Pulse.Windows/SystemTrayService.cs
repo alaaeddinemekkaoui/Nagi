@@ -18,6 +18,7 @@ public sealed class SystemTrayService : IDisposable
     private Profile? _lockedProfile;
     private string _hideShortcut = "Ctrl + Alt + H";
     private uint _accessibleMenuCommand;
+    public Func<string, string> Translate { get; set; } = text => text;
     public bool IsRegistered { get; private set; }
     public bool IsMenuOpen { get; private set; }
     public event Action? ShowRequested;
@@ -119,16 +120,16 @@ public sealed class SystemTrayService : IDisposable
         try
         {
             MenuOpening?.Invoke();
-            AppendMenu(menu, 0, 1, "Open Nagi");
-            AppendMenu(menu, 0, 5, "Quick search");
-            AppendMenu(menu, 0, 2, "Hide Nagi\t" + _hideShortcut);
-            AppendMenu(menu, 0, 3, "Settings…");
+            AppendMenu(menu, 0, 1, Translate("Open Nagi"));
+            AppendMenu(menu, 0, 5, Translate("Quick search"));
+            AppendMenu(menu, 0, 2, Translate("Hide Nagi") + "\t" + _hideShortcut);
+            AppendMenu(menu, 0, 3, Translate("Settings…"));
             AppendMenu(menu, 0x800, 0, null);
-            AppendMenu(menu, _lockedProfile is null ? 8u : 0u, 10, "Automatic profile");
+            AppendMenu(menu, _lockedProfile is null ? 8u : 0u, 10, Translate("Automatic profile"));
             foreach (var profile in ProfileWorkspaces.Profiles)
-                AppendMenu(menu, _lockedProfile == profile ? 8u : 0u, (nuint)(11 + (int)profile), profile.ToString());
+                AppendMenu(menu, _lockedProfile == profile ? 8u : 0u, (nuint)(11 + (int)profile), Translate(profile.ToString()));
             AppendMenu(menu, 0x800, 0, null);
-            AppendMenu(menu, 0, 4, "Quit Nagi");
+            AppendMenu(menu, 0, 4, Translate("Quit Nagi"));
             if (x == -1 || y == -1) { GetCursorPos(out var point); x = point.X; y = point.Y; }
             SetForegroundWindow(_hwnd);
             selected = TrackPopupMenuEx(menu, 0x0100 | 0x0002, x, y, _hwnd, 0);

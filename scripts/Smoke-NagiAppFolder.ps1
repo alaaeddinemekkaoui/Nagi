@@ -62,7 +62,7 @@ try{
  [WorkspaceSmokeNative]::SetCursorPos([int]($dropRect.Left+$dropRect.Width/2),[int]($dropRect.Top+$dropRect.Height/2))|Out-Null
  Start-Sleep -Milliseconds 1000
  $folder=Find 'More workspace apps'
- foreach($app in @('VS Code','Terminal','Browser')){Find ('Dock app '+$app)|Out-Null}
+ foreach($app in @('VS Code','Terminal','Browser')){if(Find ('Dock app '+$app) -Optional){throw 'Grouped apps still appear directly on the dock'}}
  if(Find 'Dock app Steam' -Optional){throw 'Fourth app was not grouped'}
  Snapshot 'dock'
  $folderRect=$folder.Current.BoundingRectangle
@@ -85,20 +85,20 @@ try{
  Invoke 'Activate Gaming';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi';$clickFolderRect=(Find 'More workspace apps').Current.BoundingRectangle;[WorkspaceSmokeNative]::SetCursorPos([int]($clickFolderRect.Left+$clickFolderRect.Width/2),[int]($clickFolderRect.Top+$clickFolderRect.Height/2))|Out-Null;Invoke 'More workspace apps'
  Find 'Folder app Test app 4'|Out-Null;Snapshot 'sixteen-apps'
  Start-Sleep -Milliseconds 1800
- foreach($appNumber in 4..16){Find ('Folder app Test app '+$appNumber)|Out-Null}
+ foreach($appNumber in 1..16){Find ('Folder app Test app '+$appNumber)|Out-Null}
  Find 'Folder app Test app 16'|Out-Null;Snapshot 'sixteen-apps'
  Invoke 'Open Nagi control center';Invoke 'Activate Default';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi'
  if(Find 'More workspace apps' -Optional){throw 'Empty Default profile still shows the folder'}
  Invoke 'Open Nagi control center';Invoke 'Activate Work';Invoke 'Customize Work'
- Invoke 'Remove OBS Studio';Invoke 'Remove Steam';Invoke '← All profiles'
+ Invoke 'Remove OBS Studio';Invoke 'Remove Steam';Invoke 'Remove Browser';Invoke '← All profiles'
  Invoke 'Overview';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi'
- if(Find 'More workspace apps' -Optional){throw 'Folder remains after returning to three apps'}
- foreach($app in @('VS Code','Terminal','Browser')){Find ('Dock app '+$app)|Out-Null}
+ if(Find 'More workspace apps' -Optional){throw 'Folder remains after returning to two apps'}
+ foreach($app in @('VS Code','Terminal')){Find ('Dock app '+$app)|Out-Null}
  if($DocumentationImages){
   $docImages=Join-Path (Split-Path $PSScriptRoot -Parent) 'docs/images'
   foreach($entry in @(@('teardrop','nagi-teardrop'),@('dock','nagi-dock'),@('app-folder','nagi-app-folder'))){Copy-Item -LiteralPath (Join-Path $qaDirectory ($entry[0]+'.png')) -Destination (Join-Path $docImages ($entry[1]+'.png')) -Force}
  }
- Write-Output ('PASS: teardrop hover, three direct apps, grouped overflow hover/click, pointer movement, dock position, 16-app profile, Default profile, and removal back to three apps. '+$qaDirectory)
+ Write-Output ('PASS: teardrop hover, two direct apps, grouped apps hover/click, pointer movement, dock position, 16-app profile, Default profile, and removal back to two apps. '+$qaDirectory)
 }catch{
  Write-Output $_.ScriptStackTrace
  throw

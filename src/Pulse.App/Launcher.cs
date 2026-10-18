@@ -149,13 +149,13 @@ public sealed partial class MainWindow
 
     private void BuildSearchSettings()
     {
-        var search = Stack(); search.Children.Add(Heading("Quick search"));
-        search.Children.Add(Button("Open quick search", (_, _) => ToggleQuickSearch()));
-        search.Children.Add(Button("Search shortcut · " + ViewModels.PulseViewModel.FormatHotkey(ViewModel.Settings.SearchHotkey), async (_, _) => await EditHotkeyAsync(searchShortcut: true)));
-        search.Children.Add(Note(_searchHotkeyAvailable ? "Search shortcut registered. Type app:, file:, folder: or > to filter. Try 24 * 7 for the calculator." : "Search shortcut is in use by another app. Choose another shortcut or use Open quick search."));
-        search.Children.Add(Toggle("Index local files", "Search filenames in your selected folders. File contents are never read.", ViewModel.Settings.IndexFiles, (s, enabled) => s with { IndexFiles = enabled }));
+        var search = Stack(); search.Children.Add(Heading(L.T("Quick search")));
+        search.Children.Add(Button(L.T("Open quick search"), (_, _) => ToggleQuickSearch()));
+        search.Children.Add(Button(L.T("Search shortcut · ") + ViewModels.PulseViewModel.FormatHotkey(ViewModel.Settings.SearchHotkey), async (_, _) => await EditHotkeyAsync(searchShortcut: true)));
+        search.Children.Add(Note(_searchHotkeyAvailable ? L.T("Search shortcut registered. Type app:, file:, folder: or > to filter. Try 24 * 7 for the calculator.") : L.T("Search shortcut is in use by another app. Choose another shortcut or use Open quick search.")));
+        search.Children.Add(Toggle(L.T("Index local files"), L.T("Search filenames in your selected folders. File contents are never read."), ViewModel.Settings.IndexFiles, (s, enabled) => s with { IndexFiles = enabled }));
         foreach (var folder in ViewModel.Settings.SearchFolders.Length > 0 ? ViewModel.Settings.SearchFolders : SearchApplications.StandardFolders()) search.Children.Add(Note(folder));
-        search.Children.Add(Button("Add search folder", async (_, _) =>
+        search.Children.Add(Button(L.T("Add search folder"), async (_, _) =>
         {
             var picker = new FolderPicker(); picker.FileTypeFilter.Add("*"); InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(this));
             _dialogOpen = true;
@@ -163,33 +163,33 @@ public sealed partial class MainWindow
             {
                 var folder = await picker.PickSingleFolderAsync(); if (folder is null) return;
                 var paths = ViewModel.Settings.SearchFolders.Length > 0 ? ViewModel.Settings.SearchFolders : SearchApplications.StandardFolders();
-                if (FileSearchIndex.NormalizeRoots([folder.Path]).Length == 0) { ViewModel.Publish("Choose a local folder.", true); return; }
+                if (FileSearchIndex.NormalizeRoots([folder.Path]).Length == 0) { ViewModel.Publish(L.T("Choose a local folder."), true); return; }
                 await CommitAsync(s => s with { IndexFiles = true, SearchFolders = paths.Append(folder.Path).ToArray() }); BuildSettingsPage();
             }
-            catch (Exception ex) { _log.Write("search", "Folder picker failed", ex); ViewModel.Publish("The folder picker could not open.", true); }
+            catch (Exception ex) { _log.Write("search", "Folder picker failed", ex); ViewModel.Publish(L.T("The folder picker could not open."), true); }
             finally { _dialogOpen = false; }
         }));
-        search.Children.Add(Button("Edit indexed folders", async (_, _) =>
+        search.Children.Add(Button(L.T("Edit indexed folders"), async (_, _) =>
         {
-            var folders = new TextBox { Text = string.Join(Environment.NewLine, ViewModel.Settings.SearchFolders.Length > 0 ? ViewModel.Settings.SearchFolders : SearchApplications.StandardFolders()), AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, MinHeight = 150, Header = "One local folder per line · up to 16" };
+            var folders = new TextBox { Text = string.Join(Environment.NewLine, ViewModel.Settings.SearchFolders.Length > 0 ? ViewModel.Settings.SearchFolders : SearchApplications.StandardFolders()), AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, MinHeight = 150, Header = L.T("One local folder per line · up to 16") };
             var error = Note(""); var content = Stack(); content.Children.Add(folders); content.Children.Add(error);
-            var dialog = Dialog("Indexed folders", content);
+            var dialog = Dialog(L.T("Indexed folders"), content);
             dialog.PrimaryButtonClick += async (_, args) =>
             {
                 var input = folders.Text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 var normalized = FileSearchIndex.NormalizeRoots(input);
                 if (input.Length > 16 || input.Length > 0 && normalized.Length != input.Distinct(StringComparer.OrdinalIgnoreCase).Count() || normalized.Any(p => !Directory.Exists(p)))
-                { args.Cancel = true; error.Text = "Use up to 16 existing local folders, one per line."; return; }
+                { args.Cancel = true; error.Text = L.T("Use up to 16 existing local folders, one per line."); return; }
                 var deferral = args.GetDeferral();
                 try { if (!await CommitAsync(s => s with { SearchFolders = normalized, IndexFiles = normalized.Length > 0 })) args.Cancel = true; }
                 finally { deferral.Complete(); }
             };
             await ShowDialogAsync(dialog); BuildSettingsPage();
         }));
-        search.Children.Add(Button("Use standard folders", async (_, _) => { await CommitAsync(s => s with { SearchFolders = [], IndexFiles = true }); BuildSettingsPage(); }));
-        search.Children.Add(Button("Rebuild search index", (_, _) => { RebuildSearchIndex(); BuildSettingsPage(); }));
+        search.Children.Add(Button(L.T("Use standard folders"), async (_, _) => { await CommitAsync(s => s with { SearchFolders = [], IndexFiles = true }); BuildSettingsPage(); }));
+        search.Children.Add(Button(L.T("Rebuild search index"), (_, _) => { RebuildSearchIndex(); BuildSettingsPage(); }));
         search.Children.Add(Note(SearchStatus()));
-        search.Children.Add(Note("Filename index stays in the Nagi data folder and refreshes every 10 minutes. Up to 40,000 items; system, linked and common build folders are skipped. Web searches open only when selected."));
+        search.Children.Add(Note(L.T("Filename index stays in the Nagi data folder and refreshes every 10 minutes. Up to 40,000 items; system, linked and common build folders are skipped. Web searches open only when selected.")));
         SettingsPage.Children.Add(Card(search));
     }
 }

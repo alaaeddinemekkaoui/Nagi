@@ -66,7 +66,7 @@ internal sealed class HaloMotion : IDisposable
     }
     private void Complete() { var callback = _completed; _completed = null; callback?.Invoke(); }
     public void Stop() { _timer.Stop(); _completed = null; }
-    public void Reveal(FrameworkElement element, int delay = 0, int duration = 240, float scale = .98f)
+    public void Reveal(FrameworkElement element, int delay = 0, int duration = 180, float scale = 1)
     {
         var visual = ElementCompositionPreview.GetElementVisual(element);
         visual.StopAnimation("Opacity"); visual.StopAnimation("Scale");
@@ -103,7 +103,6 @@ internal sealed class HaloMotion : IDisposable
     {
         if (_wired.TryGetValue(element, out _)) return;
         _wired.Add(element, new object());
-        element.PointerEntered += (_, _) => Scale(element, 1.018f);
         element.PointerExited += (_, _) => Scale(element, 1);
         element.AddHandler(UIElement.PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => Scale(element, .965f)), true);
         element.AddHandler(UIElement.PointerReleasedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => Scale(element, 1)), true);
@@ -114,9 +113,13 @@ internal sealed class HaloMotion : IDisposable
         var visual = ElementCompositionPreview.GetElementVisual(element);
         if (!_enabled()) { visual.StopAnimation("Scale"); visual.Scale = Vector3.One; return; }
         visual.CenterPoint = new((float)(element.ActualWidth / 2), (float)(element.ActualHeight / 2), 0);
-        var spring = visual.Compositor.CreateSpringVector3Animation();
-        spring.FinalValue = new(value, value, 1); spring.DampingRatio = .82f; spring.Period = TimeSpan.FromMilliseconds(190);
-        visual.StartAnimation("Scale", spring);
+        // Keep each edge within one pixel of its layout slot, including wide settings tiles.
+        var target = new Vector3(Math.Max(value, 1 - 2 / (float)Math.Max(1, element.ActualWidth)),
+            Math.Max(value, 1 - 2 / (float)Math.Max(1, element.ActualHeight)), 1);
+        var animation = visual.Compositor.CreateVector3KeyFrameAnimation();
+        animation.InsertKeyFrame(1, target);
+        animation.Duration = TimeSpan.FromMilliseconds(120);
+        visual.StartAnimation("Scale", animation);
     }
     public void Dispose() { Stop(); _timer.Tick -= Tick; }
 }

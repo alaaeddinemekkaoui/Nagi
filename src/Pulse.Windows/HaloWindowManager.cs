@@ -14,10 +14,11 @@ public sealed class HaloWindowManager : IWindowManager
     private bool _expanded, _dashboard, _disposed, _layout, _dragging;
     private int _hotkeyId, _hideHotkeyId, _searchHotkeyId;
     private bool? _visible;
-    private double _dropAmount;
+    private double _dropAmount, _radius;
     private bool _hasFrame;
     private bool _controlCenter;
     public event Action<HaloFrame>? FrameApplied;
+    public event Action<HaloFrame>? ControlCenterResized;
     public bool PreviewAbove { get; private set; }
     public event Action? ToggleRequested;
     public event Action? HideRequested;
@@ -54,6 +55,13 @@ public sealed class HaloWindowManager : IWindowManager
         }, 0);
         return monitors;
     }
+    public void SuppressSystemCorners()
+    {
+        SetControlCenterMode(_controlCenter);
+        var corners = 1; Native.DwmSetWindowAttribute(_hwnd, 33, ref corners, sizeof(int));
+        var nonClient = _controlCenter ? 0 : 1;
+        Native.DwmSetWindowAttribute(_hwnd, 2, ref nonClient, sizeof(int));
+    }
     public static IReadOnlyList<DisplayMonitor> GetMonitors() => Monitors().Select((m, index) =>
         new DisplayMonitor(m.Info.Device, "Display " + (index + 1) + ((m.Info.Flags & 1) != 0 ? " · primary" : ""))).ToArray();
 
@@ -67,7 +75,7 @@ public sealed class HaloWindowManager : IWindowManager
         {
             Native.GetWindowRect(_hwnd, out var rect);
             var scale = Math.Max(96, Native.GetDpiForWindow(_hwnd)) / 96d;
-            return new(rect.Left, rect.Top, rect.Width, rect.Height, 26 * scale, scale, _dropAmount);
+            return new(rect.Left, rect.Top, rect.Width, rect.Height, _hasFrame ? _radius : 26 * scale, scale, _dropAmount);
         }
     }
     public bool OwnsForeground
@@ -89,9 +97,9 @@ public sealed class HaloWindowManager : IWindowManager
         x = point.X / scale; y = point.Y / scale;
         return true;
     }
-    public HaloFrame PrepareLayout(bool expanded, bool dashboard, HaloPosition position, double compactHeight = 54, bool edgeResting = false)
+    public HaloFrame PrepareLayout(bool expanded, bool dashboard, HaloPosition position, double compactHeight = 54, bool edgeResting = false, double railLength = 0, double railThickness = 0)
     {
-            _controlCenter = false;
+            SetControlCenterMode(false);
             _expanded = expanded; _dashboard = dashboard; _position = position;
             var monitors = Monitors();
             if (monitors.Count == 0) return CurrentFrame;
@@ -104,9 +112,9 @@ public sealed class HaloWindowManager : IWindowManager
             if (position.Orientation == "Horizontal")
             {
                 var preview = !expanded && !edgeResting && compactHeight > 84;
-                var railWidth = Math.Min(work.Width - 16, Math.Round(760 * scale));
+                var railWidth = Math.Min(work.Width - 16, Math.Round((expanded ? 760 : railLength > 0 ? railLength : 760) * scale));
                 var widthH = edgeResting && !expanded ? Math.Min(railWidth, Math.Round(132 * scale)) : railWidth;
-                var heightH = Math.Min(work.Height - 16, Math.Round((expanded ? dashboard ? 800 : 780 : edgeResting ? 18 : preview ? 400 : 76) * scale));
+                var heightH = Math.Min(work.Height - 16, Math.Round((expanded ? dashboard ? 800 : 780 : edgeResting ? 18 : preview ? 400 : railThickness > 0 ? railThickness : 76) * scale));
                 var centerX = Math.Clamp(work.Left + work.Width / 2d + position.OffsetX * scale,
                     work.Left + railWidth / 2 + 8, Math.Max(work.Left + railWidth / 2 + 8, work.Right - railWidth / 2 - 8));
                 var top = position.Anchor is "Top edge" or "Top center";
@@ -119,10 +127,10 @@ public sealed class HaloWindowManager : IWindowManager
             {
                 var screen = selected.Info.Monitor;
                 var preview = !expanded && !edgeResting && compactHeight > 84;
-                var edgeWidth = Math.Min(work.Width - 16, (int)Math.Round((expanded ? dashboard ? 720 : 580 : edgeResting ? 18 : preview ? 430 : 80) * scale));
-                var railHeight = Math.Min(560 * scale, work.Height - 16);
+                var edgeWidth = Math.Min(work.Width - 16, (int)Math.Round((expanded ? dashboard ? 720 : 580 : edgeResting ? 18 : preview ? 430 : railThickness > 0 ? railThickness : 80) * scale));
+                var railHeight = Math.Min((railLength > 0 ? railLength : 560) * scale, work.Height - 16);
                 var center = Math.Clamp(work.Top + work.Height / 2d + position.OffsetY * scale, work.Top + railHeight / 2 + 8, Math.Max(work.Top + railHeight / 2 + 8, work.Bottom - railHeight / 2 - 8));
-                var edgeHeight = Math.Min(work.Height - 16, (int)Math.Round(expanded ? (dashboard ? 800 : 780) * scale : edgeResting ? 132 * scale : railHeight));
+                var edgeHeight = Math.Min(work.Height - 16, (int)Math.Round(expanded ? (dashboard ? 800 : 780) * scale : edgeResting ? 132 * scale : preview ? Math.Max(railHeight, compactHeight * scale) : railHeight));
                 PreviewAbove = false;
                 var edgeY = Math.Clamp(center - edgeHeight / 2d, work.Top + 8, Math.Max(work.Top + 8, work.Bottom - edgeHeight - 8));
                 return new(position.Anchor == "Left edge" ? screen.Left : screen.Right - edgeWidth, Math.Round(edgeY), edgeWidth, edgeHeight,
@@ -149,8 +157,9 @@ public sealed class HaloWindowManager : IWindowManager
             var height = Math.Max(16, (int)Math.Round(frame.Height));
             var x = (int)Math.Round(frame.X); var y = (int)Math.Round(frame.Y);
             if (!_hasFrame || !Native.GetWindowRect(_hwnd, out var current) || current.Left != x || current.Top != y || current.Width != width || current.Height != height)
-                Native.SetWindowPos(_hwnd, -1, x, y, width, height, 0x0010);
+                Native.SetWindowPos(_hwnd, _controlCenter ? -2 : -1, x, y, width, height, 0x0010);
             _dropAmount = Math.Clamp(frame.DropAmount, 0, 1);
+            _radius = frame.Radius;
             if (_dropAmount > .001)
             {
                 var contour = Pulse.Core.Motion.EdgeDropContour.Create(width, height, _position.Anchor, _dropAmount);
@@ -188,7 +197,10 @@ public sealed class HaloWindowManager : IWindowManager
     }
     public HaloFrame PrepareControlCenter(HaloPosition position)
     {
-        _controlCenter = _expanded = _dashboard = true; _position = position;
+        var alreadyOpen = _controlCenter;
+        SetControlCenterMode(true);
+        _expanded = _dashboard = true; _position = position;
+        if (alreadyOpen && _hasFrame) return CurrentFrame with { DropAmount = 0 };
         var monitors = Monitors();
         if (monitors.Count == 0) return CurrentFrame;
         var selected = monitors.FirstOrDefault(m => m.Info.Device == position.Monitor);
@@ -200,6 +212,23 @@ public sealed class HaloWindowManager : IWindowManager
         var width = Math.Min(work.Width - 32, Math.Round(960 * scale));
         var height = Math.Min(work.Height - 32, Math.Round(760 * scale));
         return new(Math.Round(work.Left + (work.Width - width) / 2), Math.Round(work.Top + (work.Height - height) / 2), width, height, 22 * scale, scale);
+    }
+    private void SetControlCenterMode(bool enabled)
+    {
+        var style = Native.GetWindowLongPtr(_hwnd, -16).ToInt64();
+        // WinUI presenter changes can restore a native caption even when its title bar is hidden.
+        // A tiny dock would then show only that caption instead of its client content.
+        var desired = style & ~0x00C40000L;
+        if (enabled) desired |= 0x00040000L;
+        var extended = Native.GetWindowLongPtr(_hwnd, -20).ToInt64();
+        var desiredExtended = enabled ? (extended | 0x40000L) & ~0x20380L : (extended | 0x80L) & ~0x60300L;
+        if (_controlCenter == enabled && style == desired && extended == desiredExtended) return;
+        _controlCenter = enabled;
+        Native.SetWindowLongPtr(_hwnd, -16, (nint)desired);
+        Native.SetWindowLongPtr(_hwnd, -20, (nint)desiredExtended);
+        var prior = _layout; _layout = true;
+        try { Native.SetWindowPos(_hwnd, enabled ? -2 : -1, 0, 0, 0, 0, 0x0033); }
+        finally { _layout = prior; }
     }
     public void SetVisible(bool visible)
     {
@@ -258,6 +287,29 @@ public sealed class HaloWindowManager : IWindowManager
     }
     private nint WindowProcedure(nint hwnd, uint message, nuint wParam, nint lParam, nuint id, nuint data)
     {
+        if (_controlCenter && message == 0x0083 && wParam != 0) return 0; // Borderless, full client area.
+        if (_controlCenter && message == 0x0084 && Native.GetWindowRect(hwnd, out var border))
+        {
+            var packed = lParam.ToInt64(); var x = (short)(packed & 0xffff); var y = (short)((packed >> 16) & 0xffff);
+            var grip = Math.Max(6, (int)Math.Round(7 * Native.GetDpiForWindow(hwnd) / 96d));
+            var left = x < border.Left + grip; var right = x >= border.Right - grip;
+            var top = y < border.Top + grip; var bottom = y >= border.Bottom - grip;
+            if (top && left) return 13; if (top && right) return 14;
+            if (bottom && left) return 16; if (bottom && right) return 17;
+            if (left) return 10; if (right) return 11; if (top) return 12; if (bottom) return 15;
+        }
+        if (_controlCenter && message == 0x0024)
+        {
+            var limits = Marshal.PtrToStructure<MinMaxInfo>(lParam);
+            var scale = Math.Max(96, Native.GetDpiForWindow(hwnd)) / 96d;
+            limits.MinTrack.X = (int)(640 * scale); limits.MinTrack.Y = (int)(460 * scale);
+            Marshal.StructureToPtr(limits, lParam, false); return 0;
+        }
+        if (_controlCenter && message == 0x0005 && wParam != 1 && !_layout && _hasFrame)
+        {
+            var resized = CurrentFrame with { DropAmount = 0 };
+            ApplyFrame(resized); ControlCenterResized?.Invoke(resized);
+        }
         if (message == 0x0312 && (int)wParam == _hotkeyId) { ToggleRequested?.Invoke(); return 0; }
         if (message == 0x0312 && (int)wParam == _hideHotkeyId) { HideRequested?.Invoke(); return 0; }
         if (message == 0x0312 && (int)wParam == _searchHotkeyId) { SearchRequested?.Invoke(); return 0; }
@@ -292,6 +344,8 @@ public sealed class HaloWindowManager : IWindowManager
         }
         return Native.DefSubclassProc(hwnd, message, wParam, lParam);
     }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MinMaxInfo { public Native.Point Reserved, MaxSize, MaxPosition, MinTrack, MaxTrack; }
     public void Dispose()
     {
         if (_disposed) return; _disposed = true;

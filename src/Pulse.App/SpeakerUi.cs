@@ -10,15 +10,15 @@ public sealed partial class MainWindow
     {
         if (_closed || _dialogOpen) return;
         // Dialogs need the expanded host; prevent an unpinned preview from collapsing underneath.
-        if (!_expanded) { Navigate("Overview"); Reveal(); }
+        if (!_controlCenter) OpenControlCenter("Overview");
         var devices = new ListBox { SelectionMode = SelectionMode.Single, MaxHeight = 240 };
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(devices, "SpeakerDevices");
-        var status = Note("Choose the Windows speaker or headphones used for media and system audio. Apps with their own output selection may keep that selection.");
+        var status = Note(L.T("Choose the Windows speaker or headphones used for media and system audio. Apps with their own output selection may keep that selection."));
         var body = Stack(); body.Children.Add(status); body.Children.Add(devices);
-        var windowsSound = new Button { Content = "Windows sound settings" };
+        var windowsSound = new Button { Content = L.T("Windows sound settings") };
         windowsSound.Click += async (_, _) => await global::Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:sound"));
         body.Children.Add(windowsSound);
-        var dialog = Dialog("Speakers", body); dialog.PrimaryButtonText = "Use speaker";
+        var dialog = Dialog(L.T("Speakers"), body); dialog.PrimaryButtonText = L.T("Use speaker");
         dialog.IsPrimaryButtonEnabled = false;
         async Task RefreshAsync()
         {
@@ -27,12 +27,12 @@ public sealed partial class MainWindow
                 var outputs = await Task.Run(_audio.GetOutputDevices);
                 if (_closed) return;
                 devices.Items.Clear();
-                foreach (var output in outputs) devices.Items.Add(new ListBoxItem { Content = output.Name + (output.IsDefault ? " · current" : ""), Tag = output });
+                foreach (var output in outputs) devices.Items.Add(new ListBoxItem { Content = output.Name + (output.IsDefault ? L.T(" · current") : ""), Tag = output });
                 devices.SelectedItem = devices.Items.Cast<ListBoxItem>().FirstOrDefault(i => ((AudioOutputDevice)i.Tag).IsDefault);
-                if (outputs.Count == 0) status.Text = "No speakers or headphones are connected. Connect an output, then reopen Speakers.";
+                if (outputs.Count == 0) status.Text = L.T("No speakers or headphones are connected. Connect an output, then reopen Speakers.");
             }
             catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidOperationException or InvalidCastException)
-            { status.Text = "Speaker list unavailable. Open Windows sound settings to select an output."; }
+            { status.Text = L.T("Speaker list unavailable. Open Windows sound settings to select an output."); }
         }
         devices.SelectionChanged += (_, _) => dialog.IsPrimaryButtonEnabled = devices.SelectedItem is ListBoxItem;
         dialog.PrimaryButtonClick += async (_, click) =>

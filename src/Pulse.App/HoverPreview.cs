@@ -63,14 +63,17 @@ public sealed partial class MainWindow
 
     private void ShowPreview(PreviewKind kind)
     {
+        var switching = PreviewVisible;
         _preview = kind;
-        PeekHeading.Text = kind switch { PreviewKind.Apps => "More apps", PreviewKind.Obs => "OBS Studio", PreviewKind.Media => "Media & audio", _ => "System at a glance" };
+        PeekHeading.Text = L.T(kind switch { PreviewKind.Apps => "More apps", PreviewKind.Obs => "OBS Studio", PreviewKind.Media => "Media & audio", _ => "System at a glance" });
         SystemPeek.Visibility = kind == PreviewKind.System ? Visibility.Visible : Visibility.Collapsed;
         MediaPeek.Visibility = kind == PreviewKind.Media ? Visibility.Visible : Visibility.Collapsed;
         ObsPeek.Visibility = kind == PreviewKind.Obs ? Visibility.Visible : Visibility.Collapsed;
         AppsPeek.Visibility = kind == PreviewKind.Apps ? Visibility.Visible : Visibility.Collapsed;
-        PeekSpeakersButton.Visibility = kind == PreviewKind.Apps ? Visibility.Collapsed : Visibility.Visible;
+        PeekSpeakersButton.Visibility = kind == PreviewKind.Media ? Visibility.Visible : Visibility.Collapsed;
         Layout(true); // Hover preserves the dock's screen position without taking focus.
+        if (switching) _motion.Reveal(kind switch { PreviewKind.Apps => AppsPeek, PreviewKind.Obs => ObsPeek,
+            PreviewKind.Media => MediaPeek, _ => SystemPeek }, 0, 160, 1);
     }
     private void AppFolder_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(PreviewKind.Apps, AppFolderButton);
     private void AppFolder_Click(object sender, RoutedEventArgs e)
@@ -142,7 +145,7 @@ public sealed partial class MainWindow
     {
         var media = _preview == PreviewKind.Media;
         var apps = _preview == PreviewKind.Apps;
-        Navigate("Overview"); Reveal();
+        OpenControlCenter("Overview");
         if (media) MediaCard.StartBringIntoView();
         if (apps) WorkspaceAppsCard.StartBringIntoView();
     }

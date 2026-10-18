@@ -1,4 +1,4 @@
-param([switch]$NoRestore, [switch]$SkipPortable, [string]$ReleaseTag='v0.1.2', [string]$PackageDirectory='')
+param([switch]$NoRestore, [switch]$SkipPortable, [string]$ReleaseTag='v0.1.3', [string]$PackageDirectory='')
 $ErrorActionPreference = 'Stop'
 $pulseRoot = Split-Path $PSScriptRoot -Parent
 $pulseOutput = if($PackageDirectory){[IO.Path]::GetFullPath($PackageDirectory)}else{Join-Path $pulseRoot 'artifacts/Nagi-win-x64'}
@@ -6,7 +6,7 @@ $pulseOutput = if($PackageDirectory){[IO.Path]::GetFullPath($PackageDirectory)}e
 if ($NoRestore) { $nagiRestoreArguments += '--no-restore' }
 dotnet publish @nagiRestoreArguments (Join-Path $pulseRoot 'src/Pulse.App/Pulse.App.csproj') -c Release -r win-x64 --self-contained true -o $pulseOutput
 if ($LASTEXITCODE -ne 0) { throw 'Nagi publish failed.' }
-foreach ($pulseRequired in @('Apply-NagiUpdate.ps1','Nagi.exe','Nagi.pri','App.xbf','MainWindow.xbf','Themes/Tokens.xbf','Controls/PulseMark.xbf','Assets/Nagi.Tray.ico','Assets/Nagi.Logo.png','Assets/Nagi.ico','Assets/Akeno.Samurai.png','Microsoft.Graphics.Canvas.dll','Microsoft.Graphics.Canvas.Interop.dll','Assets/Tools/PresentMon.exe','Assets/Tools/PresentMon-LICENSE.txt')) {
+foreach ($pulseRequired in @('languages/en.json','languages/fr.json','languages/es.json','languages/de.json','languages/ru.json','languages/ar.json','Apply-NagiUpdate.ps1','Nagi.exe','Nagi.pri','App.xbf','MainWindow.xbf','Themes/Tokens.xbf','Controls/PulseMark.xbf','Assets/Nagi.Tray.ico','Assets/Nagi.Logo.png','Assets/Nagi.ico','Assets/Akeno.Samurai.png','Microsoft.Graphics.Canvas.dll','Microsoft.Graphics.Canvas.Interop.dll','Assets/Tools/PresentMon.exe','Assets/Tools/PresentMon-LICENSE.txt')) {
     if (!(Test-Path -LiteralPath (Join-Path $pulseOutput $pulseRequired))) { throw "Publish is missing required WinUI resource: $pulseRequired" }
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-Nagi.ps1') -Destination $pulseOutput -Force

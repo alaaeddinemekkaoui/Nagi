@@ -40,6 +40,7 @@ public sealed partial class MainWindow
         if (_closed) return;
         _audioFrameCount++;
         _lastAudio = audio;
+        if (_userHidden || _dock.Stage == DockStage.Resting) return;
         var previous = _updating; _updating = true;
         foreach (var slider in new[] { VolumeSlider, PeekVolumeSlider })
         {
@@ -49,21 +50,22 @@ public sealed partial class MainWindow
         }
         _updating = previous;
         MuteButton.IsEnabled = PeekMuteButton.IsEnabled = audio.Volume.HasValue;
-        VolumeValue.Text = PeekVolumeValue.Text = audio.Volume is { } volume ? audio.Muted ? "Muted" : $"{volume:0}%" : "Unavailable";
-        CompactAudioValue.Text = audio.Volume is { } v ? audio.Muted ? "Muted" : $"{v:0}% vol" : "No audio";
+        VolumeValue.Text = PeekVolumeValue.Text = audio.Volume is { } volume ? audio.Muted ? L.T("Muted") : L.F($"{volume:0}%") : L.T("Unavailable");
+        CompactAudioValue.Text = audio.Volume is { } v ? audio.Muted ? L.T("Muted") : L.F($"{v:0}% vol") : L.T("No audio");
         MuteIcon.Glyph = PeekMuteIcon.Glyph = audio.Muted ? "\uE74F" : "\uE767";
         var now = Stopwatch.GetTimestamp();
         var level = _audioEnvelope.Update(audio.Muted ? 0 : audio.Peak, Stopwatch.GetElapsedTime(_audioRenderedAt, now).TotalSeconds);
         _audioRenderedAt = now;
         var accent = ThemeBrush("PulseAccentBrush");
-        OutputAudioMeter.Update(level, audio.Peak.HasValue, accent);
-        PeekAudioMeter.Update(level, audio.Peak.HasValue, accent);
+        var overview = Expanded.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _page == "Overview";
+        var mediaPeek = PeekHost.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _preview == PreviewKind.Media;
+        if (overview) OutputAudioMeter.Update(level, audio.Peak.HasValue, accent);
+        if (mediaPeek) PeekAudioMeter.Update(level, audio.Peak.HasValue, accent);
         var animate = !ViewModel.Settings.ReducedMotion && _audioMotion.AnimationsEnabled;
         if (!_userHidden)
         {
-            if (Compact.Visibility == Microsoft.UI.Xaml.Visibility.Visible) CompactMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
-            if (PeekHost.Visibility == Microsoft.UI.Xaml.Visibility.Visible) PeekMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
-            if (Expanded.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _page == "Overview") OutputMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+            if (mediaPeek) PeekMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+            if (overview) OutputMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
         }
     }
 }

@@ -14,7 +14,7 @@ public sealed partial class MainWindow
     private PreparedUpdate? _preparedUpdate;
     private bool _updateBusy;
     private Version? _offeredUpdateVersion;
-    private string _updateStatus = "Check for a new release.";
+    private string _updateStatus = L.T("Check for a new release.");
     private TextBlock? _updateStatusText;
     private TextBlock? _updateNotesText;
     private Button? _checkUpdateButton, _installUpdateButton;
@@ -40,18 +40,18 @@ public sealed partial class MainWindow
     }
     private void BuildUpdateSettings()
     {
-        var content = Stack(); content.Children.Add(Heading("App updates"));
-        content.Children.Add(Note("Installed version " + CurrentVersion.ToString(3) + ". Updates come from Nagi's GitHub releases. Your profiles, preferences and scripts are preserved."));
-        content.Children.Add(Toggle("Download updates automatically", "Check at startup and every six hours, then download verified updates. Choose Install and restart when ready.", ViewModel.Settings.AutomaticUpdates, (s, enabled) => s with { AutomaticUpdates = enabled }));
+        var content = Stack(); content.Children.Add(Heading(L.T("App updates")));
+        content.Children.Add(Note(L.T("Installed version ") + CurrentVersion.ToString(3) + L.T(". Updates come from Nagi's GitHub releases. Your profiles, preferences and scripts are preserved.")));
+        content.Children.Add(Toggle(L.T("Download updates automatically"), L.T("Check at startup and every six hours, then download verified updates. Choose Install and restart when ready."), ViewModel.Settings.AutomaticUpdates, (s, enabled) => s with { AutomaticUpdates = enabled }));
         _updateStatusText = Note(_updateStatus); content.Children.Add(_updateStatusText);
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateStatusText, "Update status");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateStatusText, L.T("Update status"));
         _updateNotesText = Note(ReleaseNotes());
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateNotesText, "Update changelog");
-        _checkUpdateButton = Button("Check for updates", async (_, _) => await CheckUpdatesAsync(false));
-        _installUpdateButton = Button(_preparedUpdate is null ? "Download and update" : "Install and restart", async (_, _) => await InstallUpdateAsync());
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateNotesText, L.T("Update changelog"));
+        _checkUpdateButton = Button(L.T("Check for updates"), async (_, _) => await CheckUpdatesAsync(false));
+        _installUpdateButton = Button(_preparedUpdate is null ? L.T("Download and update") : L.T("Install and restart"), async (_, _) => await InstallUpdateAsync());
         content.Children.Add(_checkUpdateButton); content.Children.Add(_installUpdateButton);
         content.Children.Add(_updateNotesText);
-        content.Children.Add(new HyperlinkButton { Content = "View releases", NavigateUri = new("https://github.com/" + AppUpdateService.Repository + "/releases") });
+        content.Children.Add(new HyperlinkButton { Content = L.T("View releases"), NavigateUri = new("https://github.com/" + AppUpdateService.Repository + "/releases") });
         SettingsPage.Children.Add(Card(content)); RefreshUpdateUi();
     }
     private void RefreshUpdateUi()
@@ -62,13 +62,13 @@ public sealed partial class MainWindow
         if (_installUpdateButton is not null)
         {
             _installUpdateButton.IsEnabled = !_updateBusy && _availableUpdate is not null;
-            _installUpdateButton.Content = _preparedUpdate is null ? "Download and update" : "Install and restart";
+            _installUpdateButton.Content = _preparedUpdate is null ? L.T("Download and update") : L.T("Install and restart");
         }
     }
     private async Task CheckUpdatesAsync(bool automatic)
     {
         if (_closed || _updateBusy || automatic && _preparedUpdate is not null) return;
-        _updateBusy = true; _updateStatus = "Checking for updates…"; RefreshUpdateUi();
+        _updateBusy = true; _updateStatus = L.T("Checking for updates…"); RefreshUpdateUi();
         var installNow = false;
         try
         {
@@ -79,12 +79,12 @@ public sealed partial class MainWindow
             _updateTimer.Interval = TimeSpan.FromHours(6);
             _availableUpdate = release;
             if (_preparedUpdate?.Release.Version != release?.Version) _preparedUpdate = null;
-            _updateStatus = release is null ? "You have the latest release." : "Nagi " + release.Version.ToString(3) + " is available.";
+            _updateStatus = release is null ? L.T("You have the latest release.") : L.F($"Nagi {release.Version.ToString(3)} is available");
             _log.Write("updates", _updateStatus);
             RefreshUpdateUi();
             if (release is not null && (!automatic || _offeredUpdateVersion != release.Version)) installNow = await OfferUpdateAsync(release);
             if (release is not null && !installNow && ViewModel.Settings.AutomaticUpdates && _preparedUpdate is null) await DownloadUpdateAsync();
-            if (release is not null) ViewModel.Publish(_preparedUpdate is null ? _updateStatus : "An update is ready. Open Settings → Updates to install and restart.", true);
+            if (release is not null) ViewModel.Publish(_preparedUpdate is null ? _updateStatus : L.T("An update is ready. Open Settings → Updates to install and restart."), true);
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidOperationException or OperationCanceledException or UriFormatException or KeyNotFoundException)
         { if (!_closed) { _updateStatus = "Could not check for updates. " + ex.Message; _updateTimer.Interval = TimeSpan.FromMinutes(2); _log.Write("updates", "Release check failed; retrying in two minutes", ex); } }
@@ -92,8 +92,8 @@ public sealed partial class MainWindow
         if (installNow && !_closed) await InstallUpdateAsync();
     }
     private string ReleaseNotes() => _availableUpdate is { } release
-        ? "What's new in Nagi " + release.Version.ToString(3) + "\n\n" + (string.IsNullOrWhiteSpace(release.Notes) ? "Release notes are available on GitHub." : release.Notes)
-        : "The changelog will appear here when a new release is detected.";
+        ? L.F($"What's new in Nagi {release.Version.ToString(3)}") + "\n\n" + (string.IsNullOrWhiteSpace(release.Notes) ? L.T("Release notes are available on GitHub.") : release.Notes)
+        : L.T("The changelog will appear here when a new release is detected.");
 
     private async Task<bool> OfferUpdateAsync(AppRelease release)
     {
@@ -101,13 +101,13 @@ public sealed partial class MainWindow
         _offeredUpdateVersion = release.Version;
         var wasExpanded = _expanded;
         OpenControlCenter("Settings"); ShowSettingsCategory("Updates");
-        var content = Stack(); content.Children.Add(Note("Installed: " + CurrentVersion.ToString(3)));
+        var content = Stack(); content.Children.Add(Note(L.T("Installed: ") + CurrentVersion.ToString(3)));
         var notes = Note(ReleaseNotes());
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(notes, "Available update changelog");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(notes, L.T("Available update changelog"));
         content.Children.Add(notes);
-        if (release.ReleasePage is { } page) content.Children.Add(new HyperlinkButton { Content = "View release on GitHub", NavigateUri = page });
-        var dialog = Dialog("Nagi " + release.Version.ToString(3) + " is available", content);
-        dialog.PrimaryButtonText = "Update now"; dialog.CloseButtonText = "Later";
+        if (release.ReleasePage is { } page) content.Children.Add(new HyperlinkButton { Content = L.T("View release on GitHub"), NavigateUri = page });
+        var dialog = Dialog(L.F($"Nagi {release.Version.ToString(3)} is available"), content);
+        dialog.PrimaryButtonText = L.T("Update now"); dialog.CloseButtonText = L.T("Later");
         // Avoid installing through an accidental Enter key while the dialog opens.
         dialog.DefaultButton = ContentDialogButton.Close;
         var choice = await ShowDialogAsync(dialog);
@@ -120,11 +120,11 @@ public sealed partial class MainWindow
     {
         if (_availableUpdate is null) return;
         _log.Write("updates", "Downloading Nagi " + _availableUpdate.Version.ToString(3));
-        _updateStatus = "Downloading update…"; RefreshUpdateUi();
-        var progress = new Progress<double>(value => { if (!_closed && _preparedUpdate is null) { _updateStatus = $"Downloading update… {value:0}%"; RefreshUpdateUi(); } });
+        _updateStatus = L.T("Downloading update…"); RefreshUpdateUi();
+        var progress = new Progress<double>(value => { if (!_closed && _preparedUpdate is null) { _updateStatus = L.F($"Downloading update… {value:0}%"); RefreshUpdateUi(); } });
         var updateRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nagi", "Updates");
         _preparedUpdate = await _updates.PrepareAsync(_availableUpdate, updateRoot, progress, _shutdown.Token);
-        _updateStatus = "Update verified and ready. Install and restart to finish.";
+        _updateStatus = L.T("Update verified and ready. Install and restart to finish.");
         _log.Write("updates", "Package verified for Nagi " + _preparedUpdate.Release.Version.ToString(3));
     }
     private async Task InstallUpdateAsync()
@@ -151,7 +151,7 @@ public sealed partial class MainWindow
             foreach (var argument in new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", helper, "-PlanPath", planPath }) start.ArgumentList.Add(argument);
             using var updater = Process.Start(start) ?? throw new InvalidOperationException("The updater could not start.");
             _log.Write("updates", "Starting installation and restart for Nagi " + _preparedUpdate.Release.Version.ToString(3));
-            _updateStatus = "Restarting to install the update…"; Close();
+            _updateStatus = L.T("Restarting to install the update…"); Close();
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception or OperationCanceledException)
         { if (!_closed) { _updateStatus = "Update could not be installed. " + ex.Message; _log.Write("updates", "Update failed", ex); } }

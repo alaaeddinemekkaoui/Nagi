@@ -23,6 +23,6 @@ public sealed class AudioLevelMeter : UserControl
         _fill.Fill = accent;
         _level = Math.Clamp(level, 0, 1);
         if (_fill.IsLoaded) ElementCompositionPreview.GetElementVisual(_fill).Scale = new Vector3((float)_level, 1, 1);
-        AutomationProperties.SetName(this, available ? $"System audio level {level * 100:0}%" : "System audio level unavailable");
+        AutomationProperties.SetName(this, available ? L.F($"System audio level {level * 100:0}%") : L.T("System audio level unavailable"));
     }
 }

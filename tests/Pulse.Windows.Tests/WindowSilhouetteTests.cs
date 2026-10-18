@@ -7,6 +7,20 @@ namespace Pulse.Windows.Tests;
 
 public sealed class WindowSilhouetteTests
 {
+    [Fact] public void InterruptedMotionRetainsTheActualCornerRadius()
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi motion radius test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var frame = manager.PrepareLayout(false, false, new(Anchor: "Top edge", Orientation: "Horizontal"));
+            manager.ApplyFrame(frame with { Radius = 8 });
+            Assert.Equal(8, manager.CurrentFrame.Radius);
+            manager.ApplyFrame(manager.CurrentFrame with { Radius = 19 });
+            Assert.Equal(19, manager.CurrentFrame.Radius);
+        }
+        finally { DestroyWindow(hwnd); }
+    }
     [Theory][InlineData("Left edge")][InlineData("Right edge")][InlineData("Top edge")][InlineData("Bottom edge")]
     public void RoundedWindowActuallyExcludesTheOpaqueCornerPixels(string edge)
     {
@@ -49,6 +63,26 @@ public sealed class WindowSilhouetteTests
         }
         finally { DestroyWindow(hwnd); }
     }
+    [Fact] public void SettingsResizeHasNativeGripsKeepsItsSizeAndReturnsToANonResizableDock()
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi resize test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var position = new HaloPosition();
+            var frame = manager.PrepareControlCenter(position); manager.ApplyFrame(frame);
+            Assert.NotEqual(0, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x40000);
+            var point = (nint)(((long)(int)(frame.Y + frame.Height / 2) << 16) | ((long)(int)(frame.X + frame.Width - 2) & 0xffff));
+            Assert.Equal((nint)11, SendMessage(hwnd, 0x84, 0, point));
+            var resized = frame with { Width = frame.Width - 60, Height = frame.Height - 40 };
+            manager.ApplyFrame(resized);
+            var retained = manager.PrepareControlCenter(position);
+            Assert.Equal(resized.Width, retained.Width); Assert.Equal(resized.Height, retained.Height);
+            manager.PrepareLayout(false, false, position, 84, true);
+            Assert.Equal(0, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x40000);
+        }
+        finally { DestroyWindow(hwnd); }
+    }
     [Fact] public void FirstRunSpotlightLeavesTheDockUncoveredAndDestroysItsWindow()
     {
         var hwnd = CreateWindowEx(0, "STATIC", "Nagi spotlight target test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
@@ -70,6 +104,8 @@ public sealed class WindowSilhouetteTests
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] private struct MonitorInfo { public int Size; public Rect Monitor, Work; public uint Flags; [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string Device; }
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint CreateWindowEx(uint ex, string cls, string name, uint style, int x, int y, int width, int height, nint parent, nint menu, nint instance, nint param);
     [DllImport("user32.dll")] private static extern bool DestroyWindow(nint hwnd);
+    [DllImport("user32.dll")] private static extern nint GetWindowLongPtr(nint hwnd, int index);
+    [DllImport("user32.dll")] private static extern nint SendMessage(nint hwnd, uint message, nint wParam, nint lParam);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hwnd);
     [DllImport("user32.dll")] private static extern int GetWindowRgn(nint hwnd, nint region);
     [DllImport("gdi32.dll")] private static extern nint CreateRectRgn(int left, int top, int right, int bottom);

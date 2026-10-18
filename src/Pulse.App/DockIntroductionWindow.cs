@@ -18,15 +18,15 @@ public sealed class DockIntroductionWindow : Window
     private readonly HaloWindowManager _frame;
     public DockIntroductionWindow(HaloFrame dock, string edge, ElementTheme theme, Action dismissed)
     {
-        Title = "Nagi · hello";
+        Title = L.T("Nagi · hello");
         var content = new StackPanel { Spacing = 16, Padding = new(28), RequestedTheme = theme };
         content.Children.Add(new Controls.PulseMark { Width = 40, Height = 40, HorizontalAlignment = HorizontalAlignment.Left });
-        content.Children.Add(new TextBlock { Text = "Thanks for downloading Nagi!", FontSize = 23, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+        content.Children.Add(new TextBlock { Text = L.T("Thanks for downloading Nagi!"), FontSize = 23, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
         var direction = edge switch { "Top edge" => "↑ At the top of your screen", "Bottom edge" => "↓ At the bottom of your screen", "Left edge" => "← On the left of your screen", _ => "→ On the right of your screen" };
         content.Children.Add(new TextBlock { Text = direction, FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-        content.Children.Add(new TextBlock { Text = "Your tiny desktop buddy has claimed this little spot. Hover the uncovered edge drop to wake Nagi, or choose Okay.\n\nEnjoy your new desk buddy. Please do not water it.", FontSize = 14, TextWrapping = TextWrapping.Wrap });
-        _okay = new Button { Content = "Okay, tiny desk buddy!", HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Center, Margin = new(0, 4, 0, 0) };
-        AutomationProperties.SetName(_okay, "Okay, got it"); _okay.Click += (_, _) => Close();
+        content.Children.Add(new TextBlock { Text = L.T("Your tiny desktop buddy has claimed this little spot. Hover the uncovered edge drop to wake Nagi, or choose Okay.\n\nEnjoy your new desk buddy. Please do not water it."), FontSize = 14, TextWrapping = TextWrapping.Wrap });
+        _okay = new Button { Content = L.T("Okay, tiny desk buddy!"), HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Center, Margin = new(0, 4, 0, 0) };
+        AutomationProperties.SetName(_okay, L.T("Okay, got it")); _okay.Click += (_, _) => Close();
         content.Padding = new(0);
         var layout = new Grid { Padding = new(24), RowSpacing = 16 };
         layout.RowDefinitions.Add(new()); layout.RowDefinitions.Add(new() { Height = GridLength.Auto });

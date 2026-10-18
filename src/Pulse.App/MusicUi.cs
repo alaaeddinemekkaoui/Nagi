@@ -12,6 +12,7 @@ public sealed partial class MainWindow
         foreach (var panel in new[] { MusicLinksPanel, PeekMusicLinksPanel })
         {
             panel.Children.Clear();
+            panel.Children.Add(OpenLocalMediaButton(ReferenceEquals(panel, MusicLinksPanel) ? "Overview" : "Preview"));
             foreach (var player in MusicPlayers.For(ViewModel.Settings.PreferredMusicPlayer))
             {
                 var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
@@ -23,9 +24,9 @@ public sealed partial class MainWindow
                 };
                 var icon = (Microsoft.UI.Xaml.Shapes.Path)Microsoft.UI.Xaml.Markup.XamlReader.Load("<Path xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" Data=\"" + data + "\" Width=\"18\" Height=\"18\" Stretch=\"Uniform\" StrokeThickness=\"1.5\" StrokeStartLineCap=\"Round\" StrokeEndLineCap=\"Round\"/>");
                 icon.Stroke = ThemeBrush("InkBrush"); row.Children.Add(icon);
-                row.Children.Add(new TextBlock { Text = "Open " + player.Name, FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
+                row.Children.Add(new TextBlock { Text = L.T("Open ") + player.Name, FontSize = 12, VerticalAlignment = VerticalAlignment.Center });
                 var link = new HyperlinkButton { Content = row, NavigateUri = new(player.Url), FontSize = 12, Padding = new(0, 3, 0, 3) };
-                AutomationProperties.SetName(link, "Open " + player.Name); panel.Children.Add(link);
+                AutomationProperties.SetName(link, L.T("Open ") + player.Name); panel.Children.Add(link);
             }
         }
         RenderMusicLinks();
@@ -38,14 +39,16 @@ public sealed partial class MainWindow
     }
     private void BuildMusicSettings()
     {
-        var content = Stack(); content.Children.Add(Heading("Now playing"));
-        content.Children.Add(Note("When nothing is playing, open your music service here. Choose All to show all three links, or select one preferred service. Playback controls follow the active Windows media session."));
+        var content = Stack(); content.Children.Add(Heading(L.T("Now playing")));
+        content.Children.Add(Note(L.T("When nothing is playing, open your music service here. Choose All to show all three links, or select one preferred service. Playback controls follow the active Windows media session.")));
         var player = Select(MusicPlayers.Names, ViewModel.Settings.PreferredMusicPlayer, "Preferred music player");
         player.SelectionChanged += async (_, _) =>
         {
             if (player.SelectedItem is string name) await CommitAsync(s => s with { PreferredMusicPlayer = name });
         };
-        content.Children.Add(Labeled("Music service", player));
+        content.Children.Add(Labeled(L.T("Music service"), player));
+        content.Children.Add(OpenLocalMediaButton("Settings"));
+        content.Children.Add(Note(L.T("Play local audio or video in Nagi. Queue multiple files; dock controls follow playback. Supported formats depend on the media codecs installed in Windows.")));
         SettingsPage.Children.Add(Card(content));
     }
 }

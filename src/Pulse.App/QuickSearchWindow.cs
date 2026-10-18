@@ -18,13 +18,13 @@ namespace Pulse.App;
 public sealed class QuickSearchWindow : Window
 {
     private readonly Grid _root = new() { Padding = new(22), RowSpacing = 12 };
-    private readonly TextBox _query = new() { PlaceholderText = "Search apps, files, folders… or calculate", FontSize = 20, MinHeight = 52, CornerRadius = new(12) };
+    private readonly TextBox _query = new() { PlaceholderText = L.T("Search apps, files, folders… or calculate"), FontSize = 20, MinHeight = 52, CornerRadius = new(12) };
     private readonly ListView _results = new() { SelectionMode = ListViewSelectionMode.Single, IsItemClickEnabled = true, Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent) };
     private readonly TextBlock _status = new() { FontSize = 11, TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _detail = new() { FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis };
-    private readonly Button _open = new() { Content = "Open ↵", MinWidth = 78 };
-    private readonly Button _reveal = new() { Content = "Show in folder" };
-    private readonly Button _copy = new() { Content = "Copy path" };
+    private readonly Button _open = new() { Content = L.T("Open ↵"), MinWidth = 78 };
+    private readonly Button _reveal = new() { Content = L.T("Show in folder") };
+    private readonly Button _copy = new() { Content = L.T("Copy path") };
     private readonly DispatcherQueueTimer _delay;
     private readonly Func<SearchEntry[]> _entries;
     private readonly Func<string> _indexStatus;
@@ -41,15 +41,15 @@ public sealed class QuickSearchWindow : Window
         Func<SearchEntry, string, Task<OperationResult>> execute, Func<string, Brush> brush)
     {
         _entries = entries; _indexStatus = status; _execute = execute; _brush = brush;
-        Title = "Nagi · Quick search";
+        Title = L.T("Nagi · Quick search");
         _root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         _root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         _root.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
         _root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         _root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var header = new Grid(); header.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
-        header.Children.Add(new TextBlock { Text = "Nagi  /  Quick search", FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-        var close = new Button { Content = "Esc", Padding = new(10, 4, 10, 4) }; close.Click += (_, _) => Hide(); Grid.SetColumn(close, 1); header.Children.Add(close);
+        header.Children.Add(new TextBlock { Text = L.T("Nagi  /  Quick search"), FontSize = 14, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        var close = new Button { Content = L.T("Esc"), Padding = new(10, 4, 10, 4) }; close.Click += (_, _) => Hide(); Grid.SetColumn(close, 1); header.Children.Add(close);
         _root.Children.Add(header); Grid.SetRow(_query, 1); _root.Children.Add(_query);
         Grid.SetRow(_results, 2); _root.Children.Add(_results);
         var footer = new StackPanel { Spacing = 7 }; footer.Children.Add(_detail);
@@ -57,8 +57,9 @@ public sealed class QuickSearchWindow : Window
         actions.Children.Add(_open); actions.Children.Add(_reveal); actions.Children.Add(_copy); footer.Children.Add(actions);
         Grid.SetRow(footer, 3); _root.Children.Add(footer);
         var help = new StackPanel { Spacing = 4 }; help.Children.Add(_status);
-        help.Children.Add(new TextBlock { Text = "↑↓ Select   Enter Open   Ctrl+Enter Folder   Ctrl+C Path   Esc Close\napp: Apps   file: Files   folder: Folders   > Actions   web Search", FontSize = 10, Opacity = .72, TextWrapping = TextWrapping.Wrap });
+        help.Children.Add(new TextBlock { Text = L.T("↑↓ Select   Enter Open   Ctrl+Enter Folder   Ctrl+C Path   Esc Close\napp: Apps   file: Files   folder: Folders   > Actions   web Search"), FontSize = 10, Opacity = .72, TextWrapping = TextWrapping.Wrap });
         Grid.SetRow(help, 4); _root.Children.Add(help);
+        _root.FlowDirection = L.Direction;
         Content = new Border { CornerRadius = new(20), Child = _root };
         _handle = WindowNative.GetWindowHandle(this);
         var presenter = (OverlappedPresenter)AppWindow.Presenter;
@@ -85,9 +86,9 @@ public sealed class QuickSearchWindow : Window
             if (_visible && !_executing && generation == _openGeneration && !SearchWindowPlacement.IsForeground(_handle)) Hide();
         };
         AppWindow.Closing += (_, args) => { if (!_closing) { args.Cancel = true; Hide(); } };
-        AutomationProperties.SetAutomationId(_query, "QuickSearchQuery"); AutomationProperties.SetName(_query, "Search apps and files");
-        AutomationProperties.SetAutomationId(_results, "QuickSearchResults"); AutomationProperties.SetName(_results, "Search results");
-        AutomationProperties.SetAutomationId(_status, "QuickSearchStatus"); AutomationProperties.SetName(close, "Close quick search");
+        AutomationProperties.SetAutomationId(_query, "QuickSearchQuery"); AutomationProperties.SetName(_query, L.T("Search apps and files"));
+        AutomationProperties.SetAutomationId(_results, "QuickSearchResults"); AutomationProperties.SetName(_results, L.T("Search results"));
+        AutomationProperties.SetAutomationId(_status, "QuickSearchStatus"); AutomationProperties.SetName(close, L.T("Close quick search"));
     }
     public void Open(PulseSettings settings)
     {
@@ -138,17 +139,17 @@ public sealed class QuickSearchWindow : Window
             AutomationProperties.SetName(item, entry.Title + " · " + entry.Kind); _results.Items.Add(item);
         }
         _results.SelectedIndex = found.Count == 0 ? -1 : Math.Max(0, found.ToList().FindIndex(e => e.Id == selectedId));
-        _status.Text = (found.Count == 0 ? "No matches. Try another name or filter.  " : "") + _indexStatus();
+        _status.Text = (found.Count == 0 ? L.T("No matches. Try another name or filter.  ") : "") + _indexStatus();
         UpdateSelection();
     }
     private void UpdateSelection()
     {
-        var selected = Selected; _detail.Text = selected?.Target ?? "Type an app name, filename, action, or 24 * 7.";
+        var selected = Selected; _detail.Text = selected?.Target ?? L.T("Type an app name, filename, action, or 24 * 7.");
         if (selected?.Kind is SearchKind.Command or SearchKind.Calculation) _detail.Text = selected.Detail;
-        _open.IsEnabled = selected is not null; _open.Content = selected?.Kind == SearchKind.Calculation ? "Copy result ↵" : "Open ↵";
+        _open.IsEnabled = selected is not null; _open.Content = selected?.Kind == SearchKind.Calculation ? L.T("Copy result ↵") : L.T("Open ↵");
         _reveal.IsEnabled = selected?.Kind is SearchKind.File or SearchKind.Folder;
         _copy.IsEnabled = selected?.Kind is SearchKind.File or SearchKind.Folder or SearchKind.Calculation;
-        _copy.Content = selected?.Kind == SearchKind.Calculation ? "Copy result" : "Copy path";
+        _copy.Content = selected?.Kind == SearchKind.Calculation ? L.T("Copy result") : L.T("Copy path");
     }
     private async Task ExecuteAsync(string action)
     {
@@ -160,7 +161,7 @@ public sealed class QuickSearchWindow : Window
             if (result.Success) Hide(); else _status.Text = result.Message;
         }
         catch (OperationCanceledException) { }
-        catch (Exception) { _status.Text = "This item could not be opened. Rebuild the index or try again."; }
+        catch (Exception) { _status.Text = L.T("This item could not be opened. Rebuild the index or try again."); }
         finally { _executing = false; }
     }
     private async void OnKeyDown(object sender, KeyRoutedEventArgs args)
