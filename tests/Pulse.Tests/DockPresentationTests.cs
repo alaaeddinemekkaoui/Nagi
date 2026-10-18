@@ -6,6 +6,33 @@ namespace Pulse.Tests;
 public sealed class DockPresentationTests
 {
     [Theory]
+    [InlineData("Widget", true)]
+    [InlineData("App", true)]
+    [InlineData("Hidden", false)]
+    public void ObsPresentationUsesOneSlotAndNeverDuplicatesTheProfileApp(string mode, bool visible)
+    {
+        var workspace = ProfileWorkspaces.Default(Profile.Stream) with { ObsPresentation = mode };
+        Assert.Equal(visible, ProfileWorkspaces.ShowObs(workspace));
+        Assert.Empty(ProfileWorkspaces.DockApps(workspace));
+        // Activating a workspace can still launch its configured app.
+        Assert.Single(workspace.Apps);
+        var noStudio = workspace with { Widgets = [] };
+        Assert.False(ProfileWorkspaces.ShowObs(noStudio));
+        Assert.Equal(mode == "Hidden" ? 0 : 1, ProfileWorkspaces.DockApps(noStudio).Length);
+        var withoutSlot = DockPresentation.RailExtent(workspace with { ObsPresentation = "Hidden" }, true, true, false, null);
+        Assert.Equal(withoutSlot + (visible ? 36 : 0), DockPresentation.RailExtent(workspace, true, true, false, null));
+    }
+
+    [Fact]
+    public void ObsModeSurvivesSavingAndUnknownModesFallBackToHoverControls()
+    {
+        var workspace = ProfileWorkspaces.Default(Profile.Stream) with { ObsPresentation = "App" };
+        var saved = System.Text.Json.JsonSerializer.Serialize(workspace);
+        Assert.Equal("App", System.Text.Json.JsonSerializer.Deserialize<ProfileWorkspace>(saved)!.Normalize().ObsPresentation);
+        Assert.Equal("Widget", (workspace with { ObsPresentation = "obsolete" }).Normalize().ObsPresentation);
+    }
+
+    [Theory]
     [InlineData(0, false)][InlineData(1, false)][InlineData(2, false)][InlineData(3, true)][InlineData(16, true)]
     public void MoreThanTwoAppsShareOneFolder(int count, bool grouped) => Assert.Equal(grouped, DockPresentation.GroupApps(count));
 

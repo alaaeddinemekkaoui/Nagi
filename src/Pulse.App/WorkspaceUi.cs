@@ -65,7 +65,8 @@ public sealed partial class MainWindow
     private void BuildProfileDock()
     {
         var workspace = ViewModel.Settings.Workspace(ViewModel.Profile);
-        if (_preview == PreviewKind.Apps && (_folderProfile != ViewModel.Profile || !DockPresentation.GroupApps(workspace.Apps.Length))) ClosePreview();
+        var dockApps = ProfileWorkspaces.DockApps(workspace);
+        if (_preview == PreviewKind.Apps && (_folderProfile != ViewModel.Profile || !DockPresentation.GroupApps(dockApps.Length))) ClosePreview();
         _folderProfile = ViewModel.Profile;
         AppFolderButton.Visibility = Visibility.Collapsed;
         AppFolderGrid.Children.Clear(); AppFolderGrid.RowDefinitions.Clear();
@@ -105,8 +106,8 @@ public sealed partial class MainWindow
                 };
                 _motion.Wire(button); return button;
             }
-            if (!DockPresentation.GroupApps(workspace.Apps.Length)) ProfileDockPanel.Children.Add(AppButton(true));
-            else
+            if (dockApps.Contains(app) && !DockPresentation.GroupApps(dockApps.Length)) ProfileDockPanel.Children.Add(AppButton(true));
+            else if (dockApps.Contains(app))
             {
                 var folderIndex = AppFolderGrid.Children.Count;
                 if (folderIndex % folderColumns == 0) AppFolderGrid.RowDefinitions.Add(new() { Height = GridLength.Auto });
@@ -118,17 +119,18 @@ public sealed partial class MainWindow
             var appButton = AppButton(false); Grid.SetRow(appButton, index / 4); Grid.SetColumn(appButton, index % 4);
             WorkspaceAppsPanel.Children.Add(appButton);
         }
-        if (DockPresentation.GroupApps(workspace.Apps.Length))
+        if (DockPresentation.GroupApps(dockApps.Length))
         {
             AppFolderButton.Width = 34;
             AppFolderButton.Visibility = Visibility.Visible;
-            AppFolderCount.Text = workspace.Apps.Length.ToString();
-            AppFolderHint.Text = workspace.Apps.Length + L.T(" apps") + " · " + ViewModel.ProfileText;
-            ToolTipService.SetToolTip(AppFolderButton, L.T("More apps · hover to expand ") + workspace.Apps.Length + L.T(" apps"));
+            AppFolderCount.Text = dockApps.Length.ToString();
+            AppFolderHint.Text = dockApps.Length + L.T(" apps") + " · " + ViewModel.ProfileText;
+            ToolTipService.SetToolTip(AppFolderButton, L.T("More apps · hover to expand ") + dockApps.Length + L.T(" apps"));
             ProfileDockPanel.Children.Add(AppFolderButton);
         }
         WorkspaceAppsCard.Visibility = workspace.Apps.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
-        ProfileDockPanel.Visibility = workspace.Apps.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        ProfileDockPanel.Visibility = dockApps.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        ConfigureObsDock();
         WorkspaceHint.Text = workspace.Apps.Length == 0 ? L.T("Add apps from Profiles to build this workspace.") : workspace.AutoOpenApps ? L.T("Apps open when you manually activate this profile.") : L.T("Click an app to open it. Automatic opening is off.");
     }
 
@@ -144,7 +146,8 @@ public sealed partial class MainWindow
         MediaCard.Visibility = Show(workspace.Shows("Media") && ViewModel.Settings.ShowMedia && _luaStyle.ShowMedia);
         AudioCard.Visibility = Show(workspace.Shows("Audio") && _luaStyle.ShowAudio);
         MicrophoneCard.Visibility = PeekMicrophoneRow.Visibility = Show(workspace.Shows("Microphone"));
-        IntegrationCard.Visibility = RailObsButton.Visibility = Show(workspace.Shows("Studio"));
+        IntegrationCard.Visibility = Show(ProfileWorkspaces.ShowObs(workspace) && workspace.ObsPresentation == "Widget");
+        RailObsButton.Visibility = Show(ProfileWorkspaces.ShowObs(workspace));
         WeatherCard.Visibility = RailWeatherButton.Visibility = Show(workspace.Shows("Weather") && ViewModel.Settings.WeatherEnabled);
         CompactCpuButton.Visibility = RailGpuButton.Visibility = Show(workspace.Shows("Performance"));
         CompactMediaButton.Visibility = Show(workspace.Shows("Media") && ViewModel.Settings.ShowMedia || workspace.Shows("Audio"));
@@ -196,5 +199,6 @@ public sealed partial class MainWindow
             widgets.Children.Add(toggle);
         }
         WorkspacePage.Children.Add(Card(widgets));
+        AddObsPresentationSettings(WorkspacePage, profile);
     }
 }

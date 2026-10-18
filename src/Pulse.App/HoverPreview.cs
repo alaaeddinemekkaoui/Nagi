@@ -53,7 +53,7 @@ public sealed partial class MainWindow
             else if (PointerOver(RailGpuButton)) QueuePreview(PreviewKind.System, RailGpuButton);
             else if (PointerOver(CompactMediaButton)) QueuePreview(
                 PreviewKind.Media, CompactMediaButton);
-            else if (PointerOver(RailObsButton)) QueuePreview(PreviewKind.Obs, RailObsButton);
+            else if (PointerOver(RailObsButton) && ViewModel.Settings.Workspace(ViewModel.Profile).ObsPresentation == "Widget") QueuePreview(PreviewKind.Obs, RailObsButton);
             else if (PointerOver(AppFolderButton)) QueuePreview(PreviewKind.Apps, AppFolderButton);
             else _previewOpen.Stop();
             if (PointerInsideHalo()) _previewClose.Stop();
@@ -87,6 +87,7 @@ public sealed partial class MainWindow
     private void QueuePreview(PreviewKind kind, FrameworkElement target)
     {
         _previewClose.Stop();
+        if (kind == PreviewKind.Obs && ViewModel.Settings.Workspace(ViewModel.Profile).ObsPresentation != "Widget") return;
         if (_closed || _dock.Stage != DockStage.Compact || _userHidden || _dialogOpen || _quickMenuOpen || _previewSuppressed || _motion.IsMoving || PointerOnEdgeLip()) return;
         if (_previewOpen.IsEnabled && _pendingPreview == kind && ReferenceEquals(_pendingPreviewTarget, target)) return;
         _pendingPreview = kind;

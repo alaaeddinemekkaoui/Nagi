@@ -19,14 +19,15 @@ public static class DockPresentation
     public static double RailExtent(ProfileWorkspace workspace, bool horizontal, bool showMedia, bool weatherEnabled, PowerSnapshot? power)
     {
         var extents = new List<double> { 32, 32 }; // Logo, search, then applications.
-        var apps = GroupApps(workspace.Apps.Length) ? 1 : workspace.Apps.Length;
+        var appCount = ProfileWorkspaces.DockApps(workspace).Length;
+        var apps = GroupApps(appCount) ? 1 : appCount;
         extents.AddRange(Enumerable.Repeat(horizontal ? 34d : 32d, apps));
-        if (workspace.Shows("Performance")) { extents.Add(horizontal ? 56 : 28); extents.Add(horizontal ? 56 : 28); }
+        if (workspace.Shows("Performance")) { extents.Add(horizontal ? 48 : 38); extents.Add(horizontal ? 48 : 38); }
         if (workspace.Shows("Media") && showMedia || workspace.Shows("Audio")) extents.Add(horizontal ? 168 : 50);
-        if (workspace.Shows("Studio")) extents.Add(32);
+        if (ProfileWorkspaces.ShowObs(workspace)) extents.Add(32);
         if (workspace.Shows("Microphone")) extents.Add(30);
-        if (workspace.Shows("Weather") && weatherEnabled) extents.Add(horizontal ? 44 : 30);
-        if (ShowBattery(workspace, power)) extents.Add(horizontal ? 44 : 30);
+        if (workspace.Shows("Weather") && weatherEnabled) extents.Add(horizontal ? 44 : 38);
+        if (ShowBattery(workspace, power)) extents.Add(horizontal ? 44 : 38);
         return extents.Sum() + extents.Count * 4 + 16;
     }
 }

@@ -13,6 +13,18 @@ public sealed record PreparedUpdate(AppRelease Release, string Directory, string
 public sealed class AppUpdateService(HttpClient client)
 {
     public const string Repository = "alaaeddinemekkaoui/Nagi";
+    public static string ExtractChangelog(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return "";
+        var notes = body.Replace("\r\n", "\n").Trim();
+        // Older releases appended the full README after a horizontal rule.
+        var readme = Regex.Match(notes, @"(?m)^\s*---+\s*$");
+        if (readme.Success) notes = notes[..readme.Index].Trim();
+        // If a whole changelog was pasted, show only the newest release section.
+        var releases = Regex.Matches(notes, @"(?m)^#{1,3}\s+(?:Nagi\s+)?v?\d+\.\d+(?:\.\d+)?\b[^\n]*", RegexOptions.IgnoreCase);
+        if (releases.Count > 1) notes = notes[..releases[1].Index].Trim();
+        return notes.Length > 24000 ? notes[..24000] : notes;
+    }
     public static Version? ParseVersion(string tag)
     {
         var match = Regex.Match(tag, @"^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?$", RegexOptions.IgnoreCase);
@@ -54,7 +66,7 @@ public sealed class AppUpdateService(HttpClient client)
         if (root.TryGetProperty("html_url", out var html) && Uri.TryCreate(html.GetString(), UriKind.Absolute, out var candidate)
             && candidate.Scheme == "https" && candidate.Host == "github.com"
             && candidate.AbsolutePath.StartsWith("/" + Repository + "/releases/tag/", StringComparison.Ordinal)) page = candidate;
-        return new(version, url, size, hash, checksum, notes.Length > 24000 ? notes[..24000] : notes, page);
+        return new(version, url, size, hash, checksum, ExtractChangelog(notes), page);
     }
 
     public async Task<PreparedUpdate> PrepareAsync(AppRelease release, string updateRoot, IProgress<double>? progress, CancellationToken token)

@@ -7,7 +7,10 @@
 - Keep the dock compact without scrolling. Show up to two app shortcuts directly; larger profiles use one hover folder. Show full long media titles on hover and retain artwork/volume on narrow displays.
 - Add theme, Windows accent and custom notch colors. Connect glass before expansion and remove native frame/shadow flashes.
 - Fix repeated panel entrance animations, shifting hover effects, overlapping preview headings, Arabic navigation and widget padding. Preserve motion and corner radius when a transition is interrupted.
-- Make the control center resizable and retain its size across Settings navigation. Hide the workspace banner on global Settings pages.
+- Open Settings/control center as a standard Windows window with a title bar, resize, minimize and maximize controls. Keep it open when focus changes; Close returns to the dock. Retain size across Settings navigation and the existing content animation.
+- Stack CPU/GPU values above their labels and weather/battery values above their icons, using consistent spacing.
+- Choose an OBS app shortcut, hover controls or Hidden for each profile. Remove duplicate OBS dock apps and add a hide action to the hover panel.
+- Show only the current release changelog in update notes; omit the README and older release sections.
 - Add local music/video playback, multiple-file queues and dock controls. Improve Windows media-session selection and clean shutdown with the local player open. Supported formats depend on Windows codecs.
 - Hide battery/AC controls when no battery is detected; fit vertical media/battery and full CPU/GPU percentages within the dock.
 - Skip hidden audio animations, reuse visualizer transitions and avoid unchanged brush/surface redraws.

@@ -101,7 +101,7 @@ public sealed partial class MainWindow : Window
             _active = args.WindowActivationState != WindowActivationState.Deactivated;
             if (_active) return;
             await Task.Delay(90);
-            if (!_closed && !_active && !_windowManager.OwnsForeground && _tray?.IsMenuOpen != true && _expanded && !_dialogOpen && !_userHidden && ViewModel.Settings.CloseOnDeactivate) Collapse();
+            if (!_closed && !_controlCenter && !_active && !_windowManager.OwnsForeground && _tray?.IsMenuOpen != true && _expanded && !_dialogOpen && !_userHidden && ViewModel.Settings.CloseOnDeactivate) Collapse();
         };
         Closed += async (_, _) => await ShutdownAsync();
         ViewModel.FocusActivated += () => { if (!_controlCenter) Collapse(); };
@@ -185,6 +185,11 @@ public sealed partial class MainWindow : Window
             _presenterControlCenter = _controlCenter;
             var presenter = (OverlappedPresenter)AppWindow.Presenter;
             if (!_controlCenter && presenter.State != OverlappedPresenterState.Restored) presenter.Restore();
+            presenter.SetBorderAndTitleBar(_controlCenter, _controlCenter);
+            ExtendsContentIntoTitleBar = _controlCenter;
+            WindowCaption.Visibility = _controlCenter ? Visibility.Visible : Visibility.Collapsed;
+            Expanded.Margin = _controlCenter ? new(0, 32, 0, 0) : new(0);
+            SetTitleBar(_controlCenter ? WindowCaption : null);
             presenter.IsResizable = presenter.IsMaximizable = presenter.IsMinimizable = _controlCenter;
             presenter.IsAlwaysOnTop = !_controlCenter; AppWindow.IsShownInSwitchers = _controlCenter;
         }
@@ -302,6 +307,13 @@ public sealed partial class MainWindow : Window
     }
     private void ApplyGlass()
     {
+        _windowManager.SetTitleBarTheme(Shell.ActualTheme != ElementTheme.Light);
+        if (_controlCenter)
+        {
+            AppWindow.TitleBar.ButtonBackgroundColor = AppWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+            AppWindow.TitleBar.ButtonForegroundColor = ((SolidColorBrush)ThemeBrush("InkBrush")).Color;
+            AppWindow.TitleBar.ButtonInactiveForegroundColor = ((SolidColorBrush)ThemeBrush("MutedBrush")).Color;
+        }
         var previousGlass = SystemBackdrop is not null;
         var previousResting = _materialResting;
         _glass.SetAkeno(ViewModel.Settings.Theme == "Akeno");
@@ -523,6 +535,8 @@ public sealed partial class MainWindow : Window
     private void Root_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         if (_dialogOpen) return;
+        for (var source = e.OriginalSource as DependencyObject; source is not null; source = VisualTreeHelper.GetParent(source))
+            if (ReferenceEquals(source, RailObsButton)) return; // Preserve the OBS-specific context menu.
         ResetPreview();
         if (_dock.Stage == DockStage.Compact && !_dock.Pinned) _dock.Collapse();
         _quickMenuOpen = true; Layout();

@@ -30,7 +30,9 @@ Open `Nagi-Portable.exe` directly. It contains all app/runtime files, prepares t
 
 The current release is **Nagi v0.1.3**, tag **`v0.1.3`**, following the early **v0.1** baseline. `src/Pulse.App/Pulse.App.csproj` supplies version `0.1.3` to the app and EXE metadata. Publish generates `RELEASE_README.md` from the README using links pinned to `v0.1.3`; `-ReleaseTag` supports a future tag. Keep releases in **v0.1.x** until the owner explicitly approves v1.
 
-Upload the portable EXE, ZIP, setup and their SHA256 files. Use `RELEASE_README.md` as the release body. In-app updates require the Windows x64 ZIP and a GitHub SHA256 digest or checksum asset. `Apply-NagiUpdate.ps1` stages replacement outside the running app and backs up replaced files for rollback.
+Upload the portable EXE, ZIP, setup and their SHA256 files. Publish generates `artifacts/Nagi-release-notes.md` from the matching changelog section; use that file as the release body so update prompts show only the current changes. Keep `RELEASE_README.md` as a separate documentation asset. In-app updates require the Windows x64 ZIP and a GitHub SHA256 digest or checksum asset. `Apply-NagiUpdate.ps1` stages replacement outside the running app and backs up replaced files for rollback.
+
+Replacing assets under the same version does not notify clients already running that version. They can open the replacement portable EXE or rerun setup. A normal future release increments the version for automatic detection.
 
 ## Installer and signing
 
@@ -45,6 +47,7 @@ Close any copy from an output folder before rebuilding it. Helpers use dedicated
 ```powershell
 ./scripts/Smoke-NagiWorkspaces.ps1 -ExecutablePath <exe>
 ./scripts/Smoke-NagiThemes.ps1 -ExecutablePath <exe>
+./scripts/Smoke-NagiWindowAndWidgets.ps1 -ExecutablePath <exe>
 ./scripts/Smoke-NagiAppFolder.ps1 -ExecutablePath <exe>
 ./scripts/Smoke-NagiAppFolder.ps1 -ExecutablePath <exe> -Orientation Vertical
 ./scripts/Smoke-NagiUpdate.ps1

@@ -10,6 +10,14 @@ namespace Pulse.Tests;
 public sealed class AppUpdateTests
 {
     [Theory]
+    [InlineData(null, "")]
+    [InlineData("- Fixed themes\n- Aligned widgets", "- Fixed themes\n- Aligned widgets")]
+    [InlineData("## Nagi v0.1.3\r\n\r\n- Fixed widgets\r\n\r\n---\r\n\r\n<div>Full README, downloads and installation</div>", "## Nagi v0.1.3\n\n- Fixed widgets")]
+    [InlineData("## Nagi v0.1.3\n- Fixed widgets\n\n## Nagi v0.1.2\n- Older changes", "## Nagi v0.1.3\n- Fixed widgets")]
+    public void UpdateNotesContainOnlyTheCurrentChangelog(string? body, string expected)
+        => Assert.Equal(expected, AppUpdateService.ExtractChangelog(body));
+
+    [Theory]
     [InlineData("v2", "2.0.0.0")]
     [InlineData("v0.1", "0.1.0.0")]
     [InlineData("v0.1.1", "0.1.1.0")]

@@ -132,9 +132,9 @@ The current validation record covers automated behavior and Windows integration 
 
 Built with WinUI 3, Win2D and .NET.
 
-In-app updates are under **Settings → Updates**. Automatic checks download verified releases; choose **Install and restart** to apply them while keeping your preferences. **Settings → Music** chooses the service offered when nothing is playing. The new Default profile starts without apps, showing search, CPU/GPU and now playing. Stream adds an OBS hover panel and three scene shortcuts.
+In-app updates are under **Settings → Updates**. Automatic checks download verified releases; choose **Install and restart** to apply them while keeping your preferences. **Settings → Music** chooses the service offered when nothing is playing. The new Default profile starts without apps, showing search, CPU/GPU and now playing. Stream offers an OBS app shortcut or hover controls with three scene buttons; choose Hidden to remove OBS from that profile. Update notes show only the release changelog.
 
-The compact dock fits one row without scrolling. Choose its notch color from the theme, your Windows accent or a custom color under Appearance & dock. Hover media for full titles, open local music/video under Settings → Music, and resize the control center by dragging an edge or corner. Battery controls appear only on devices with a detected battery.
+The compact dock fits one row without scrolling. Choose its notch color from the theme, your Windows accent or a custom color under Appearance & dock. Hover media for full titles, open local music/video under Settings → Music, and resize the Settings window by dragging an edge or corner. CPU/GPU values sit above their labels; weather and battery values sit above their icons. Settings has native window controls, stays open when focus changes and returns to the dock when closed. Battery controls appear only on devices with a detected battery.
 
 Change the app language under **Settings → Language**. The page shows the current language, a system-default option and a restart button. Language is also available under General.
 

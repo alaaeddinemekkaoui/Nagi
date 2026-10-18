@@ -25,6 +25,11 @@ foreach($nagiDocument in @('CHANGELOG.md','THIRD-PARTY-NOTICES.md')){$nagiReleas
 Set-Content -LiteralPath (Join-Path $pulseRoot 'RELEASE_README.md') -Value $nagiReleaseReadme -Encoding utf8 -NoNewline
 Copy-Item -LiteralPath (Join-Path $pulseRoot 'RELEASE_README.md') -Destination $pulseOutput -Force
 Copy-Item -LiteralPath (Join-Path $pulseRoot 'CHANGELOG.md') -Destination $pulseOutput -Force
+$nagiChangelog = Get-Content -LiteralPath (Join-Path $pulseRoot 'CHANGELOG.md') -Raw
+$nagiNotesPattern = '(?ms)^## Nagi ' + [regex]::Escape($ReleaseTag) + '\b.*?(?=^## Nagi |\z)'
+$nagiReleaseNotes = [regex]::Match($nagiChangelog, $nagiNotesPattern).Value.Trim()
+if (!$nagiReleaseNotes) { throw ('No changelog section for ' + $ReleaseTag) }
+Set-Content -LiteralPath (Join-Path $pulseRoot 'artifacts/Nagi-release-notes.md') -Value $nagiReleaseNotes -Encoding utf8
 Copy-Item -LiteralPath (Join-Path $pulseRoot 'docs') -Destination $pulseOutput -Recurse -Force
 foreach($nagiObsolete in @('AGENTS.md','AI_CONTEXT.md','TASKS.md','docs/ASSETS.md')){
  $nagiObsoletePath=Join-Path $pulseOutput $nagiObsolete

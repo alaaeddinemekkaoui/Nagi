@@ -148,6 +148,7 @@ public sealed partial class MainWindow
         integrations.Children.Add(Note(L.T("Controls the default communications microphone. Nagi does not record audio. Device: ") + _microphoneSnapshot.Device));
         SettingsPage.Children.Add(Card(integrations));
         var obs = Stack(); obs.Children.Add(Heading(L.T("OBS Studio")));
+        AddObsPresentationSettings(obs, ViewModel.Profile);
         obs.Children.Add(Note(L.T("Enable the OBS WebSocket server in OBS → Tools → WebSocket Server Settings. Nagi connects only to this computer. Recording, streaming and scene changes require a button click.")));
         obs.Children.Add(Toggle(L.T("Connect to OBS"), L.T("Read recording, stream and rendering status through OBS WebSocket v5."), ViewModel.Settings.ObsEnabled, (s, enabled) => s with { ObsEnabled = enabled }));
         var port = new NumberBox { Header = L.T("OBS WebSocket port"), Minimum = 1024, Maximum = 65535, Value = ViewModel.Settings.ObsPort, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact };

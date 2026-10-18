@@ -58,9 +58,14 @@ public sealed class HaloWindowManager : IWindowManager
     public void SuppressSystemCorners()
     {
         SetControlCenterMode(_controlCenter);
-        var corners = 1; Native.DwmSetWindowAttribute(_hwnd, 33, ref corners, sizeof(int));
+        var corners = _controlCenter ? 0 : 1; Native.DwmSetWindowAttribute(_hwnd, 33, ref corners, sizeof(int));
         var nonClient = _controlCenter ? 0 : 1;
         Native.DwmSetWindowAttribute(_hwnd, 2, ref nonClient, sizeof(int));
+    }
+    public void SetTitleBarTheme(bool dark)
+    {
+        var value = dark ? 1 : 0;
+        Native.DwmSetWindowAttribute(_hwnd, 20, ref value, sizeof(int));
     }
     public static IReadOnlyList<DisplayMonitor> GetMonitors() => Monitors().Select((m, index) =>
         new DisplayMonitor(m.Info.Device, "Display " + (index + 1) + ((m.Info.Flags & 1) != 0 ? " · primary" : ""))).ToArray();
@@ -160,7 +165,8 @@ public sealed class HaloWindowManager : IWindowManager
                 Native.SetWindowPos(_hwnd, _controlCenter ? -2 : -1, x, y, width, height, 0x0010);
             _dropAmount = Math.Clamp(frame.DropAmount, 0, 1);
             _radius = frame.Radius;
-            if (_dropAmount > .001)
+            if (_controlCenter) Native.SetWindowRgn(_hwnd, 0, true);
+            else if (_dropAmount > .001)
             {
                 var contour = Pulse.Core.Motion.EdgeDropContour.Create(width, height, _position.Anchor, _dropAmount);
                 var points = contour.Select(p => new Native.Point { X = (int)Math.Round(p.X), Y = (int)Math.Round(p.Y) }).ToArray();
@@ -216,14 +222,17 @@ public sealed class HaloWindowManager : IWindowManager
     private void SetControlCenterMode(bool enabled)
     {
         var style = Native.GetWindowLongPtr(_hwnd, -16).ToInt64();
-        // WinUI presenter changes can restore a native caption even when its title bar is hidden.
-        // A tiny dock would then show only that caption instead of its client content.
-        var desired = style & ~0x00C40000L;
-        if (enabled) desired |= 0x00040000L;
+        // Use a full native window for Settings, and remove every caption/control style
+        // when returning to the small, frameless dock.
+        var desired = enabled ? style | 0x00CF0000L : style & ~0x00CF0000L;
         var extended = Native.GetWindowLongPtr(_hwnd, -20).ToInt64();
         var desiredExtended = enabled ? (extended | 0x40000L) & ~0x20380L : (extended | 0x80L) & ~0x60300L;
         if (_controlCenter == enabled && style == desired && extended == desiredExtended) return;
         _controlCenter = enabled;
+        var nonClient = enabled ? 2 : 1; // DWMNCRP_ENABLED / DWMNCRP_DISABLED.
+        Native.DwmSetWindowAttribute(_hwnd, 2, ref nonClient, sizeof(int));
+        var corners = enabled ? 0 : 1;
+        Native.DwmSetWindowAttribute(_hwnd, 33, ref corners, sizeof(int));
         Native.SetWindowLongPtr(_hwnd, -16, (nint)desired);
         Native.SetWindowLongPtr(_hwnd, -20, (nint)desiredExtended);
         var prior = _layout; _layout = true;
@@ -287,7 +296,8 @@ public sealed class HaloWindowManager : IWindowManager
     }
     private nint WindowProcedure(nint hwnd, uint message, nuint wParam, nint lParam, nuint id, nuint data)
     {
-        if (_controlCenter && message == 0x0083 && wParam != 0) return 0; // Borderless, full client area.
+        // WinUI owns the caption buttons/drag region. Its title strip is reserved in XAML.
+        if (_controlCenter && message == 0x0083 && wParam != 0) return 0;
         if (_controlCenter && message == 0x0084 && Native.GetWindowRect(hwnd, out var border))
         {
             var packed = lParam.ToInt64(); var x = (short)(packed & 0xffff); var y = (short)((packed >> 16) & 0xffff);
@@ -298,6 +308,10 @@ public sealed class HaloWindowManager : IWindowManager
             if (bottom && left) return 16; if (bottom && right) return 17;
             if (left) return 10; if (right) return 11; if (top) return 12; if (bottom) return 15;
         }
+        // The native caption supplies resizing, dragging, system menu and window buttons.
+        // Closing this window returns to the dock; explicit application exit still uses WM_CLOSE.
+        if (_controlCenter && message == 0x0112 && (wParam & 0xFFF0) == 0xF060)
+        { EscapeRequested?.Invoke(); return 0; }
         if (_controlCenter && message == 0x0024)
         {
             var limits = Marshal.PtrToStructure<MinMaxInfo>(lParam);

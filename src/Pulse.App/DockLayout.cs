@@ -17,8 +17,8 @@ public sealed partial class MainWindow
         Compact.RowDefinitions.Clear(); Compact.ColumnDefinitions.Clear();
         var buttons = new FrameworkElement[] { CompactBrand, RailSearchButton, ProfileDockPanel, CompactCpuButton, RailGpuButton,
             CompactMediaButton, RailObsButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
-        var widths = new[] { 32d, 32, double.NaN, 56, 56, 168, 32, 30, 44, 44 };
-        var heights = new[] { 32d, 32, double.NaN, 28, 28, 50, 32, 30, 30, 30 };
+        var widths = new[] { 32d, 32, double.NaN, 48, 48, 168, 32, 30, 44, 44 };
+        var heights = new[] { 32d, 32, double.NaN, 38, 38, 50, 32, 30, 38, 38 };
         for (var i = 0; i < buttons.Length; i++)
         {
             Grid.SetRow(buttons[i], horizontal ? 0 : i); Grid.SetColumn(buttons[i], horizontal ? i : 0);
@@ -72,8 +72,8 @@ public sealed partial class MainWindow
         RailViewport.Visibility = _controlCenter ? Visibility.Collapsed : Visibility.Visible;
         if (_controlCenter)
         {
-            Expanded.Width = width; Expanded.Height = height;
-            Expanded.HorizontalAlignment = HorizontalAlignment.Center; Expanded.VerticalAlignment = VerticalAlignment.Center;
+            Expanded.Width = Expanded.Height = double.NaN;
+            Expanded.HorizontalAlignment = HorizontalAlignment.Stretch; Expanded.VerticalAlignment = VerticalAlignment.Stretch;
             return;
         }
         var position = ViewModel.Settings.Position;

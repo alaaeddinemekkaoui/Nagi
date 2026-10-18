@@ -71,7 +71,9 @@ public sealed class WindowSilhouetteTests
             using var manager = new HaloWindowManager(hwnd);
             var position = new HaloPosition();
             var frame = manager.PrepareControlCenter(position); manager.ApplyFrame(frame);
-            Assert.NotEqual(0, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x40000);
+            Assert.Equal(0x00CF0000L, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x00CF0000L);
+            Assert.True(GetClientRect(hwnd, out var client));
+            Assert.Equal(frame.Height, client.Bottom); // WinUI reserves its title strip inside the client area.
             var point = (nint)(((long)(int)(frame.Y + frame.Height / 2) << 16) | ((long)(int)(frame.X + frame.Width - 2) & 0xffff));
             Assert.Equal((nint)11, SendMessage(hwnd, 0x84, 0, point));
             var resized = frame with { Width = frame.Width - 60, Height = frame.Height - 40 };
@@ -79,7 +81,22 @@ public sealed class WindowSilhouetteTests
             var retained = manager.PrepareControlCenter(position);
             Assert.Equal(resized.Width, retained.Width); Assert.Equal(resized.Height, retained.Height);
             manager.PrepareLayout(false, false, position, 84, true);
-            Assert.Equal(0, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x40000);
+            Assert.Equal(0, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x00CF0000L);
+        }
+        finally { DestroyWindow(hwnd); }
+    }
+    [Fact] public void CaptionCloseRequestsReturnToDockInsteadOfTerminatingTheApplication()
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi close test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            manager.ApplyFrame(manager.PrepareControlCenter(new()));
+            var closeRequested = false;
+            manager.EscapeRequested += () => closeRequested = true;
+            SendMessage(hwnd, 0x0112, 0xF060, 0);
+            Assert.True(closeRequested);
+            Assert.NotEqual(0, GetWindowLongPtr(hwnd, -16));
         }
         finally { DestroyWindow(hwnd); }
     }
@@ -107,6 +124,7 @@ public sealed class WindowSilhouetteTests
     [DllImport("user32.dll")] private static extern nint GetWindowLongPtr(nint hwnd, int index);
     [DllImport("user32.dll")] private static extern nint SendMessage(nint hwnd, uint message, nint wParam, nint lParam);
     [DllImport("user32.dll")] private static extern bool IsWindowVisible(nint hwnd);
+    [DllImport("user32.dll")] private static extern bool GetClientRect(nint hwnd, out Rect rect);
     [DllImport("user32.dll")] private static extern int GetWindowRgn(nint hwnd, nint region);
     [DllImport("gdi32.dll")] private static extern nint CreateRectRgn(int left, int top, int right, int bottom);
     [DllImport("gdi32.dll")] private static extern bool PtInRegion(nint region, int x, int y);

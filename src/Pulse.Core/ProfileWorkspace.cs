@@ -4,9 +4,11 @@ public sealed record ProfileApp(string Name, string Target, string Kind = "Catal
 
 public sealed record ProfileWorkspace(Profile Profile, ProfileApp[] Apps, string[] Widgets, bool AutoOpenApps = false)
 {
+    public string ObsPresentation { get; init; } = "Widget";
     public bool Shows(string widget) => Widgets.Contains(widget, StringComparer.Ordinal);
     public ProfileWorkspace Normalize() => this with
     {
+        ObsPresentation = ObsPresentation is "App" or "Hidden" ? ObsPresentation : "Widget",
         Apps = (Apps ?? []).Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Name)
                 && !string.IsNullOrWhiteSpace(a.Target) && a.Name.Length <= 80 && a.Target.Length <= 2048
                 && (a.Kind == "Catalog" || a.Kind == "Suggested" && ProfileWorkspaces.Suggestions.ContainsKey(a.Target)))
@@ -17,6 +19,13 @@ public sealed record ProfileWorkspace(Profile Profile, ProfileApp[] Apps, string
 
 public static class ProfileWorkspaces
 {
+    public static bool IsObsApp(ProfileApp app) => app.Target.Equals("obs", StringComparison.OrdinalIgnoreCase)
+        || app.Name.StartsWith("OBS Studio", StringComparison.OrdinalIgnoreCase)
+        || Path.GetFileNameWithoutExtension(app.Target) is "obs64" or "obs32";
+    // The studio slot owns OBS in this profile; avoid showing both an app and a widget.
+    public static ProfileApp[] DockApps(ProfileWorkspace workspace) => workspace.Shows("Studio") || workspace.ObsPresentation == "Hidden"
+        ? workspace.Apps.Where(app => !IsObsApp(app)).ToArray() : workspace.Apps;
+    public static bool ShowObs(ProfileWorkspace workspace) => workspace.Shows("Studio") && workspace.ObsPresentation != "Hidden";
     public static readonly Profile[] Profiles = [Profile.Default, Profile.Work, Profile.Gaming, Profile.Stream, Profile.Focus];
     public static readonly string[] WidgetNames = ["Performance", "Network", "Media", "Audio", "Microphone", "Weather", "Studio", "Battery"];
     public static readonly IReadOnlyDictionary<string, string[]> Suggestions = new Dictionary<string, string[]>

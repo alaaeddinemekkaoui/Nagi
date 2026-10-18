@@ -55,6 +55,8 @@ jobs:
         run: |
           $release = gh release view $env:NAGI_RELEASE_TAG --json isDraft | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0 -or !$release.isDraft) { throw 'An existing draft release is required.' }
+          gh release edit $env:NAGI_RELEASE_TAG --notes-file artifacts/Nagi-release-notes.md
+          if ($LASTEXITCODE -ne 0) { throw 'Changelog update failed.' }
           $files = @('Nagi-Portable.exe','Nagi-Portable.exe.sha256','artifacts/Nagi-win-x64.zip','artifacts/Nagi-win-x64.zip.sha256','artifacts/Nagi-Setup.exe','artifacts/Nagi-Setup.exe.sha256','RELEASE_README.md')
           gh release upload $env:NAGI_RELEASE_TAG @files --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed.' }

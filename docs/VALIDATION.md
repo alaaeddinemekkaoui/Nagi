@@ -2,7 +2,7 @@
 
 ## Automated checks
 
-The Windows Release build passes. The automated suite contains **234 core/infrastructure tests and 56 Windows integration tests (290 total)**. It covers settings recovery, profile rules, workspaces, search, media policies, motion, power status, providers, native geometry, OBS protocol handling and verified update preparation.
+The Windows Release build passes. The automated suite contains **242 core/infrastructure tests and 57 Windows integration tests (299 total)**. It covers settings recovery, profile rules, workspaces, search, media policies, motion, power status, providers, native geometry, OBS protocol handling and verified update preparation.
 
 OBS tests use an owned loopback fixture and confirm observed recording, streaming and program-scene states. They do not start the user's recording or stream. Update tests cover stable versions, download URLs, SHA256 and length verification, archive completeness and path rejection. NuGet vulnerability-data retrieval was unavailable during the recorded build (NU1900).
 
@@ -53,3 +53,10 @@ Physical monitor hotplug/mixed DPI, exclusive fullscreen games, graphics-driver 
 ## v0.1.3 release verification
 
 The About page thanks Reddit user u/alkidnn for suggestions, with a profile link and translated acknowledgment in all six language packs. Release checks include the 290-test suite, four-language Settings/layout checks with visible About credits, a real French-language restart, standalone portable launch and package SHA256 verification.
+
+## Revised v0.1.3 window and widget checks (2026-10-18)
+
+- 299 automated tests cover OBS presentation persistence, duplicate app suppression, hiding, changelog-only update notes and native Settings window behavior.
+- Four-language layout review checks 112 category/size combinations.
+- `Smoke-NagiWindowAndWidgets.ps1` verifies values above labels, OBS hover/app/hidden modes, native caption space, focus retention, minimize/maximize, Close-to-dock and theme changes with isolated settings.
+- The existing v0.1.3 release is rebuilt at the owner’s request. Clients already on v0.1.3 need to open the replacement portable EXE or setup; same-version assets do not trigger a version update prompt.
