@@ -851,6 +851,25 @@
     "↑↓ Select   Enter Open   Ctrl+Enter Folder   Ctrl+C Path   Esc Close\napp: Apps   file: Files   folder: Folders   > Actions   web Search": "↑↓ حدد إدخال، افتح Ctrl+Enter Folder، Ctrl+C Path، Esc، أغلق تطبيق\n: ملف التطبيقات: مجلد الملفات: المجلدات > بحث الويب الإجراءات",
     "↓ {0}    ↑ {1}": "↓ {0} ↑ {1}",
     "♫": "♫",
-    "凪 · ": "凪 · "
+    "凪 · ": "凪 · ",
+    "Transfer Center": "مركز النقل",
+    "Notifications": "الإشعارات",
+    "Windows notifications": "إشعارات Windows",
+    "Add files": "إضافة ملفات",
+    "Copy to folder": "نسخ إلى مجلد",
+    "Clear shelf": "إفراغ الرف",
+    "Clear Nagi alerts": "مسح تنبيهات Nagi",
+    "Notification settings": "إعدادات الإشعارات",
+    "Connect Windows notifications": "ربط إشعارات Windows",
+    "Disconnect Windows notifications": "فصل إشعارات Windows",
+    "App update downloads": "تنزيل تحديثات التطبيق",
+    "No update download in progress.": "No update download in progress.",
+    "Your shelf is empty. Add a few files for later.": "Your shelf is empty. Add a few files for later.",
+    "All quiet. Your notifications will appear here.": "All quiet. Your notifications will appear here.",
+    "Copying files…": "Copying files…",
+    "Copy cancelled. Completed files were kept.": "Copy cancelled. Completed files were kept.",
+    "Copied {0} files": "Copied {0} files",
+    "Copying files… {0:0}%": "Copying files… {0:0}%",
+    "Update download {0:0}%": "Update download {0:0}%"
   }
 }

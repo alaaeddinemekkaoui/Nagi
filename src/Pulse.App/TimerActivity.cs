@@ -101,12 +101,14 @@ public sealed partial class MainWindow
     private void RefreshLiveActivity(bool layout = true)
     {
         var next = DateTimeOffset.UtcNow < _completedUntil ? "complete"
+            : NotificationActivity.Length > 0 ? NotificationActivity
             : _timer.Active && ViewModel.Settings.LiveTimer ? "timer"
             : ViewModel.Settings.LiveMedia && ViewModel.Settings.ShowMedia && ViewModel.Media.Playing ? "media" : "";
 #if NAGI_DEVELOPMENT
         if (DateTimeOffset.UtcNow < _developmentPreviewUntil) next = _developmentPreview == "idle" ? "" : _developmentPreview;
         _developmentNotification.Visibility = next == "notification" ? Visibility.Visible : Visibility.Collapsed;
 #endif
+        _notchStatusRing.Visibility = _notchStatusText.Visibility = next is "notice" or "transfer" ? Visibility.Visible : Visibility.Collapsed;
         var horizontal = ViewModel.Settings.Position.Orientation == "Horizontal";
         var changed = next != _restingActivity || _restingHorizontal != horizontal;
         // Tabular digits need a new measurement only when the formatted length changes.
@@ -132,6 +134,7 @@ public sealed partial class MainWindow
     }
     private void ConfigureRestingActivity(bool horizontal)
     {
+        _notchStatusText.MaxWidth = horizontal ? 140 : 64;
 #if NAGI_DEVELOPMENT
         _developmentNotification.MaxWidth = horizontal ? 140 : 60;
 #endif

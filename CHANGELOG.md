@@ -2,6 +2,8 @@
 
 ## Nagi v0.2.2 — 2026-10-22
 
+- Add a persistent 24-file Transfer Center shelf with file picking, drag/drop, progress, cancellation and copies that preserve originals and existing destination files. Show update-download progress in Utilities and a rounded circular activity in the notch.
+- Add a card-based notification center and brief Nagi notch alerts. Read other Windows apps' notifications only after explicit Windows permission, without logging or persisting their contents. This listener requires the optional packaged edition; portable builds explain that requirement and retain Nagi alerts and transfers. Provide an MSIX build/signing script without changing certificate trust.
 - Open each integration from its own responsive card. Surface FPS permission setup in Settings with a direct action; hide unavailable FPS and temperatures from the dock and system preview.
 - Fit CPU, memory and GPU into three compact hover cards. Add visible-only, rate-limited network ping alongside download/upload speeds and rounded circular update-download progress.
 - Add functional Gaming, Developer, Creator and Focus modes to existing and custom profiles, with a mode dock button, hover cards and an explicit Apply mode layout action. Keep profile apps and user choices intact until a layout is applied.

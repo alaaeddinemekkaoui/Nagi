@@ -102,6 +102,7 @@ public sealed partial class MainWindow
             Grid.SetColumnSpan(timerCard, narrow ? 2 : 1); Grid.SetColumnSpan(weatherCard, narrow ? 2 : 1);
         };
         UtilitiesPage.Children.Add(grid);
+        BuildTransferCenter(); BuildNotificationCenter();
         var shortcuts = Stack(); shortcuts.Children.Add(Heading(L.T("Within reach")));
         var links = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
         links.Children.Add(Button(L.T("Quick search"), Search_Click));

@@ -851,6 +851,25 @@
     "↑↓ Select   Enter Open   Ctrl+Enter Folder   Ctrl+C Path   Esc Close\napp: Apps   file: Files   folder: Folders   > Actions   web Search": "↑↓ Выберите Enter Открыть Ctrl+Enter Папка Ctrl+C Путь Esc Закрыть Приложение\n: Файл приложений: Папка с файлами: Папки > Действия в Интернете. Поиск",
     "↓ {0}    ↑ {1}": "↓ {0} ↑ {1}",
     "♫": "♫",
-    "凪 · ": "凪 · "
+    "凪 · ": "凪 · ",
+    "Transfer Center": "Центр передачи",
+    "Notifications": "Уведомления",
+    "Windows notifications": "Уведомления Windows",
+    "Add files": "Добавить файлы",
+    "Copy to folder": "Копировать в папку",
+    "Clear shelf": "Очистить полку",
+    "Clear Nagi alerts": "Очистить уведомления Nagi",
+    "Notification settings": "Настройки уведомлений",
+    "Connect Windows notifications": "Подключить уведомления Windows",
+    "Disconnect Windows notifications": "Отключить уведомления Windows",
+    "App update downloads": "Загрузка обновлений",
+    "No update download in progress.": "No update download in progress.",
+    "Your shelf is empty. Add a few files for later.": "Your shelf is empty. Add a few files for later.",
+    "All quiet. Your notifications will appear here.": "All quiet. Your notifications will appear here.",
+    "Copying files…": "Copying files…",
+    "Copy cancelled. Completed files were kept.": "Copy cancelled. Completed files were kept.",
+    "Copied {0} files": "Copied {0} files",
+    "Copying files… {0:0}%": "Copying files… {0:0}%",
+    "Update download {0:0}%": "Update download {0:0}%"
   }
 }

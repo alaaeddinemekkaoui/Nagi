@@ -5,6 +5,14 @@ namespace Pulse.Windows.Tests;
 
 public sealed class ProviderTests
 {
+    [Fact] public async Task PortableNotificationProviderExplainsIdentityRequirementWithoutPrompting()
+    {
+        Assert.False(WindowsNotificationService.HasIdentity);
+        using var service = new WindowsNotificationService();
+        Assert.False(await service.RequestAccessAsync()); Assert.False(service.Allowed);
+        Assert.Contains("packaged", service.Status, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(await service.ReadAsync());
+    }
     [Fact] public async Task LatencyProbeMeasuresLoopbackAndHonorsCancellation()
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));

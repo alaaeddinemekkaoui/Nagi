@@ -96,6 +96,7 @@ public sealed partial class MainWindow
             DevelopmentButton("Timer complete · 00:00", "DevelopmentComplete", "\uE73E", (_, _) => { ShowDevelopmentCompletion(); Collapse(); }),
             DevelopmentButton("Playing music", "DevelopmentMusic", "\uE8D6", (_, _) => { ShowDevelopmentPreview("media"); Collapse(); }),
             DevelopmentButton("Notch notification", "DevelopmentNotification", "\uE7F4", (_, _) => { ViewModel.Publish("Development: test notch notification", true); ShowDevelopmentPreview("notification"); Collapse(); }),
+            DevelopmentButton("Real Nagi alert", "DevelopmentRealNotification", "\uE7F4", (_, _) => { ClearDevelopmentPreview(); ShowNotchNotice("Nagi · notification preview"); Collapse(); }),
             DevelopmentButton("Clear preview", "DevelopmentClear", "\uE711", (_, _) => { ClearDevelopmentPreview(true); Collapse(); }),
             DevelopmentButton("Update changelog", "DevelopmentUpdate", "\uE895", async (_, _) => await PreviewDevelopmentUpdateAsync())
         }));

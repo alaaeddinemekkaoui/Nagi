@@ -40,6 +40,7 @@ public sealed record PulseSettings
     public bool IndexFiles { get; init; } = true;
     public bool ShowDockSearch { get; init; } = true;
     public bool FpsEnabled { get; init; }
+    public bool WindowsNotificationsEnabled { get; init; }
     public bool AutomaticGameDetection { get; init; }
     public bool GitHubEnabled { get; init; }
     public string[] PinnedRepositories { get; init; } = [];

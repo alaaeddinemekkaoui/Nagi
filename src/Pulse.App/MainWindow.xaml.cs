@@ -122,6 +122,7 @@ public sealed partial class MainWindow : Window
         InitializeQuickSearch();
         InitializeTimer();
         InitializeIntegrations();
+        InitializeTransferCenter(); InitializeNotifications();
         try
         {
             _tray = new SystemTrayService(handle, Path.Combine(AppContext.BaseDirectory, "Assets", "Nagi.Tray.ico"));
@@ -462,6 +463,8 @@ public sealed partial class MainWindow : Window
             Animate(); _ = ReloadLuaUiAsync();
         }
         var metrics = ViewModel.Metrics;
+        if (ViewModel.Settings.WindowsNotificationsEnabled && Environment.TickCount64 >= _nextNotificationRead) _ = ReadWindowsNoticesAsync();
+        RefreshNotificationList();
         UpdateTray();
         var power = metrics.Power ?? PowerSnapshot.Unknown;
         BatteryFill.Width = (power.Percent ?? 0) * .12;
@@ -705,6 +708,7 @@ public sealed partial class MainWindow : Window
         _timerTick.Stop();
         if (_closed) return;
         _closed = true;
+        _noticeTick.Stop(); _windowsNotices.Dispose(); _fileTransferCancellation?.Cancel();
         _notchSystemColors.ColorValuesChanged -= NotchColorsChanged;
         _localMedia?.ClosePlayer();
         DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _shutdown.Cancel();

@@ -40,6 +40,7 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
     public string HotkeyText => FormatHotkey(Settings.Hotkey);
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? FocusActivated;
+    public event Action<string, bool>? NoticePublished;
 
     public PulseViewModel(PulseSettings settings)
     {
@@ -77,6 +78,7 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
         Notice = message;
         Activity.Insert(0, new(DateTimeOffset.Now, message));
         while (Activity.Count > 12) Activity.RemoveAt(Activity.Count - 1);
+        NoticePublished?.Invoke(message, essential);
     }
     public static string FormatHotkey(Hotkey key)
     {

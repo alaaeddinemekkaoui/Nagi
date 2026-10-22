@@ -88,6 +88,10 @@ Personalize colors, spacing, cards and labels through the native **Lua UI studio
 
 ### 06 · Settings, languages and updates
 
+**Utilities → Transfer Center** keeps up to 24 files ready for later. Drop files onto Nagi, add them with the picker, then copy them to a chosen folder with progress and cancellation. Originals stay in place and existing files are never overwritten. Update downloads share the center and a circular notch indicator.
+
+**Utilities → Notifications** collects Nagi alerts and can show other Windows apps' notifications through an opt-in Windows listener. External contents stay in memory and Focus hides their notch previews. Windows requires a packaged app and permission for this listener; the portable EXEs retain Nagi alerts and transfers. The [MSIX guide](docs/NOTIFICATIONS-AND-TRANSFERS.md) explains packaging and signing.
+
 A native **resizable Settings window**, with category cards and normal minimize/maximize/close controls. Closing it returns to the dock.
 
 <p><img src="docs/images/nagi-settings.png" width="880" alt="Updated Nagi Settings categories beneath the floating Overview, Profiles, Utilities and Settings navigation"></p>

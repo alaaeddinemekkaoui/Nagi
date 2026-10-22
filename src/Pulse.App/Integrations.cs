@@ -165,6 +165,7 @@ public sealed partial class MainWindow
     private void BuildIntegrationSettings()
     {
         if (_integrationPage is null) { BuildIntegrationList(); return; }
+        if (_integrationPage == "Notifications") { BuildWindowsNotificationSettings(); return; }
         if (_integrationPage is "Gaming" or "PresentMon FPS") { BuildGamingIntegrationSettings(_integrationPage); return; }
         if (_integrationPage is "GitHub" or "Calendar") { BuildModeConnectionsSettings(_integrationPage); return; }
         var obs = SettingsCardHeader("OBS Studio", "Recording, streaming and scene shortcuts in one place.", "\uE714");

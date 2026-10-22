@@ -851,6 +851,25 @@
     "↑↓ Select   Enter Open   Ctrl+Enter Folder   Ctrl+C Path   Esc Close\napp: Apps   file: Files   folder: Folders   > Actions   web Search": "↑↓ Изберете Enter Open Ctrl+Enter Folder Ctrl+C Path Esc Close\napp: Apps file: Files folder: Folders > Actions web Search",
     "↓ {0}    ↑ {1}": "↓ {0} ↑ {1}",
     "♫": "♫",
-    "凪 · ": "凪 · "
+    "凪 · ": "凪 · ",
+    "Transfer Center": "Transfer Center",
+    "Notifications": "Notifications",
+    "Windows notifications": "Windows notifications",
+    "Add files": "Add files",
+    "Copy to folder": "Copy to folder",
+    "Clear shelf": "Clear shelf",
+    "Clear Nagi alerts": "Clear Nagi alerts",
+    "Notification settings": "Notification settings",
+    "Connect Windows notifications": "Connect Windows notifications",
+    "Disconnect Windows notifications": "Disconnect Windows notifications",
+    "App update downloads": "App update downloads",
+    "No update download in progress.": "No update download in progress.",
+    "Your shelf is empty. Add a few files for later.": "Your shelf is empty. Add a few files for later.",
+    "All quiet. Your notifications will appear here.": "All quiet. Your notifications will appear here.",
+    "Copying files…": "Copying files…",
+    "Copy cancelled. Completed files were kept.": "Copy cancelled. Completed files were kept.",
+    "Copied {0} files": "Copied {0} files",
+    "Copying files… {0:0}%": "Copying files… {0:0}%",
+    "Update download {0:0}%": "Update download {0:0}%"
   }
 }

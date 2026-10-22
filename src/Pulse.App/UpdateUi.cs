@@ -31,6 +31,7 @@ public sealed partial class MainWindow
 #if NAGI_DEVELOPMENT
         _updateStatus = "Development build: use a new development executable to update. Production updates are disabled.";
 #else
+        if (Pulse.Windows.WindowsNotificationService.HasIdentity) { _updateStatus = L.T("Packaged edition: install a newer signed MSIX from GitHub releases."); return; }
         try
         {
             if (File.Exists(UpdateResultPath))
@@ -56,6 +57,12 @@ public sealed partial class MainWindow
         development.Children.Add(Button("Preview update changelog", async (_, _) => await PreviewDevelopmentUpdateAsync()));
         SettingsPage.Children.Add(Card(development));
 #else
+        if (Pulse.Windows.WindowsNotificationService.HasIdentity) {
+            var packaged = SettingsCardHeader("App updates", "Install the latest signed MSIX to update the packaged edition. Windows preserves its app identity and permission.", "\uE895");
+            packaged.Children.Add(Note(L.T("Installed version ") + CurrentVersion.ToString(3)));
+            packaged.Children.Add(new HyperlinkButton { Content = L.T("View releases"), NavigateUri = new("https://github.com/alaaeddinemekkaoui/Nagi/releases/latest") });
+            SettingsPage.Children.Add(Card(packaged)); return;
+        }
         var content = Stack(); content.Children.Add(Heading(L.T("App updates")));
         content.Children.Add(Note(L.T("Installed version ") + CurrentVersion.ToString(3) + L.T(". Updates come from Nagi's GitHub releases. Your profiles, preferences and scripts are preserved.")));
         content.Children.Add(Toggle(L.T("Download updates automatically"), L.T("Check at startup and every six hours, then download verified updates. Choose Install and restart when ready."), ViewModel.Settings.AutomaticUpdates, (s, enabled) => s with { AutomaticUpdates = enabled }));
@@ -148,10 +155,11 @@ public sealed partial class MainWindow
     {
         if (_availableUpdate is null) return;
         _log.Write("updates", "Downloading Nagi " + _availableUpdate.Version.ToString(3));
-        _updateProgress = 0; _updateStatus = L.T("Downloading update…"); RefreshUpdateUi();
-        var progress = new Progress<double>(value => { if (!_closed && _preparedUpdate is null) { _updateProgress = value; _updateStatus = L.F($"Downloading update… {value:0}%"); RefreshUpdateUi(); } });
+        _updateProgress = 0; _updateStatus = L.T("Downloading update…"); SetUpdateTransfer(0, true); RefreshUpdateUi();
+        var progress = new Progress<double>(value => { if (!_closed && _preparedUpdate is null) { _updateProgress = value; SetUpdateTransfer(value, true); _updateStatus = L.F($"Downloading update… {value:0}%"); RefreshUpdateUi(); } });
         var updateRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nagi", "Updates");
-        _preparedUpdate = await _updates.PrepareAsync(_availableUpdate, updateRoot, progress, _shutdown.Token);
+        try { _preparedUpdate = await _updates.PrepareAsync(_availableUpdate, updateRoot, progress, _shutdown.Token); }
+        finally { if (!_closed) SetUpdateTransfer(_updateProgress, false); }
         _updateProgress = 100;
         _updateStatus = L.T("Update verified and ready. Install and restart to finish.");
         _log.Write("updates", "Package verified for Nagi " + _preparedUpdate.Release.Version.ToString(3));

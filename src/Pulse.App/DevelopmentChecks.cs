@@ -138,10 +138,29 @@ public sealed partial class MainWindow
                 await ExportDevelopmentStateAsync();
                 Require(File.Exists(Path.Combine(DevelopmentDirectory, "diagnostics", "state.json")), "State report was not written.");
             });
+            await Check("Transfer and notification utilities", async () =>
+            {
+                OpenControlCenter("Utilities"); await Settle();
+                Require(_transferShelfList is not null && _notificationList is not null, "Transfer shelf or notification center is missing.");
+            });
+            await Check("Circular transfer notch", async () =>
+            {
+                ClearDevelopmentPreview(); _completedUntil = default; _noticeUntil = default;
+                SetUpdateTransfer(65, true); Collapse(); await Settle();
+                Require(_restingActivity == "transfer" && _notchStatusRing.Visibility == Visibility.Visible, "Transfer progress is not visible.");
+                AssertDevelopmentActivityFits(); SetUpdateTransfer(0, false);
+            });
+            await Check("Nagi notification notch", async () =>
+            {
+                ShowNotchNotice("Nagi · notification preview"); Collapse(); await Settle();
+                Require(_restingActivity == "notice" && _notchStatusText.Text.Contains("preview"), "Nagi notification is missing.");
+                AssertDevelopmentActivityFits(); _noticeUntil = default; _noticeTick.Stop(); RefreshTransferNotch();
+            });
         }
         catch (OperationCanceledException) when (_shutdown.IsCancellationRequested) { return; }
         finally
         {
+            _updateTransferBusy = false; _noticeUntil = default; _noticeTick.Stop();
             _timer.Cancel(); _timerTick.Stop(); ClearDevelopmentPreview();
             if (!_closed)
             {

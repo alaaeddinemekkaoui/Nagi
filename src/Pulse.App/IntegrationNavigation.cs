@@ -43,6 +43,7 @@ public sealed partial class MainWindow
         "GitHub" => !ViewModel.Settings.GitHubEnabled ? L.T("Off") : _githubCredential.Exists || ViewModel.Settings.PinnedRepositories.Length > 0 ? L.T("Connected") : L.T("Needs setup"),
         "Calendar" => !ViewModel.Settings.CalendarEnabled ? L.T("Off") : _calendarCredential.Exists ? L.T("Connected") : L.T("Needs setup"),
         "OBS Studio" => !ViewModel.Settings.ObsEnabled ? L.T("Off") : _obsSnapshot.Connected ? L.T("Connected") : L.T("Check connection"),
+        "Notifications" => ViewModel.Settings.WindowsNotificationsEnabled && _windowsNotices.Allowed ? L.T("Connected") : L.T("Needs setup"),
         _ => ""
     };
 
@@ -54,7 +55,8 @@ public sealed partial class MainWindow
             ("PresentMon FPS", "Frame timing and tracing permission", "\uE9D9"),
             ("GitHub", "Notifications and repository builds", "\uE943"),
             ("Calendar", "Upcoming meetings from a link or .ics file", "\uE787"),
-            ("OBS Studio", "Recording, streaming and scenes", "\uE714") };
+            ("OBS Studio", "Recording, streaming and scenes", "\uE714"),
+            ("Notifications", "Nagi alerts and other Windows apps", "\uE7F4") };
         var grid = new Grid { ColumnSpacing = 10, RowSpacing = 10 };
         var columns = 0;
         void Arrange(int count)

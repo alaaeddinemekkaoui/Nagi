@@ -1,5 +1,6 @@
 const REPO = 'https://github.com/alaaeddinemekkaoui/Nagi';
 const icons = {
+  bell:'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4',
   'arrow-down':'M12 4v16m-6-6 6 6 6-6', 'arrow-up-right':'M6 18 18 6M6 6h12v12', plus:'M12 5v14M5 12h14',
   search:'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',folder:'M3 7h6l2-3h8a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5',
   timer:'M10 2h4M12 8v5l3 2M18 5l1-1M20 14a8 8 0 1 1-16 0 8 8 0 0 1 16 0',play:'m9 5 11 7-11 7Z',pause:'M8 5v14M16 5v14',reset:'M3 10a9 9 0 1 1 0 5M3 4v6h6',check:'m5 12 4 4 10-10',

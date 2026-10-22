@@ -851,6 +851,25 @@
     "↑↓ Select   Enter Open   Ctrl+Enter Folder   Ctrl+C Path   Esc Close\napp: Apps   file: Files   folder: Folders   > Actions   web Search": "↑↓ 选择 Enter 打开 Ctrl+输入文件夹 Ctrl+C 路径 Esc 关闭\napp:应用程序文件:文件文件夹:文件夹 > 操作 Web 搜索",
     "↓ {0}    ↑ {1}": "↓ {0} ↑ {1}",
     "♫": "♫",
-    "凪 · ": "凪· "
+    "凪 · ": "凪· ",
+    "Transfer Center": "传输中心",
+    "Notifications": "通知",
+    "Windows notifications": "Windows 通知",
+    "Add files": "添加文件",
+    "Copy to folder": "复制到文件夹",
+    "Clear shelf": "清空暂存架",
+    "Clear Nagi alerts": "清除 Nagi 提醒",
+    "Notification settings": "通知设置",
+    "Connect Windows notifications": "连接 Windows 通知",
+    "Disconnect Windows notifications": "断开 Windows 通知",
+    "App update downloads": "应用更新下载",
+    "No update download in progress.": "No update download in progress.",
+    "Your shelf is empty. Add a few files for later.": "Your shelf is empty. Add a few files for later.",
+    "All quiet. Your notifications will appear here.": "All quiet. Your notifications will appear here.",
+    "Copying files…": "Copying files…",
+    "Copy cancelled. Completed files were kept.": "Copy cancelled. Completed files were kept.",
+    "Copied {0} files": "Copied {0} files",
+    "Copying files… {0:0}%": "Copying files… {0:0}%",
+    "Update download {0:0}%": "Update download {0:0}%"
   }
 }
