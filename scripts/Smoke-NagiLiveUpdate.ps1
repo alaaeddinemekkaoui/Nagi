@@ -65,6 +65,9 @@ function Set-Root([int]$ProcessId){
  if($root){$script:handle=[IntPtr]$root.Current.NativeWindowHandle;return $true};return $false
 }
 function Open-Updates {
+ # Keep the hover-only bar open while navigating. A click intentionally does not pin it.
+ $dockBounds=$root.Current.BoundingRectangle
+ [WorkspaceSmokeNative]::SetCursorPos([int]($dockBounds.Left+$dockBounds.Width/2),[int]($dockBounds.Top+$dockBounds.Height/2))|Out-Null
  if(Find 'Reveal Nagi' -Optional){Invoke 'Reveal Nagi'}
  if(Find 'Open Nagi control center' -Optional){Invoke 'Open Nagi control center'}
  Invoke 'Settings';Invoke 'Updates settings'
