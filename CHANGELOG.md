@@ -1,5 +1,13 @@
 # Changelog
 
+## Nagi v0.3 — 2026-10-22
+
+- Publish the current Nagi feature set as the v0.3 milestone, with matching Production and Development portable executables, a Windows installer and SHA256 checksums. The internal app version is 0.3.0.
+- Includes connected Gaming, Developer, Creator and Focus profiles; PresentMon FPS; GitHub notifications and builds; OBS controls; microphone levels; and .ics calendar meetings.
+- Includes the Transfer Center file shelf, download progress, Nagi notification cards and optional Windows notification integration. Other apps' notifications require a trusted, signed packaged edition and explicit Windows permission; the optional MSIX asset remains unsigned.
+- Includes theme-aware notch and dock activity, timers, media controls, 40 language packs, responsive integration/settings cards, optional search and the hover/search dismissal fixes documented in v0.2.2.
+- Update release defaults and in-app version detection to v0.3. Existing profiles and preferences are retained when updating from v0.2.2.
+
 ## Nagi v0.2.2 — 2026-10-22
 
 - Add a persistent 24-file Transfer Center shelf with file picking, drag/drop, progress, cancellation and copies that preserve originals and existing destination files. Show update-download progress in Utilities and a rounded circular activity in the notch.

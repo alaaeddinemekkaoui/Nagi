@@ -1,5 +1,11 @@
 # Nagi validation
 
+## v0.3 release checks
+
+The v0.3 milestone uses internal app version 0.3.0. All 345 core/infrastructure tests, 78 Windows tests and eight website checks pass after the version update. NuGet vulnerability-feed retrieval still reports NU1900; this is not a successful vulnerability scan. Production and Development packages are built together from a shared source fingerprint. The optional MSIX remains unsigned, and no certificate trust or Developer Mode setting is changed.
+
+Both final packages share source fingerprint `9926c8f225e7d4eaa2284542bc1ba410dbcc47c12186afbaba503f61c09e8571`. All 53 built-in Development UI checks pass, including notch notifications, diagnostic exports and Production exclusion of the developer tools. Evidence: `artifacts/validation/development-20261022-212300`. MakeAppx validates the optional unsigned MSIX.
+
 ## Automated checks
 
 The Windows Release build passes. The automated suite contains **345 core/infrastructure tests and 78 Windows integration tests (423 total)**. Changed transfer cases were rerun after progress throttling; all eleven language checks pass after the new strings. Coverage includes mode presets, per-profile FPS, paused game time, calendar recurrence, read-only GitHub requests, bounded ping, safe copies, cancellation cleanup and limited progress dispatch. Eight website checks pass.

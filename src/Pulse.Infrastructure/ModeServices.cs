@@ -39,7 +39,7 @@ public sealed class GitHubModeService(HttpClient? client = null)
     private async Task<JsonDocument> GetAsync(string path, string token, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/" + path);
-        request.Headers.UserAgent.ParseAdd("Nagi/0.2.2"); request.Headers.Accept.ParseAdd("application/vnd.github+json"); request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
+        request.Headers.UserAgent.ParseAdd("Nagi/0.3.0"); request.Headers.Accept.ParseAdd("application/vnd.github+json"); request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
         if (token.Length > 0) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken); response.EnsureSuccessStatusCode();
         var text = await BoundedText.ReadAsync(response.Content, 1024 * 1024, cancellationToken);

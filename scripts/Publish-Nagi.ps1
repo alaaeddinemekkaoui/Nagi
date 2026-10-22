@@ -1,4 +1,4 @@
-param([switch]$NoRestore, [switch]$SkipPortable, [string]$ReleaseTag='v0.2.2', [string]$PackageDirectory='', [switch]$Development, [string]$SourceFingerprint='')
+param([switch]$NoRestore, [switch]$SkipPortable, [string]$ReleaseTag='v0.3', [string]$PackageDirectory='', [switch]$Development, [string]$SourceFingerprint='')
 $ErrorActionPreference = 'Stop'
 $pulseRoot = Split-Path $PSScriptRoot -Parent
 $nagiConfiguration=if($Development){'Development'}else{'Release'}

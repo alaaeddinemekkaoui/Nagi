@@ -168,7 +168,7 @@ Windows 11 **22H2 or newer**, x64. Runtime included. Current builds are unsigned
 Built with **WinUI 3, Win2D and .NET**. [Build instructions](docs/BUILD.md) · [Architecture](docs/ARCHITECTURE.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md).
 
 ```powershell
-./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.2.2
+./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.3
 ```
 
 Every release produces a fresh **Nagi-Portable.exe in the project root** and a matching **Nagi-Dev-Portable.exe**. Development includes a debug menu, direct pages, notch/notification previews, diagnostics and automated UI checks, with separate preferences and logs. Production excludes developer tools. [Developer guide](docs/DEVELOPMENT.md).
