@@ -162,7 +162,7 @@ public sealed partial class MainWindow
         RailObsButton.Visibility = Show(ProfileWorkspaces.ShowObs(workspace));
         WeatherCard.Visibility = RailWeatherButton.Visibility = Show(workspace.Shows("Weather") && ViewModel.Settings.WeatherEnabled);
         CompactCpuButton.Visibility = RailGpuButton.Visibility = Show(workspace.Shows("Performance"));
-        RailFpsButton.Visibility = Show(workspace.Shows("Performance") && ViewModel.Settings.FpsEnabled && workspace.WantsFps());
+        RailFpsButton.Visibility = Show(ShowDockFps);
         CompactMediaButton.Visibility = Show(workspace.Shows("Media") && ViewModel.Settings.ShowMedia || workspace.Shows("Audio"));
         CompactTimerButton.Visibility = Show(HasDockTimer);
         RailMicrophoneButton.Visibility = Show(workspace.Shows("Microphone"));

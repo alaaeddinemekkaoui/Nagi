@@ -19,6 +19,10 @@ public sealed partial class MainWindow
     private Version? _offeredUpdateVersion;
     private TextBlock? _updateStatusText;
     private TextBlock? _updateNotesText;
+    private Controls.TimerRing? _updateProgressRing;
+    private TextBlock? _updateProgressLabel;
+    private Grid? _updateProgressView;
+    private double _updateProgress = -1;
     private Button? _checkUpdateButton, _installUpdateButton;
     private string UpdateResultPath => Path.Combine(Path.GetDirectoryName(_settings.FilePath)!, "update-result.json");
 #endif
@@ -56,6 +60,10 @@ public sealed partial class MainWindow
         content.Children.Add(Note(L.T("Installed version ") + CurrentVersion.ToString(3) + L.T(". Updates come from Nagi's GitHub releases. Your profiles, preferences and scripts are preserved.")));
         content.Children.Add(Toggle(L.T("Download updates automatically"), L.T("Check at startup and every six hours, then download verified updates. Choose Install and restart when ready."), ViewModel.Settings.AutomaticUpdates, (s, enabled) => s with { AutomaticUpdates = enabled }));
         _updateStatusText = Note(_updateStatus); content.Children.Add(_updateStatusText);
+        _updateProgressView = new Grid { Width = 68, Height = 68, HorizontalAlignment = HorizontalAlignment.Left };
+        _updateProgressRing = new Controls.TimerRing(); _updateProgressLabel = new TextBlock { FontSize = 13, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        _updateProgressView.Children.Add(_updateProgressRing); _updateProgressView.Children.Add(_updateProgressLabel); content.Children.Add(_updateProgressView);
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(_updateProgressView, "UpdateTransferProgress");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateStatusText, L.T("Update status"));
         _updateNotesText = Note(ReleaseNotes());
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateNotesText, L.T("Update changelog"));
@@ -70,6 +78,12 @@ public sealed partial class MainWindow
 #if !NAGI_DEVELOPMENT
     private void RefreshUpdateUi()
     {
+        if (_updateProgressView is not null) {
+            _updateProgressView.Visibility = _updateProgress >= 0 ? Visibility.Visible : Visibility.Collapsed;
+            _updateProgressRing!.Update(Math.Clamp(_updateProgress / 100, 0, 1), ThemeBrush("PulseAccentBrush"), ThemeBrush("MutedBrush"));
+            _updateProgressLabel!.Text = L.F($"{Math.Max(0, _updateProgress):0}%");
+            Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(_updateProgressView, L.F($"Update download {_updateProgress:0}%"));
+        }
         if (_updateStatusText is not null) _updateStatusText.Text = _updateStatus;
         if (_updateNotesText is not null) _updateNotesText.Text = ReleaseNotes();
         if (_checkUpdateButton is not null) _checkUpdateButton.IsEnabled = !_updateBusy;
@@ -134,10 +148,11 @@ public sealed partial class MainWindow
     {
         if (_availableUpdate is null) return;
         _log.Write("updates", "Downloading Nagi " + _availableUpdate.Version.ToString(3));
-        _updateStatus = L.T("Downloading update…"); RefreshUpdateUi();
-        var progress = new Progress<double>(value => { if (!_closed && _preparedUpdate is null) { _updateStatus = L.F($"Downloading update… {value:0}%"); RefreshUpdateUi(); } });
+        _updateProgress = 0; _updateStatus = L.T("Downloading update…"); RefreshUpdateUi();
+        var progress = new Progress<double>(value => { if (!_closed && _preparedUpdate is null) { _updateProgress = value; _updateStatus = L.F($"Downloading update… {value:0}%"); RefreshUpdateUi(); } });
         var updateRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Nagi", "Updates");
         _preparedUpdate = await _updates.PrepareAsync(_availableUpdate, updateRoot, progress, _shutdown.Token);
+        _updateProgress = 100;
         _updateStatus = L.T("Update verified and ready. Install and restart to finish.");
         _log.Write("updates", "Package verified for Nagi " + _preparedUpdate.Release.Version.ToString(3));
     }

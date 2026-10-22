@@ -14,6 +14,9 @@ public sealed partial class MainWindow
     private readonly ObsService _obs = new();
     private FpsService _fps = null!;
     private readonly GameDetectionService _games = new();
+    private readonly NetworkLatencyService _latency = new();
+    private double? _networkPing;
+    private long _networkPingAt;
     private ProtectedSecretStore? _obsSecret;
     private string _obsPassword = "";
     private Task? _integrationPolling;
@@ -44,15 +47,18 @@ public sealed partial class MainWindow
                 if (gpu is not null || microphone is not null) DispatcherQueue.TryEnqueue(() =>
                 { if (!_closed) { if (gpu is not null) _gpuSnapshot = gpu; if (microphone is not null) _microphoneSnapshot = microphone; RenderIntegrations(); } });
                 var temperature = demand.Sensors ? Task.Run(_temperatures.Sample, token) : Task.FromResult(_temperatureSnapshot);
+                var latency = demand.NetworkLatency ? _latency.SampleAsync(token) : Task.FromResult<double?>(null);
                 var fps = demand.Fps ? _fps.SampleAsync(true, demand.ProcessId, token) : Task.FromResult(_fpsSnapshot);
                 var obs = _obs.SampleAsync(settings.ObsEnabled, settings.ObsPort, Volatile.Read(ref _obsPassword), token);
-                await Task.WhenAll(temperature, fps, obs);
-                if (demand.Sensors || demand.Fps || settings.ObsEnabled || _obsSnapshot.Connected) DispatcherQueue.TryEnqueue(() =>
+                await Task.WhenAll(temperature, fps, obs, latency);
+                if (demand.Sensors || demand.Fps || demand.NetworkLatency || settings.ObsEnabled || _obsSnapshot.Connected) DispatcherQueue.TryEnqueue(() =>
                 {
                     if (_closed) return;
                     _temperatureSnapshot = temperature.Result;
                     _fpsSnapshot = ViewModel.Settings.FpsEnabled && demand.Fps && fps.Result.ProcessId == ViewModel.Foreground.ProcessId
                         ? fps.Result : new(null, ViewModel.Foreground.ProcessId, ViewModel.Settings.FpsEnabled ? "Waiting for the active application" : "FPS capture off");
+                    _fpsSampleAt = Environment.TickCount64;
+                    if (demand.NetworkLatency) { _networkPing = latency.Result; _networkPingAt = Environment.TickCount64; }
                     _obsSnapshot = obs.Result;
                     RenderIntegrations();
                 });
@@ -68,10 +74,13 @@ public sealed partial class MainWindow
     }
     private void RenderIntegrations()
     {
+        var fpsVisible = ShowDockFps ? Visibility.Visible : Visibility.Collapsed;
+        if (RailFpsButton.Visibility != fpsVisible) { RailFpsButton.Visibility = fpsVisible; if (!_controlCenter) Layout(_motion.IsMoving); }
         RailFpsValue.Text = CurrentFps is { } currentFps ? L.F($"{currentFps:0}") : "—";
         AutomationProperties.SetName(RailFpsButton, CurrentFps is { } rate ? L.F($"{rate:0} FPS") : L.T("FPS unavailable"));
         RefreshSettingsCards();
         GpuMetric.Update("GPU", _gpuSnapshot.Usage is { } usage ? $"{usage:0}%" : "—", _gpuSnapshot.Name, _gpuSnapshot.Usage);
+        PeekGpuMetric.Update("GPU", _gpuSnapshot.Usage is { } peekGpu ? $"{peekGpu:0}%" : "—", _gpuSnapshot.Name, _gpuSnapshot.Usage);
         RailGpuValue.Text = _gpuSnapshot.Usage is { } gpu ? L.F($"{gpu:0}%") : "—";
         ToolTipService.SetToolTip(RailGpuButton, _gpuSnapshot.Name + " · " + _gpuSnapshot.Status);
         RailMicrophoneButton.IsEnabled = _microphoneSnapshot.Volume.HasValue;
@@ -92,7 +101,10 @@ public sealed partial class MainWindow
         PeekMicrophoneText.Text = micLine;
         var obsLine = !_obsSnapshot.Connected ? _obsSnapshot.Status : "OBS · " + (_obsSnapshot.Recording ? "Recording" : "Not recording") + (_obsSnapshot.Streaming ? " · Live" : "") + (_obsSnapshot.RenderFps is { } of ? $" · {of:0} render FPS" : "");
         IntegrationSummary.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine + (ViewModel.Settings.Workspace(ViewModel.Profile).Shows("Microphone") ? "\n" + micLine : "") + "\n" + obsLine;
-        PeekIntegrations.Text = gpuLine + "\n" + sensorLine + "\n" + fpsLine;
+        PeekIntegrations.Text = string.Join(" · ", _temperatureSnapshot.Readings.Take(3).Select(x => $"{x.Name} {x.Celsius:0}°C")
+            .Concat(CurrentFps is { } measured ? new[] { $"{measured:0.0} FPS" } : Array.Empty<string>()));
+        PeekIntegrations.Visibility = PeekIntegrations.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        RefreshIntegrationNotices();
         PeekObsStatus.Text = obsLine + (_obsSnapshot.CurrentScene is { } scene ? L.T("\nScene: ") + scene : "");
         ObsRecordButton.IsEnabled = PeekObsRecordButton.IsEnabled = ObsStreamButton.IsEnabled = PeekObsStreamButton.IsEnabled = ViewModel.Settings.ObsEnabled && _obsSnapshot.Connected && !_obsActionInFlight;
         ObsRecordButton.Content = PeekObsRecordButton.Content = _obsSnapshot.Recording ? L.T("Stop recording") : L.T("Start recording");
@@ -152,8 +164,9 @@ public sealed partial class MainWindow
     }
     private void BuildIntegrationSettings()
     {
-        BuildGamingIntegrationSettings();
-        BuildModeConnectionsSettings();
+        if (_integrationPage is null) { BuildIntegrationList(); return; }
+        if (_integrationPage is "Gaming" or "PresentMon FPS") { BuildGamingIntegrationSettings(_integrationPage); return; }
+        if (_integrationPage is "GitHub" or "Calendar") { BuildModeConnectionsSettings(_integrationPage); return; }
         var obs = SettingsCardHeader("OBS Studio", "Recording, streaming and scene shortcuts in one place.", "\uE714");
         AddObsPresentationSettings(obs, ViewModel.Profile);
         obs.Children.Add(Note(L.T("Enable the OBS WebSocket server in OBS → Tools → WebSocket Server Settings. Nagi connects only to this computer. Recording, streaming and scene changes require a button click.")));

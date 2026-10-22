@@ -7,8 +7,9 @@ namespace Pulse.App;
 
 public sealed partial class MainWindow
 {
-    private void BuildModeConnectionsSettings()
+    private void BuildModeConnectionsSettings(string section)
     {
+        if (section == "GitHub") {
         var github = SettingsCardHeader("GitHub", "Read notifications and the latest Actions run for your pinned repositories.", "\uE943");
         github.Children.Add(Toggle(L.T("Enable GitHub integration"), L.T("Refreshes every five minutes while Developer mode is visible."), ViewModel.Settings.GitHubEnabled, (s, value) => s with { GitHubEnabled = value }));
         var repositories = new TextBox { Header = L.T("Pinned repositories · one owner/repository per line"), Text = string.Join("\n", ViewModel.Settings.PinnedRepositories), AcceptsReturn = true, MaxLength = 1200, MinHeight = 80, TextWrapping = TextWrapping.Wrap };
@@ -29,6 +30,8 @@ public sealed partial class MainWindow
         }));
         github.Children.Add(Button(L.T("Disconnect GitHub"), async (_, _) => { _githubCredential.Clear(); Volatile.Write(ref _githubToken, ""); await CommitAsync(s => s with { GitHubEnabled = false }); _developer = new(null, [], "Connect GitHub in Integrations"); RebuildModePanels(); BuildSettingsPage(); }));
         github.Children.Add(Note(L.T(_developer.Status))); SettingsPage.Children.Add(Card(github));
+        return;
+        }
 
         var calendar = SettingsCardHeader("Calendar", "Show your next meeting in Focus mode using an .ics file or HTTPS calendar feed.", "\uE787");
         calendar.Children.Add(Toggle(L.T("Enable calendar integration"), L.T("Refreshes every five minutes while Focus mode is visible."), ViewModel.Settings.CalendarEnabled, (s, value) => s with { CalendarEnabled = value }));

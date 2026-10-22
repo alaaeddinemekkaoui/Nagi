@@ -86,6 +86,8 @@ public sealed partial class MainWindow
         void UpdateSensors() => sensors.Text = _temperatureSnapshot.Readings.Length > 0
             ? string.Join(" · ", _temperatureSnapshot.Readings.Select(x => L.F($"{x.Name} {x.Celsius:0}°C"))) : _temperatureSnapshot.Status;
         UpdateSensors(); _settingsCardUpdates.Add(UpdateSensors); SettingsPage.Children.Add(Card(temperatures));
+        SettingsPage.Children.Add(SettingsStatusCard("Network", "\uE968", () => (NetworkValue.Text,
+            L.T("Download and upload throughput. Ping uses ICMP to 1.1.1.1 every 15 seconds while system details are visible; unavailable latency stays hidden.")), "HardwareNetworkStatus"));
         SettingsPage.Children.Add(Button(L.T("Gaming & OBS integrations"), (_, _) => ShowSettingsCategory("Integrations")));
         RefreshSettingsCards();
     }

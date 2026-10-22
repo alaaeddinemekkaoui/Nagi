@@ -5,6 +5,14 @@ namespace Pulse.Windows.Tests;
 
 public sealed class ProviderTests
 {
+    [Fact] public async Task LatencyProbeMeasuresLoopbackAndHonorsCancellation()
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var latency = await new NetworkLatencyService("127.0.0.1").SampleAsync(deadline.Token);
+        Assert.NotNull(latency); Assert.InRange(latency.Value, 0, 800);
+        using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new NetworkLatencyService("127.0.0.1").SampleAsync(cancelled.Token));
+    }
     [Fact] public void FpsHelperRequestsPermissionOnlyForAFileAndPassesLiteralArguments()
     {
         var directory = Path.Combine(Path.GetTempPath(), "Nagi helper test", Guid.NewGuid().ToString("N"));

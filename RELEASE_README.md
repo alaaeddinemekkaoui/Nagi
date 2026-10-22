@@ -112,6 +112,14 @@ First launch draws **Nagi / ナギ**, then lets you choose a language, name, the
 
 Gaming adds frame timing, available temperatures, active game time and Discord desktop status. Work becomes a Developer workspace with GitHub notifications, pinned repositories and Actions build status. Stream becomes a Creator workspace with a visible-only microphone meter and OBS/media controls. Focus keeps a saved task, a timer and your next meeting from an encrypted .ics file or HTTPS calendar feed. Custom profiles can choose any integrated mode; apply a layout explicitly to change its widgets. [Mode setup and provider requirements](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.2.2/docs/MODES.md).
 
+| Gaming | Developer |
+| --- | --- |
+| ![Gaming mode with FPS, temperature, game time and Discord desktop status](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.2.2/docs/images/nagi-gaming-mode.png) | ![Developer mode with GitHub notifications and pinned workflow status](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.2.2/docs/images/nagi-developer-mode.png) |
+| Creator | Focus |
+| ![Creator mode with OBS state, media and a microphone meter](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.2.2/docs/images/nagi-creator-mode.png) | ![Focus mode with task, timer and a meeting from a local test calendar](https://github.com/alaaeddinemekkaoui/Nagi/blob/v0.2.2/docs/images/nagi-focus-mode.png) |
+
+Native screenshots use isolated settings and a test calendar. Missing provider data stays visibly unavailable; FPS requires the Windows tracing permission described in the guide.
+
 ## A few useful moves
 
 | Control | Action |

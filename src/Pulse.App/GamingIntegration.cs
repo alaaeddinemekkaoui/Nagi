@@ -6,10 +6,15 @@ namespace Pulse.App;
 
 public sealed partial class MainWindow
 {
-    private double? CurrentFps => ViewModel.Settings.FpsEnabled && _fpsSnapshot.ProcessId == ViewModel.Foreground.ProcessId ? _fpsSnapshot.Fps : null;
+    private long _fpsSampleAt;
+    private double? CurrentFps => ViewModel.Settings.FpsEnabled && _fpsSnapshot.ProcessId == ViewModel.Foreground.ProcessId
+        && Environment.TickCount64 - _fpsSampleAt < 8000 && _fpsSnapshot.Fps is > 0 and < 100000 ? _fpsSnapshot.Fps : null;
+    private bool ShowDockFps => ViewModel.Settings.Workspace(ViewModel.Profile).Shows("Performance")
+        && ViewModel.Settings.Workspace(ViewModel.Profile).WantsFps() && CurrentFps.HasValue;
 
-    private void BuildGamingIntegrationSettings()
+    private void BuildGamingIntegrationSettings(string section)
     {
+        if (section == "Gaming") {
         var games = SettingsCardHeader("Gaming", "Switch to your Gaming profile when a supported game becomes active.", "\uE7FC");
         var automatic = Toggle(L.T("Detect games automatically"), L.T("Recognizes Steam, Epic Games and GOG libraries locally. Explicit executable rules and locked profiles take priority."),
             ViewModel.Settings.AutomaticGameDetection, (s, enabled) => s with { AutomaticGameDetection = enabled });
@@ -26,6 +31,8 @@ public sealed partial class MainWindow
         AutomationProperties.SetAutomationId(current, "AddGamingRule"); games.Children.Add(current);
         games.Children.Add(Button(L.T("Edit Gaming profile"), (_, _) => { _settingsCategory = "Profiles & apps"; BuildSettingsPage(); OpenWorkspaceEditor(Profile.Gaming); }));
         SettingsPage.Children.Add(Card(games));
+        return;
+        }
 
         var frames = SettingsCardHeader("PresentMon FPS", "Real application frame timing, displayed beside CPU and GPU.", "\uE9D9");
         var capture = Toggle(L.T("Capture foreground app FPS"), L.T("Uses bundled PresentMon 2.6.0. Some Windows configurations require tracing permission. No keyboard/mouse input is tracked."),

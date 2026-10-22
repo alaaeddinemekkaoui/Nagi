@@ -10,7 +10,7 @@ public sealed partial class MainWindow
     private bool? _horizontalRail;
     private double _railExtent;
     private double RequestedRailExtent => DockPresentation.RailExtent(ViewModel.Settings.Workspace(ViewModel.Profile),
-        ViewModel.Settings.Position.Orientation == "Horizontal", ViewModel.Settings.ShowMedia, ViewModel.Settings.WeatherEnabled, ViewModel.Metrics.Power, _timer.Active, TimerDisplayText.Length, ViewModel.Settings.ShowDockSearch, ViewModel.Settings.FpsEnabled && ViewModel.Settings.Workspace(ViewModel.Profile).WantsFps());
+        ViewModel.Settings.Position.Orientation == "Horizontal", ViewModel.Settings.ShowMedia, ViewModel.Settings.WeatherEnabled, ViewModel.Metrics.Power, _timer.Active, TimerDisplayText.Length, ViewModel.Settings.ShowDockSearch, ShowDockFps);
     private void ConfigureRail(bool horizontal)
     {
         if (_horizontalRail == horizontal) return;

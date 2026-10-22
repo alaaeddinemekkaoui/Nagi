@@ -2,11 +2,15 @@
 
 ## Automated checks
 
-The Windows Release build passes. The automated suite contains **341 core/infrastructure tests and 76 Windows integration tests (417 total)**. It additionally covers mode presets and inheritance, per-profile FPS, paused game time, calendar timezone/recurrence/exclusion/override/duration handling and read-only GitHub request shapes. Eight website checks pass.
+The Windows Release build passes. The automated suite contains **341 core/infrastructure tests and 77 Windows integration tests (418 total)**. It additionally covers mode presets and inheritance, per-profile FPS, paused game time, calendar timezone/recurrence/exclusion/override/duration handling, read-only GitHub request shapes and bounded loopback ping with cancellation. Eight website checks pass.
 
 OBS tests use an owned loopback fixture and confirm observed recording, streaming and program-scene states. They do not start the user's recording or stream. Update tests cover stable versions, download URLs, SHA256 and length verification, archive completeness and path rejection. NuGet vulnerability-data retrieval was unavailable during the recorded build (NU1900).
 
 ## Isolated desktop checks
+
+- Final v0.2.2 packages share source fingerprint `dd0e37a3b1924a44049adf16402bc41ae7924b88720565782f03c2f29b99f7b8`. Development passes all 50 built-in checks, the integration list/detail flow, responsive settings cards, hidden unavailable FPS and unrelated-page sampling pause. The four-mode check also passes protected local calendar loading, task saving and visible-only Creator microphone sampling. Evidence: `settings-gaming-20261022-184121`, `development-20261022-184248` and `settings-gaming-20261022-184406`. Actual elevated FPS remains unverified on this account.
+
+- Matching Production checks pass the integration/card flow and all four profile modes (`settings-gaming-20261022-184758`, `settings-gaming-20261022-185022`). The first Production narrow-resize check failed during packaging; its rerun passed without code changes. All five release binaries/archives match their published SHA256 sidecars. Website deployment `dpl_Fpxq7bcmUs4XSkza31jf3AX3QF7n` is READY for production from `f28c799`, with no runtime errors reported in the preceding hour. Drain inspection is unavailable through the connected API (404).
 
 - v0.2.2: matching Development/Production builds use source fingerprint `7621f9965d6dd727223db4ef01ec848b22fcb02960ac9f50e869083427656291`. The packaged Development build passes 50 built-in checks. Native mode verification covers Gaming/Developer/Creator/Focus, a saved focus task, encrypted local .ics loading, visible Creator microphone sampling and pause when hidden. All 40 language packs expose 848 keys. Evidence: `artifacts/validation/settings-gaming-20261022-140518` and `development-20261022-140532`. Public GitHub repository status is exercised without a token; authenticated notifications still require the user's own token. Actual elevated game FPS remains unverified on this account, which denies ordinary tracing.
 

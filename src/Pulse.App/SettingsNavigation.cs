@@ -12,6 +12,7 @@ public sealed partial class MainWindow
 
     private void ShowSettingsCategory(string? category)
     {
+        _integrationPage = null;
         _settingsCategory = category;
         _editingWorkspace = null;
         BuildSettingsPage();
@@ -19,7 +20,11 @@ public sealed partial class MainWindow
         Animate(SettingsPage);
     }
 
-    private void SettingsBack_Click(object sender, RoutedEventArgs e) => ShowSettingsCategory(null);
+    private void SettingsBack_Click(object sender, RoutedEventArgs e)
+    {
+        if (_settingsCategory == "Integrations" && _integrationPage is not null) { _integrationPage = null; BuildSettingsPage(); Animate(SettingsPage); return; }
+        ShowSettingsCategory(null);
+    }
 
     private void BuildSettingsPage()
     {
@@ -28,10 +33,11 @@ public sealed partial class MainWindow
         SettingsPage.Children.Clear();
         SettingsNavigationHeader.Visibility = _page == "Settings" && _settingsCategory is not null ? Visibility.Visible : Visibility.Collapsed;
         SettingsNavigationHeader.FlowDirection = L.Direction;
-        SettingsCategoryTitle.Text = L.T(_settingsCategory ?? "Settings");
+        SettingsCategoryTitle.Text = L.T(_settingsCategory == "Integrations" ? _integrationPage ?? "Integrations" : _settingsCategory ?? "Settings");
         ToolTipService.SetToolTip(SettingsCategoryTitle, SettingsCategoryTitle.Text);
         if (_settingsCategory is null)
         {
+            AddIntegrationSetupNotice();
             SettingsPage.Children.Add(Heading(L.T("Settings")));
             SettingsPage.Children.Add(Note(L.T("Choose a category to personalize your space.")));
             var categories = new (string Title, string Description, string Glyph)[]

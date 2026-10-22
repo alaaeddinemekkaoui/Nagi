@@ -476,7 +476,9 @@ public sealed partial class MainWindow : Window
             ? $"{GiB(metrics.TotalMemory - metrics.AvailableMemory):0.0} / {GiB(metrics.TotalMemory):0.0} GB" : "Unavailable", metrics.MemoryPercent);
         NetworkValue.Text = metrics.ReceiveBytesPerSecond.HasValue
             ? L.F($"↓ {Rate(metrics.ReceiveBytesPerSecond)}    ↑ {Rate(metrics.SendBytesPerSecond)}") : L.T("No reliable sample");
+        if (_networkPing is { } ping && Environment.TickCount64 - _networkPingAt < 30000) NetworkValue.Text += L.F($"    {ping:0} ms");
         PeekNetwork.Text = L.T("Network  ") + NetworkValue.Text;
+        ToolTipService.SetToolTip(PeekNetwork, L.T("Download · upload · ICMP latency to 1.1.1.1. Latency refreshes every 15 seconds while system details are visible; blocked probes stay hidden."));
         RenderAudio(ViewModel.Audio);
         var media = ViewModel.Media;
         PreviousButton.IsEnabled = media.Available && media.CanPrevious;

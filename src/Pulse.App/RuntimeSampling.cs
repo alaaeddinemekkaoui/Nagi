@@ -20,7 +20,7 @@ public sealed partial class MainWindow
         var widgets = shown && (!_controlCenter || overview);
         UpdateModeDemand(shown && (widgets || overview || PreviewVisible && _preview == PreviewKind.Mode));
         var hardware = visible && _controlCenter && _page == "Settings" && _settingsCategory == "Hardware & audio";
-        var integrations = visible && _controlCenter && _page == "Settings" && _settingsCategory is "Integrations" or "Hardware & studio";
+        var integrations = visible && _controlCenter && _page == "Settings" && _settingsCategory == "Integrations" && _integrationPage == "PresentMon FPS";
         var media = shown && (overview && AudioCard.Visibility == Visibility.Visible
             || PreviewVisible && _preview == PreviewKind.Media && PeekMusicVisualizer.Visibility == Visibility.Visible);
         var performance = widgets && workspace.Shows("Performance");
@@ -31,12 +31,13 @@ public sealed partial class MainWindow
             widgets && workspace.Shows("Microphone") || hardware,
             performance && (overview || PreviewVisible && _preview is PreviewKind.System or PreviewKind.Mode) || hardware,
             ViewModel.Settings.FpsEnabled && (performance && workspace.WantsFps() || integrations),
-            peak ? 2 : shown ? 1 : 0, ViewModel.Foreground.ProcessId) { MicrophonePeak = creatorMeter };
+            peak ? 2 : shown ? 1 : 0, ViewModel.Foreground.ProcessId) { MicrophonePeak = creatorMeter,
+                NetworkLatency = hardware || performance && (overview || PreviewVisible && _preview == PreviewKind.System) };
         var previous = Volatile.Read(ref _runtimeDemand);
         if (next == previous) return;
         Volatile.Write(ref _runtimeDemand, next);
         if (next.Audio != previous.Audio || next.MicrophonePeak != previous.MicrophonePeak) Wake(_audioWake);
-        if (next.Gpu != previous.Gpu || next.Microphone != previous.Microphone || next.Sensors != previous.Sensors || next.Fps != previous.Fps || next.ProcessId != previous.ProcessId && next.Fps)
+        if (next.Gpu != previous.Gpu || next.Microphone != previous.Microphone || next.Sensors != previous.Sensors || next.Fps != previous.Fps || next.NetworkLatency != previous.NetworkLatency || next.ProcessId != previous.ProcessId && next.Fps)
             Wake(_integrationWake);
         _log.Write("sampling", $"audio={next.AudioIntervalMs}ms; peak={next.AudioPeak}; gpu={next.Gpu}; mic={next.Microphone}; micPeak={next.MicrophonePeak}; sensors={next.Sensors}; fps={next.Fps}");
     }

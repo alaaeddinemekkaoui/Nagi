@@ -2,6 +2,8 @@
 
 ## Nagi v0.2.2 — 2026-10-22
 
+- Open each integration from its own responsive card. Surface FPS permission setup in Settings with a direct action; hide unavailable FPS and temperatures from the dock and system preview.
+- Fit CPU, memory and GPU into three compact hover cards. Add visible-only, rate-limited network ping alongside download/upload speeds and rounded circular update-download progress.
 - Add functional Gaming, Developer, Creator and Focus modes to existing and custom profiles, with a mode dock button, hover cards and an explicit Apply mode layout action. Keep profile apps and user choices intact until a layout is applied.
 - Gaming combines optional Steam/Epic/GOG executable detection, PresentMon FPS, supported temperature sensors, active game time and Discord desktop running status. Explicit executable rules and profile locks take priority. FPS permission help elevates only the helper after user action.
 - Developer adds read-only GitHub notifications, up to six pinned repositories and their latest Actions build status. Store personal tokens encrypted for the current Windows user; public build status needs no token.

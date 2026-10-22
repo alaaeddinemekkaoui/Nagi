@@ -77,8 +77,8 @@ public sealed partial class MainWindow
     {
         var workspace = ViewModel.Settings.Workspace(ViewModel.Profile); var mode = ModePresets.For(workspace);
         var connections = !_userHidden && _windowManager.IsVisible && _controlCenter && _page == "Settings" && _settingsCategory == "Integrations";
-        var next = new ModeDemand((visible && workspace.ModeEnabled && mode == "Developer" || connections) && ViewModel.Settings.GitHubEnabled,
-            (visible && workspace.ModeEnabled && mode == "Focus" || connections) && ViewModel.Settings.CalendarEnabled,
+            var next = new ModeDemand((visible && workspace.ModeEnabled && mode == "Developer" || connections && _integrationPage == "GitHub") && ViewModel.Settings.GitHubEnabled,
+                (visible && workspace.ModeEnabled && mode == "Focus" || connections && _integrationPage == "Calendar") && ViewModel.Settings.CalendarEnabled,
             visible && workspace.ModeEnabled && mode == "Gaming");
         if (next == Volatile.Read(ref _modeDemand)) return;
         Volatile.Write(ref _modeDemand, next); Wake(_modeWake);

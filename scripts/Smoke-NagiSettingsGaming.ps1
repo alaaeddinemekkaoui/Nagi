@@ -33,8 +33,10 @@ function Snapshot([string]$name){
 }
 function Open-Category([string]$id){
  Invoke 'PreferencesTab'
- $back=$script:root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Back to settings'))
- if($back){$back.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250}
+ for($level=0;$level -lt 3;$level++){
+  $back=$script:root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Back to settings'))
+  if(!$back -or $back.Current.IsOffscreen){break};$back.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250
+ }
  Invoke $id
 }
 try{
@@ -52,20 +54,23 @@ try{
  $cpu=(Find 'HardwareCpuStatus').Current.BoundingRectangle;$gpu=(Find 'HardwareGpuStatus').Current.BoundingRectangle
  if($gpu.Top -le $cpu.Top){throw 'Hardware cards did not stack in narrow window'};Snapshot 'hardware-audio-narrow'
  Open-Category 'SettingsCategoryIntegrations'
- Find 'PresentMonFpsValue'|Out-Null;Find 'AddGamingRule'|Out-Null
+ Find 'IntegrationGitHub'|Out-Null;Find 'IntegrationCalendar'|Out-Null;Snapshot 'integration-cards'
+ Invoke 'IntegrationGaming';Find 'AddGamingRule'|Out-Null
  $game=Find 'AutomaticGameDetection';$game.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 500
+ Invoke 'Back to settings' -Name;Invoke 'IntegrationPresentMonFPS';Find 'PresentMonFpsValue'|Out-Null
  $fps=Find 'PresentMonCapture';$fps.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 500
  $saved=Get-Content (Join-Path $qaDirectory 'settings.json') -Raw|ConvertFrom-Json
  if(!$saved.AutomaticGameDetection -or !$saved.FpsEnabled -or $saved.LockedProfile -ne 'Gaming'){throw 'Game/FPS settings did not save independently of profile lock'}
- Find 'Save OBS connection' -Name|Out-Null;Snapshot 'integrations-narrow'
+ Invoke 'Back to settings' -Name;Invoke 'IntegrationOBSStudio';Find 'Save OBS connection' -Name|Out-Null;Snapshot 'integrations-narrow'
  Open-Category 'SettingsCategoryAboutdiagnostics';Start-Sleep -Milliseconds 300
  $sampling=Get-Content (Join-Path $qaDirectory 'logs/pulse.jsonl')|ForEach-Object {$_|ConvertFrom-Json}|Where-Object {$_.category -eq 'sampling' -and $_.message -like 'audio=*'}|Select-Object -Last 1
  if($sampling.message -notlike '*fps=False*'){throw 'FPS sampling continued on an unrelated settings page'}
  Open-Category 'SettingsCategoryIntegrations'
  Invoke 'Collapse Nagi' -Name;Start-Sleep -Milliseconds 800
- $slot=Find 'RailFpsButton'
- if($slot.Current.IsOffscreen -or $slot.Current.BoundingRectangle.Width -lt 20){throw 'FPS slot is not visible on the horizontal mini bar'};Snapshot 'fps-dock'
+ $slot=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty,'RailFpsButton'))
+ if($slot -and !$slot.Current.IsOffscreen -and $slot.Current.BoundingRectangle.Width -gt 0){throw 'Unavailable FPS left a visible empty slot'};Snapshot 'fps-dock'
  Invoke 'Open Nagi control center' -Name;Open-Category 'SettingsCategoryIntegrations'
+ Invoke 'IntegrationPresentMonFPS'
  (Find 'PresentMonCapture').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 350
  @{Passed=$true;AboutCards=$true;HardwareAudioCards=$true;ResponsiveCards=$true;IntegrationsCategory=$true;GamingFpsPreferences=$true;FpsDock=$true;HiddenFpsPaused=$true;Credits=$true;Data=$qaDirectory}|ConvertTo-Json|Set-Content (Join-Path $qaDirectory 'result.json')
  Get-Content (Join-Path $qaDirectory 'result.json')

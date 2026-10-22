@@ -16,6 +16,11 @@ public sealed class MetricCard : UserControl
     private readonly Polyline _line = new() { Stroke = new SolidColorBrush(global::Windows.UI.Color.FromArgb(255, 235, 132, 158)), StrokeThickness = 1.6, Height = 17, Stretch = Stretch.Fill, Margin = new(0, 8, 0, 0) };
     private readonly Queue<double> _history = new();
     private Brush? _customAccent;
+    public bool Compact
+    {
+        get => _value.FontSize < 28;
+        set { _value.FontSize = value ? 22 : 28; if (Content is Border border) border.Padding = new(value ? 10 : 16); }
+    }
     public void Customize(double radius, Brush accent)
     {
         if (Content is Border border) border.CornerRadius = new(radius);
