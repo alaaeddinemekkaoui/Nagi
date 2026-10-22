@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Скриване на Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Задръжте курсора на мишката за OBS контроли",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Задръжте курсора на мишката или щракнете, за да разгънете допълнителни приложения.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Задръжте курсора на мишката, за да разкриете компактни контроли. Щракнете, за да ги оставите отворени, след което щракнете отново, за да разширите.",
     "ui.Local_private.903e57": "Локално и лично",
     "ui.Lock_current_profile.9cfe5e": "Заключване на текущия профил",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Заключване или отключване на текущия профил",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Отворете контролния център на Nagi",
     "ui.Open_OBS.21abdd": "Отворете OBS",
     "ui.Open_OBS_Studio.13862e": "Отворете OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Отворете контролния център · плъзнете, за да преместите дока",
     "ui.Open_settings.ca381c": "Отворете настройките",
     "ui.Output_volume.735bac": "Изходен обем",
     "ui.Overview.d4b1ea": "Общ преглед",
@@ -716,6 +714,12 @@
     "Customize active profile": "Персонализирайте активния профил",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Времето не е задължително. Само избраните от вас координати на града се изпращат до Open-Meteo.",
     "Within reach": "В обсега",
-    "Search also handles calculations, apps and indexed filenames.": "Търсенето също обработва изчисления, приложения и индексирани имена на файлове."
+    "Search also handles calculations, apps and indexed filenames.": "Търсенето също обработва изчисления, приложения и индексирани имена на файлове.",
+    "Always show mini bar": "Винаги показвай минибара",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Поддържа системната информация видима, без да задържа курсора на мишката. Визуализациите при задържане все още се затварят, когато напуснете.",
+    "Hover to reveal compact controls.": "Задръжте курсора на мишката, за да разкриете компактни контроли.",
+    "Open control center": "Отворете контролния център",
+    "Uses the same city, units and forecast as the dock weather widget.": "Използва същия град, единици и прогноза като джаджата за времето на дока.",
+    "Show weather widget": "Показване на джаджа за времето"
   }
 }

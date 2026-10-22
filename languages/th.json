@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "ซ่อน Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "เลื่อนเมาส์ไปที่ส่วนควบคุม OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "วางเมาส์เหนือหรือคลิกเพื่อขยายแอปเพิ่มเติม",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "วางเมาส์เหนือเพื่อแสดงส่วนควบคุมขนาดเล็ก คลิกเพื่อให้เปิดไว้ จากนั้นคลิกอีกครั้งเพื่อขยาย",
     "ui.Local_private.903e57": "ท้องถิ่นและส่วนตัว",
     "ui.Lock_current_profile.9cfe5e": "ล็อคโปรไฟล์ปัจจุบัน",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "ล็อคหรือปลดล็อคโปรไฟล์ปัจจุบัน",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "เปิดศูนย์ควบคุม Nagi",
     "ui.Open_OBS.21abdd": "เปิด OBS",
     "ui.Open_OBS_Studio.13862e": "เปิดสตูดิโอ OBS",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "เปิดศูนย์ควบคุม · ลากเพื่อย้ายท่าเรือ",
     "ui.Open_settings.ca381c": "เปิดการตั้งค่า",
     "ui.Output_volume.735bac": "ระดับเสียงเอาท์พุต",
     "ui.Overview.d4b1ea": "ภาพรวม",
@@ -716,6 +714,12 @@
     "Customize active profile": "ปรับแต่งโปรไฟล์ที่ใช้งานอยู่",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "สภาพอากาศเป็นตัวเลือก เฉพาะพิกัดเมืองที่คุณเลือกเท่านั้นที่จะถูกส่งไปยัง Open-Meteo",
     "Within reach": "ไม่ไกลเกินเอื้อม",
-    "Search also handles calculations, apps and indexed filenames.": "การค้นหายังจัดการการคํานวณ แอพ และชื่อไฟล์ที่จัดทําดัชนี"
+    "Search also handles calculations, apps and indexed filenames.": "การค้นหายังจัดการการคํานวณ แอพ และชื่อไฟล์ที่จัดทําดัชนี",
+    "Always show mini bar": "แสดงมินิบาร์เสมอ",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "เก็บข้อมูลระบบที่มองเห็นได้โดยไม่ต้องโฮเวอร์ การแสดงตัวอย่างแบบโฮเวอร์ยังคงปิดเมื่อคุณออกไป",
+    "Hover to reveal compact controls.": "วางเมาส์เหนือเพื่อแสดงส่วนควบคุมขนาดเล็ก",
+    "Open control center": "เปิดศูนย์ควบคุม",
+    "Uses the same city, units and forecast as the dock weather widget.": "ใช้เมือง หน่วย และการพยากรณ์อากาศเดียวกันเป็นวิดเจ็ตสภาพอากาศในท่าเรือ",
+    "Show weather widget": "แสดงวิดเจ็ตสภาพอากาศ"
   }
 }

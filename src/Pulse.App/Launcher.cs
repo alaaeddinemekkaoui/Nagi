@@ -51,7 +51,17 @@ public sealed partial class MainWindow
         if (_closed || _dialogOpen) return;
         if (_searchWindow?.IsOpen == true) { _searchWindow.Hide(); return; }
         ResetPreview();
-        _searchWindow ??= new QuickSearchWindow(SearchEntries, SearchStatus, ExecuteSearchAsync, ThemeBrush);
+        Layout(); // Remove the preview's native bounds before search takes keyboard focus.
+        if (_searchWindow is null)
+        {
+            _searchWindow = new QuickSearchWindow(SearchEntries, SearchStatus, ExecuteSearchAsync, ThemeBrush);
+            _searchWindow.Dismissed += () =>
+            {
+                if (_closed || _userHidden) return;
+                // Escape and click-away must settle the owner even without a pointer event.
+                if (!_expanded) Collapse();
+            };
+        }
         _searchWindow.Open(ViewModel.Settings);
     }
     private void EnsureSearchScope()

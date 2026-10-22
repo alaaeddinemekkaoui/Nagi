@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Скрыть Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Наведите курсор на элементы управления OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Наведите указатель мыши или щелкните, чтобы развернуть дополнительные приложения.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Наведите курсор, чтобы открыть компактные элементы управления. Нажмите, чтобы оставить их открытыми, затем нажмите еще раз, чтобы развернуть.",
     "ui.Local_private.903e57": "Локальный и частный",
     "ui.Lock_current_profile.9cfe5e": "Блокировка текущего профиля",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Заблокировать или разблокировать текущий профиль",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Открыть центр управления Nagi",
     "ui.Open_OBS.21abdd": "Открыть OBS",
     "ui.Open_OBS_Studio.13862e": "Открыть OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Открыть центр управления · перетащите док-станцию, чтобы переместить ее.",
     "ui.Open_settings.ca381c": "Открыть настройки",
     "ui.Output_volume.735bac": "Громкость вывода",
     "ui.Overview.d4b1ea": "Обзор",
@@ -716,6 +714,12 @@
     "Customize active profile": "Настройка активного профиля",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Погода не является обязательной. На Open-Meteo отправляются только координаты выбранного вами города.",
     "Within reach": "В пределах досягаемости",
-    "Search also handles calculations, apps and indexed filenames.": "Поиск также обрабатывает вычисления, приложения и индексированные имена файлов."
+    "Search also handles calculations, apps and indexed filenames.": "Поиск также обрабатывает вычисления, приложения и индексированные имена файлов.",
+    "Always show mini bar": "Всегда показывать мини-бар",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Сохраняйте видимость системной информации без наведения курсора. Предварительный просмотр при наведении по-прежнему закрывается, когда вы уходите.",
+    "Hover to reveal compact controls.": "Наведите курсор, чтобы открыть компактные элементы управления.",
+    "Open control center": "Открыть центр управления",
+    "Uses the same city, units and forecast as the dock weather widget.": "Использует тот же город, единицы измерения и прогноз, что и виджет погоды в доке.",
+    "Show weather widget": "Показать виджет погоды"
   }
 }

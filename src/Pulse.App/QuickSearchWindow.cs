@@ -35,6 +35,7 @@ public sealed class QuickSearchWindow : Window
     private int _generation, _openGeneration;
     private bool _visible, _closing, _executing;
     public bool IsOpen => _visible;
+    public event Action? Dismissed;
     private SearchEntry? Selected => (_results.SelectedItem as ListViewItem)?.Tag as SearchEntry;
 
     public QuickSearchWindow(Func<SearchEntry[]> entries, Func<string> status,
@@ -118,7 +119,12 @@ public sealed class QuickSearchWindow : Window
             var fade = visual.Compositor.CreateScalarKeyFrameAnimation(); fade.InsertKeyFrame(0, .2f); fade.InsertKeyFrame(1, 1); fade.Duration = TimeSpan.FromMilliseconds(140); visual.StartAnimation("Opacity", fade);
         }
     }
-    public void Hide() { _visible = false; _generation++; _delay.Stop(); SearchWindowPlacement.Hide(_handle); }
+    public void Hide()
+    {
+        if (!_visible) return;
+        _visible = false; _generation++; _delay.Stop(); SearchWindowPlacement.Hide(_handle);
+        Dismissed?.Invoke();
+    }
     public void DisposeWindow() { _closing = true; _visible = false; _generation++; _delay.Stop(); Close(); }
     public void IndexChanged() { if (_visible) { _delay.Stop(); _delay.Start(); } }
     private async Task RefreshAsync()

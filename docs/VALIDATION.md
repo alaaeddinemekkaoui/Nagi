@@ -2,11 +2,13 @@
 
 ## Automated checks
 
-The Windows Release build passes. The automated suite contains **288 core/infrastructure tests and 74 Windows integration tests (362 total)**. It covers settings recovery, profile rules, workspaces, search, media policies, motion, power status, providers, native geometry, icon transparency, OBS protocol handling and verified update preparation.
+The Windows Release build passes. The automated suite contains **292 core/infrastructure tests and 74 Windows integration tests (366 total)**. It covers settings recovery, profile rules, workspaces, search, media policies, motion, power status, providers, native geometry, icon transparency, OBS protocol handling and verified update preparation.
 
 OBS tests use an owned loopback fixture and confirm observed recording, streaming and program-scene states. They do not start the user's recording or stream. Update tests cover stable versions, download URLs, SHA256 and length verification, archive completeness and path rejection. NuGet vulnerability-data retrieval was unavailable during the recorded build (NU1900).
 
 ## Isolated desktop checks
+
+- v0.2.1 (2026-10-22): 366 automated tests pass (292 core/infrastructure, 74 Windows). Native development verification covers eight media-hover re-entries, four empty-search/Escape cycles without moving the pointer, persistent mini-bar visibility with transient previews, unchanged dock position after logo dragging, and shared Utilities/dock weather values and profile visibility. All 40 language packs contain 717 current English keys. Evidence: `artifacts/validation/hover-search-20261022-103743`.
 
 - v0.2 (2026-10-22): 364 automated application tests pass (290 core/infrastructure, 74 Windows), including every shipped language pack and Chinese script fallback. All 40 packs expose 713 current English keys. The final packaged development build passes 48 UI checks, with production developer-tool exclusion verified. Utilities checks cover floating navigation, circular timer start/pause/resume/reset, saved widget visibility, weather, four themes and a real countdown reaching a green check with `00:00`. Japanese, Simplified Chinese, Traditional Chinese, Arabic, Hebrew and Hindi welcome screens render their language status and switch immediately to English; the automation realizes virtualized dropdown choices. Native captures populate the README theme, Utilities and timer galleries. Evidence: `utilities-20261021-160742`, `development-20261022-023004` and `languages-20261022-023431` under `artifacts/validation`.
 - The deployed Nagi website passes release selection and failure-path tests, desktop/mobile browser checks at 320/375/768/1024/1440 pixels, interactive notch/timer/media/profile/theme checks, image loads, changelog display and production download selection. GitHub version and release notes are fetched by a cached Vercel function; macOS/Linux have no download. Evidence: `artifacts/validation/website`.

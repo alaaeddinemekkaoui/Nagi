@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi · Ctrl + Alt + H దాచు",
     "ui.Hover_for_OBS_controls.81089b": "OBS నియంత్రణల కోసం హోవర్ చేయండి",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "అదనపు యాప్‌లను విస్తరించడానికి హోవర్ చేయండి లేదా క్లిక్ చేయండి.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "కాంపాక్ట్ నియంత్రణలను బహిర్గతం చేయడానికి హోవర్ చేయండి. వాటిని తెరిచి ఉంచడానికి క్లిక్ చేసి, ఆపై విస్తరించడానికి మళ్లీ క్లిక్ చేయండి.",
     "ui.Local_private.903e57": "స్థానిక & ప్రైవేట్",
     "ui.Lock_current_profile.9cfe5e": "ప్రస్తుత ప్రొఫైల్‌ను లాక్ చేయండి",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "ప్రస్తుత ప్రొఫైల్‌ను లాక్ చేయండి లేదా అన్‌లాక్ చేయండి",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Nagi నియంత్రణ కేంద్రాన్ని తెరవండి",
     "ui.Open_OBS.21abdd": "OBSని తెరవండి",
     "ui.Open_OBS_Studio.13862e": "OBS స్టూడియోని తెరవండి",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "నియంత్రణ కేంద్రాన్ని తెరవండి · డాక్‌ని తరలించడానికి లాగండి",
     "ui.Open_settings.ca381c": "సెట్టింగ్‌లను తెరవండి",
     "ui.Output_volume.735bac": "అవుట్‌పుట్ వాల్యూమ్",
     "ui.Overview.d4b1ea": "అవలోకనం",
@@ -716,6 +714,12 @@
     "Customize active profile": "సక్రియ ప్రొఫైల్‌ను అనుకూలీకరించండి",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "వాతావరణం ఐచ్ఛికం. మీరు ఎంచుకున్న నగర కోఆర్డినేట్‌లు మాత్రమే Open-Meteoకి పంపబడతాయి.",
     "Within reach": "అందుబాటులో ఉంది",
-    "Search also handles calculations, apps and indexed filenames.": "శోధన లెక్కలు, యాప్‌లు మరియు సూచిక చేయబడిన ఫైల్ పేర్లను కూడా నిర్వహిస్తుంది."
+    "Search also handles calculations, apps and indexed filenames.": "శోధన లెక్కలు, యాప్‌లు మరియు సూచిక చేయబడిన ఫైల్ పేర్లను కూడా నిర్వహిస్తుంది.",
+    "Always show mini bar": "ఎల్లప్పుడూ మినీ బార్‌ని చూపు",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "హోవర్ లేకుండా సిస్టమ్ సమాచారాన్ని కనిపించేలా ఉంచండి. మీరు నిష్క్రమించినప్పుడు హోవర్ ప్రివ్యూలు ఇప్పటికీ మూసివేయబడతాయి.",
+    "Hover to reveal compact controls.": "కాంపాక్ట్ నియంత్రణలను బహిర్గతం చేయడానికి హోవర్ చేయండి.",
+    "Open control center": "ఓపెన్ కంట్రోల్ సెంటర్",
+    "Uses the same city, units and forecast as the dock weather widget.": "డాక్ వాతావరణ విడ్జెట్ వలె అదే నగరం, యూనిట్లు మరియు సూచనను ఉపయోగిస్తుంది.",
+    "Show weather widget": "వాతావరణ విడ్జెట్‌ని చూపించు"
   }
 }

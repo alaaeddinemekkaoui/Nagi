@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Piilota Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Vie hiiri OBS-säätimille",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Laajenna lisäsovelluksia viemällä hiiri tai napsauttamalla.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Näytä kompaktit säätimet viemällä hiiri. Napsauta pitääksesi ne auki ja napsauta sitten uudelleen laajentaaksesi.",
     "ui.Local_private.903e57": "Paikallinen ja yksityinen",
     "ui.Lock_current_profile.9cfe5e": "Lukitse nykyinen profiili",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Lukitse nykyinen profiili tai avaa sen lukitus",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Avaa Nagi-ohjauskeskus",
     "ui.Open_OBS.21abdd": "Avaa OBS",
     "ui.Open_OBS_Studio.13862e": "Avaa OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Avaa ohjauskeskus · Siirrä telakkaa vetämällä",
     "ui.Open_settings.ca381c": "Avaa asetukset",
     "ui.Output_volume.735bac": "Lähtöäänenvoimakkuus",
     "ui.Overview.d4b1ea": "Yleiskatsaus",
@@ -716,6 +714,12 @@
     "Customize active profile": "Mukauta aktiivista profiilia",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Sää on valinnainen. Vain valitsemasi kaupunkikoordinaatit lähetetään numeroon Open-Meteo.",
     "Within reach": "Käden ulottuvilla",
-    "Search also handles calculations, apps and indexed filenames.": "Haku käsittelee myös laskelmia, sovelluksia ja indeksoituja tiedostonimiä."
+    "Search also handles calculations, apps and indexed filenames.": "Haku käsittelee myös laskelmia, sovelluksia ja indeksoituja tiedostonimiä.",
+    "Always show mini bar": "Näytä aina minibaari",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Pidä järjestelmätiedot näkyvissä ilman osoitinta. Hover-esikatselut sulkeutuvat edelleen, kun lähdet.",
+    "Hover to reveal compact controls.": "Näytä kompaktit säätimet viemällä hiiri.",
+    "Open control center": "Avaa ohjauskeskus",
+    "Uses the same city, units and forecast as the dock weather widget.": "Käyttää samaa kaupunkia, yksiköitä ja ennustetta kuin telakan sää-widget.",
+    "Show weather widget": "Näytä sää-widget"
   }
 }

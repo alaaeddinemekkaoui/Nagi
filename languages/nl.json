@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi verbergen · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Zweef voor OBS-bedieningen",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Beweeg of klik om extra apps uit te vouwen.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Beweeg de muis om compacte bedieningselementen weer te geven. Klik om ze open te houden en klik vervolgens opnieuw om uit te vouwen.",
     "ui.Local_private.903e57": "Lokaal en privé",
     "ui.Lock_current_profile.9cfe5e": "Huidig profiel vergrendelen",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Vergrendel of ontgrendel het huidige profiel",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Open het Nagi-controlecentrum",
     "ui.Open_OBS.21abdd": "Open OBS",
     "ui.Open_OBS_Studio.13862e": "Open OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Open het controlecentrum · sleep om het dock te verplaatsen",
     "ui.Open_settings.ca381c": "Instellingen openen",
     "ui.Output_volume.735bac": "Uitvoervolume",
     "ui.Overview.d4b1ea": "Overzicht",
@@ -716,6 +714,12 @@
     "Customize active profile": "Actief profiel aanpassen",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Het weer is optioneel. Alleen de door u geselecteerde stadscoördinaten worden naar Open-Meteo verzonden.",
     "Within reach": "Binnen handbereik",
-    "Search also handles calculations, apps and indexed filenames.": "Zoeken verwerkt ook berekeningen, apps en geïndexeerde bestandsnamen."
+    "Search also handles calculations, apps and indexed filenames.": "Zoeken verwerkt ook berekeningen, apps en geïndexeerde bestandsnamen.",
+    "Always show mini bar": "Minibar altijd tonen",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Houd systeeminformatie zichtbaar zonder te zweven. Hover-voorbeelden worden nog steeds gesloten als u weggaat.",
+    "Hover to reveal compact controls.": "Beweeg de muis om compacte bedieningselementen weer te geven.",
+    "Open control center": "Open het controlecentrum",
+    "Uses the same city, units and forecast as the dock weather widget.": "Gebruikt dezelfde stad, eenheden en voorspelling als de dockweerwidget.",
+    "Show weather widget": "Weerwidget weergeven"
   }
 }

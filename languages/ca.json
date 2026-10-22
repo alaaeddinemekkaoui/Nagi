@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Amaga Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Passeu el cursor per als controls OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Passeu el cursor o feu clic per ampliar aplicacions addicionals.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Passa el cursor per mostrar els controls compactes. Feu clic per mantenir-los oberts i, a continuació, torneu a fer clic per expandir-los.",
     "ui.Local_private.903e57": "Local i privat",
     "ui.Lock_current_profile.9cfe5e": "Bloqueja el perfil actual",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Bloqueja o desbloqueja el perfil actual",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Obre el centre de control Nagi",
     "ui.Open_OBS.21abdd": "Obre OBS",
     "ui.Open_OBS_Studio.13862e": "Obriu OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Obre el centre de control · arrossega per moure el moll",
     "ui.Open_settings.ca381c": "Obre la configuració",
     "ui.Output_volume.735bac": "Volum de sortida",
     "ui.Overview.d4b1ea": "Visió general",
@@ -716,6 +714,12 @@
     "Customize active profile": "Personalitza el perfil actiu",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "El temps és opcional. Només s'envien les coordenades de la ciutat seleccionada a Open-Meteo.",
     "Within reach": "A l'abast",
-    "Search also handles calculations, apps and indexed filenames.": "La cerca també gestiona càlculs, aplicacions i noms de fitxers indexats."
+    "Search also handles calculations, apps and indexed filenames.": "La cerca també gestiona càlculs, aplicacions i noms de fitxers indexats.",
+    "Always show mini bar": "Mostra sempre el minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Manteniu la informació del sistema visible sense passar el cursor. Les previsualitzacions del ratolí encara es tanquen quan sortiu.",
+    "Hover to reveal compact controls.": "Passa el cursor per mostrar els controls compactes.",
+    "Open control center": "Obre el centre de control",
+    "Uses the same city, units and forecast as the dock weather widget.": "Utilitza la mateixa ciutat, unitats i pronòstic que el giny meteorològic del moll.",
+    "Show weather widget": "Mostra el widget del temps"
   }
 }

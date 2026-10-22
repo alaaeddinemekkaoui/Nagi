@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Сховати Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Наведіть курсор для елементів керування OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Наведіть курсор або натисніть, щоб розгорнути додаткові програми.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Наведіть курсор, щоб відкрити компактні елементи керування. Натисніть, щоб залишити їх відкритими, а потім натисніть ще раз, щоб розгорнути.",
     "ui.Local_private.903e57": "Локальний і приватний",
     "ui.Lock_current_profile.9cfe5e": "Заблокувати поточний профіль",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Блокування або розблокування поточного профілю",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Відкрити центр керування Nagi",
     "ui.Open_OBS.21abdd": "Відкрийте OBS",
     "ui.Open_OBS_Studio.13862e": "Відкрийте OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Відкрийте центр керування · перетягніть, щоб перемістити док",
     "ui.Open_settings.ca381c": "Відкрити налаштування",
     "ui.Output_volume.735bac": "Вихідна гучність",
     "ui.Overview.d4b1ea": "Огляд",
@@ -716,6 +714,12 @@
     "Customize active profile": "Налаштувати активний профіль",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Погода необов’язкова. На Open-Meteo надсилаються лише координати вибраного міста.",
     "Within reach": "У межах досяжності",
-    "Search also handles calculations, apps and indexed filenames.": "Пошук також обробляє обчислення, програми та індексовані імена файлів."
+    "Search also handles calculations, apps and indexed filenames.": "Пошук також обробляє обчислення, програми та індексовані імена файлів.",
+    "Always show mini bar": "Завжди показувати міні-бар",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Зберігайте системну інформацію видимою без наведення курсора. Попередній перегляд при наведенні миші все ще закривається, коли ви виходите.",
+    "Hover to reveal compact controls.": "Наведіть курсор, щоб відкрити компактні елементи керування.",
+    "Open control center": "Відкрити центр керування",
+    "Uses the same city, units and forecast as the dock weather widget.": "Використовує те саме місто, одиниці та прогноз, що й віджет погоди на доку.",
+    "Show weather widget": "Показати віджет погоди"
   }
 }

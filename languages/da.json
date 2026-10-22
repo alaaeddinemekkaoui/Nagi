@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Skjul Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Hover for OBS-kontroller",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Hold musen eller klik for at udvide ekstra apps.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Hold musen over for at afsløre kompakte kontroller. Klik for at holde dem åbne, og klik derefter igen for at udvide.",
     "ui.Local_private.903e57": "Lokalt og privat",
     "ui.Lock_current_profile.9cfe5e": "Lås den aktuelle profil",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Lås eller lås den aktuelle profil op",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Åbn Nagi kontrolcenter",
     "ui.Open_OBS.21abdd": "Åbn OBS",
     "ui.Open_OBS_Studio.13862e": "Åbn OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Åbn kontrolcenteret · træk for at flytte docken",
     "ui.Open_settings.ca381c": "Åbn indstillinger",
     "ui.Output_volume.735bac": "Udgangsvolumen",
     "ui.Overview.d4b1ea": "Oversigt",
@@ -716,6 +714,12 @@
     "Customize active profile": "Tilpas aktiv profil",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Vejret er valgfrit. Kun dine valgte bykoordinater sendes til Open-Meteo.",
     "Within reach": "Inden for rækkevidde",
-    "Search also handles calculations, apps and indexed filenames.": "Søg håndterer også beregninger, apps og indekserede filnavne."
+    "Search also handles calculations, apps and indexed filenames.": "Søg håndterer også beregninger, apps og indekserede filnavne.",
+    "Always show mini bar": "Vis altid minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Hold systemoplysninger synlige uden at svæve. Forhåndsvisninger af musen lukkes stadig, når du tager afsted.",
+    "Hover to reveal compact controls.": "Hold musen over for at afsløre kompakte kontroller.",
+    "Open control center": "Åbn kontrolcenteret",
+    "Uses the same city, units and forecast as the dock weather widget.": "Bruger samme by, enheder og vejrudsigt som dock-vejr-widgetten.",
+    "Show weather widget": "Vis vejr-widget"
   }
 }

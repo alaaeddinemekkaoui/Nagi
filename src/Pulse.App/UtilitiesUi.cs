@@ -74,7 +74,21 @@ public sealed partial class MainWindow
         _utilityWeatherCity = new TextBlock { FontSize = 13, Foreground = ThemeBrush("MutedBrush"), TextWrapping = TextWrapping.Wrap };
         _utilityWeatherValue = new TextBlock { FontSize = 32, FontWeight = Microsoft.UI.Text.FontWeights.Light, TextWrapping = TextWrapping.Wrap };
         _utilityWeatherDetail = Note("");
+        AutomationProperties.SetAutomationId(_utilityWeatherCity, "UtilityWeatherCity");
+        AutomationProperties.SetAutomationId(_utilityWeatherValue, "UtilityWeatherValue");
+        AutomationProperties.SetAutomationId(_utilityWeatherDetail, "UtilityWeatherDetail");
         weather.Children.Add(_utilityWeatherCity); weather.Children.Add(_utilityWeatherValue); weather.Children.Add(_utilityWeatherDetail);
+        weather.Children.Add(Note(L.T("Uses the same city, units and forecast as the dock weather widget.")));
+        var weatherWidget = new ToggleSwitch { Header = L.T("Show weather widget"), IsOn = ViewModel.Settings.Workspace(ViewModel.Profile).Shows("Weather"),
+            OnContent = L.T("On"), OffContent = L.T("Off") };
+        AutomationProperties.SetAutomationId(weatherWidget, "UtilityWeatherWidget");
+        weatherWidget.Toggled += async (_, _) =>
+        {
+            var workspace = ViewModel.Settings.Workspace(ViewModel.Profile);
+            var widgets = weatherWidget.IsOn ? workspace.Widgets.Append("Weather").Distinct().ToArray() : workspace.Widgets.Where(w => w != "Weather").ToArray();
+            if (!await SaveWorkspaceAsync(workspace with { Widgets = widgets })) weatherWidget.IsOn = workspace.Shows("Weather");
+        };
+        weather.Children.Add(weatherWidget);
         weather.Children.Add(Button(L.T("Choose weather location"), (_, _) => OpenUtilitySettings("Weather")));
         weather.Children.Add(Note(L.T("Weather is optional. Only your selected city coordinates are sent to Open-Meteo.")));
         weather.Children.Add(new HyperlinkButton { Content = L.T("Weather by Open-Meteo · locations by GeoNames"),

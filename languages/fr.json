@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Masquer Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Survolez les contrôles OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Passez la souris ou cliquez pour développer des applications supplémentaires.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Survolez pour révéler des commandes compactes. Cliquez pour les garder ouverts, puis cliquez à nouveau pour les développer.",
     "ui.Local_private.903e57": "Local & privé",
     "ui.Lock_current_profile.9cfe5e": "Verrouiller le profil actuel",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Verrouiller ou déverrouiller le profil actuel",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Ouvrir le centre de contrôle Nagi",
     "ui.Open_OBS.21abdd": "Ouvrir OBS",
     "ui.Open_OBS_Studio.13862e": "Ouvrir OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Ouvrir le centre de contrôle · faites glisser pour déplacer le dock",
     "ui.Open_settings.ca381c": "Ouvrir les paramètres",
     "ui.Output_volume.735bac": "Volume de sortie",
     "ui.Overview.d4b1ea": "Présentation",
@@ -716,6 +714,12 @@
     "Customize active profile": "Personnaliser le profil actif",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "La météo est facultative. Seules les coordonnées de votre ville sélectionnée sont envoyées à Open-Meteo.",
     "Within reach": "À portée de main",
-    "Search also handles calculations, apps and indexed filenames.": "La recherche gère également les calculs, les applications et les noms de fichiers indexés."
+    "Search also handles calculations, apps and indexed filenames.": "La recherche gère également les calculs, les applications et les noms de fichiers indexés.",
+    "Always show mini bar": "Toujours afficher le mini-bar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Gardez les informations système visibles sans survol. Les aperçus au survol se ferment toujours lorsque vous partez.",
+    "Hover to reveal compact controls.": "Survolez pour révéler des commandes compactes.",
+    "Open control center": "Ouvrir le centre de contrôle",
+    "Uses the same city, units and forecast as the dock weather widget.": "Utilise la même ville, les mêmes unités et les mêmes prévisions que le widget météo du quai.",
+    "Show weather widget": "Afficher le widget météo"
   }
 }

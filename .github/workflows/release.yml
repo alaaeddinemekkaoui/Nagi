@@ -5,7 +5,7 @@ on:
       release_tag:
         description: Existing draft release tag
         required: true
-        default: v0.2
+        default: v0.2.1
         type: string
 permissions:
   contents: write
@@ -34,7 +34,7 @@ jobs:
         run: |
           if ($env:NAGI_RELEASE_TAG -notmatch '^v0\.\d+(?:\.\d+)?$') { throw 'Only early v0.x releases are enabled; v1 requires explicit approval.' }
           [xml]$project = Get-Content src/Pulse.App/Pulse.App.csproj
-          $appVersion = [version][string]$project.Project.PropertyGroup.Version
+          $appVersion = [version]$project.SelectSingleNode('/Project/PropertyGroup/Version').InnerText
           $tagVersion = [version]$env:NAGI_RELEASE_TAG.TrimStart('v')
           if ($appVersion.Major -ne $tagVersion.Major -or $appVersion.Minor -ne $tagVersion.Minor -or [Math]::Max(0,$appVersion.Build) -ne [Math]::Max(0,$tagVersion.Build)) { throw 'Tag and app version differ.' }
       - name: Install NSIS

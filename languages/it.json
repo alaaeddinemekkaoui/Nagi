@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nascondi Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Passa il mouse per i controlli OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Passa il mouse o fai clic per espandere app aggiuntive.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Passa il mouse per rivelare i controlli compatti. Fare clic per mantenerli aperti, quindi fare nuovamente clic per espanderli.",
     "ui.Local_private.903e57": "Locale e privato",
     "ui.Lock_current_profile.9cfe5e": "Blocca il profilo corrente",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Blocca o sblocca il profilo corrente",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Apri il centro di controllo Nagi",
     "ui.Open_OBS.21abdd": "Apri OBS",
     "ui.Open_OBS_Studio.13862e": "Apri OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Apri il centro di controllo · trascina per spostare il dock",
     "ui.Open_settings.ca381c": "Apri le impostazioni",
     "ui.Output_volume.735bac": "Volume di uscita",
     "ui.Overview.d4b1ea": "Panoramica",
@@ -716,6 +714,12 @@
     "Customize active profile": "Personalizza il profilo attivo",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Il meteo è facoltativo. Solo le coordinate della città selezionata verranno inviate a Open-Meteo.",
     "Within reach": "A portata di mano",
-    "Search also handles calculations, apps and indexed filenames.": "La ricerca gestisce anche calcoli, app e nomi di file indicizzati."
+    "Search also handles calculations, apps and indexed filenames.": "La ricerca gestisce anche calcoli, app e nomi di file indicizzati.",
+    "Always show mini bar": "Mostra sempre il minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Mantieni le informazioni di sistema visibili senza indugiare. Le anteprime al passaggio del mouse sono ancora chiuse quando esci.",
+    "Hover to reveal compact controls.": "Passa il mouse per rivelare i controlli compatti.",
+    "Open control center": "Apri il centro di controllo",
+    "Uses the same city, units and forecast as the dock weather widget.": "Utilizza la stessa città, unità e previsioni del widget meteo del molo.",
+    "Show weather widget": "Mostra widget meteo"
   }
 }

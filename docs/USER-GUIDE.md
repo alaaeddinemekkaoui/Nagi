@@ -50,11 +50,11 @@ Only one Nagi instance runs in the current Windows session. Launching it again r
 Nagi normally rests as a small teardrop attached to your selected screen edge. Hovering reveals the dock. Your saved layout or **Open expanded on startup** preference can change its initial state.
 
 1. Hover the teardrop to reveal the dock, horizontal or vertical.
-2. Click once to pin the revealed controls open.
-3. Click the Nagi logo to open the control center. A second click on the pinned edge control expands details inward.
+2. Move into a widget to reveal its detailed hover panel.
+3. Click the Nagi logo to open the control center.
 4. Use **Collapse Nagi** or Escape to return toward the resting edge state.
 
-Moving away retracts an unpinned reveal. A hover preview lets you inspect details without taking keyboard focus from the current app. Move into that preview to use its controls, or select **Show more** for the full panel.
+Moving away retracts the mini bar. Enable **Settings → Behavior → Always show mini bar** to keep compact system information visible; hover details still close when you leave. Clicks do not pin the dock, and dragging the logo does not move it. A hover preview lets you inspect details without taking keyboard focus from the current app. Move into that preview to use its controls, or select **Show more** for the full panel.
 
 The dock contains the Nagi logo, search, profile apps and enabled widgets. Up to two apps appear directly; profiles with more apps use one folder tile with a count. **Hover or click the folder to expand it**, then click an app to open it. Moving from the folder tile into its app list keeps the folder open. Default starts without apps, so it has no folder. Removing extra apps hides the folder when two or fewer remain. Overview continues to show every app, up to four per row.
 
@@ -226,7 +226,7 @@ Nagi is the new name for Pulse / Halo. The existing `%LOCALAPPDATA%\Pulse` data 
 | `Telemetry\foreground-presents.csv` | Optional FPS helper snapshot |
 | `logs\pulse.jsonl`, `.previous` | Bounded local diagnostic records |
 
-Activity history and metric samples stay in memory and disappear on exit. Nagi does not record keystrokes, screenshots or PCM audio, and has no activity telemetry. Registered hotkeys are handled globally; mouse-button state supports dragging. Search text stays local until you explicitly open a web search. Local paths and application configuration can be sensitive when sharing backups.
+Activity history and metric samples stay in memory and disappear on exit. Nagi does not record keystrokes, screenshots or PCM audio, and has no activity telemetry. Registered hotkeys are handled globally. Search text stays local until you explicitly open a web search. Local paths and application configuration can be sensitive when sharing backups.
 
 To back up customization, **Quit Nagi** and copy the settings and scripts to a safe folder. Restore while Nagi is closed. Prefer Settings for routine changes; JSON is versioned, uses atomic writes and preserves recovery copies. A newer unsupported schema is read-only. The OBS credential is tied to its Windows user and should be entered again on another account/machine. A fresh index can be rebuilt from the configured folders.
 
@@ -235,7 +235,7 @@ To back up customization, **Quit Nagi** and copy the settings and scripts to a s
 | Symptom | What to check |
 | --- | --- |
 | Nagi disappeared | Tray → Open Nagi/Settings, Ctrl+Alt+H, or launch Nagi again; check fullscreen hiding and selected display |
-| Hover rail closes | First click pins it; move into a preview to use it; use Show more for the full panel |
+| Hover rail closes | Enable Always show mini bar in Settings → Behavior; move into a preview to use it; use Show more for the full panel |
 | Shortcut does nothing | Check the reported registration conflict and choose another shortcut; use rail/tray controls meanwhile |
 | Glass looks opaque | Check Translucent glass, Windows transparency, high contrast and power/session policy; inspect material diagnostics |
 | Missing artwork/playback button | Confirm the player publishes a Windows media session and supports that control; inspect Show media controls |
@@ -303,3 +303,5 @@ Open **Profiles → choose a profile → Timer** to set its duration of 1–1,44
 The dock shows the countdown in its own button beside media and volume, aligned on the same row. Hover it to open the timer widget: press Play to start or restart using the profile duration, Pause/Resume to control the countdown, or Cancel to return to the preset. When Timer is enabled in a profile, its dock button stays available before starting. Clicking it opens the full controls. Timer-only profiles can show the countdown without a media or volume widget. **Show timer before hovering** displays it in a compact, screen-connected notch; turn this off to retain the ordinary drop until completion. Completion briefly replaces the logo with a green check beside `00:00` and records an essential Nagi notice, then restores the normal resting view. **Show playing music before hovering** displays only artwork (or a music icon) and a five-bar measured audio visualizer. Timer activity takes priority over music. Both live displays are enabled by default, can be disabled independently and respect fullscreen/hide preferences. The resting music display works independently of the profile’s Media widget. While a timer or music is active, the notch fits the content with smooth curved shoulders and grows only for longer timer text; top and bottom notches show content horizontally; left and right notches stack upright content vertically. Artwork sits beside the audio visualizer on top/bottom edges, and above it on side edges. With no activity, it morphs back to the small logo teardrop.
 
 Under **Settings → Behavior → Animation mode**, **Display** follows the current monitor up to 240 Hz and **Efficiency** caps transitions at 60 Hz. Both stop ticking once settled and respect reduced motion.
+
+Utilities weather shares the dock weather widget's city, units and cached forecast. Its Show weather widget switch changes visibility for the active profile. Changing location or units refreshes both views together.

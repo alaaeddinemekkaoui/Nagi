@@ -1,10 +1,6 @@
 using System.Diagnostics;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Pulse.Core;
-using Pulse.Windows;
 
 namespace Pulse.App;
 
@@ -18,7 +14,6 @@ public sealed partial class MainWindow
 
     private bool ObserveDockPointer()
     {
-        if (ObserveLogoDrag()) return true;
         if (_dockSuppressed && _dock.Stage == DockStage.Resting
             && _windowManager.TryGetPointerScreenPosition(out var pointerX, out var pointerY)
             && (Math.Abs(pointerX - _dockDismissX) > 4 || Math.Abs(pointerY - _dockDismissY) > 4)
@@ -43,9 +38,9 @@ public sealed partial class MainWindow
             }
             return true;
         }
-        if (!inside && !_dock.Pinned)
+        if (!inside)
         {
-            if (!_previewClose.IsEnabled) _previewClose.Start();
+            if ((!_dock.AlwaysShowMiniBar || PreviewVisible) && !_previewClose.IsEnabled) _previewClose.Start();
             return true;
         }
         if (inside) _previewClose.Stop();
@@ -71,7 +66,6 @@ public sealed partial class MainWindow
     {
         if (_closed || _userHidden) return;
         DismissDockIntroduction();
-        if (ReferenceEquals(sender, CompactBrand) && _suppressLogoClick) return;
         if (ReferenceEquals(sender, CompactBrand)) { OpenControlCenter("Profiles"); return; }
         _dockSuppressed = _previewSuppressed = false; _dockEnteredAt = 0;
         _previewOpen.Stop(); _previewClose.Stop();
@@ -79,17 +73,5 @@ public sealed partial class MainWindow
         _dock.Click();
         if (_expanded) { Navigate("Overview"); Reveal(); }
         else Layout(true);
-    }
-    private void Compact_Tapped(object sender, TappedRoutedEventArgs e)
-    {
-        if (_suppressLogoClick) { e.Handled = true; return; }
-        // Buttons handle their own clicks. Bare padding at the edge follows the same two clicks.
-        var source = e.OriginalSource as DependencyObject;
-        while (source is not null && source != Compact)
-        {
-            if (source is Button) return;
-            source = VisualTreeHelper.GetParent(source);
-        }
-        if (_dock.Stage == DockStage.Compact) { Dock_Click(sender, e); e.Handled = true; }
     }
 }

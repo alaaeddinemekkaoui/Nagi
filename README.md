@@ -115,7 +115,7 @@ First launch draws **Nagi / ナギ**, then lets you choose a language, name, the
 | Hover the drop | Reveal the dock |
 | Hover the timer, media or app folder | Open its controls |
 | Click the logo | Open the control center |
-| Drag the logo | Reposition the dock |
+| Settings → Appearance | Choose dock edge and position |
 | **Alt + Space** | Search apps, indexed filenames, calculations and commands |
 | **Ctrl + Alt + Space** | Expand/collapse the panel |
 | **Ctrl + Alt + H** | Hide/show Nagi |
@@ -129,6 +129,8 @@ Try `app: chrome`, `file: report`, `folder: projects`, `> volume` or `24 * 7` in
 No account or activity telemetry. App settings, scripts, logs and protected OBS credentials stay in your local Windows profile. Weather sends only the city search or selected coordinates needed for its feature. Update checks contact GitHub; selected web searches open in your browser. Nagi does not save or transmit raw audio. Updates preserve preferences and Lua scripts.
 
 GPU counters depend on the driver. Temperatures require a supported Libre Hardware Monitor/Open Hardware Monitor WMI provider; FPS requires PresentMon tracing permission; OBS requires its local WebSocket v5 server. [Integration setup](docs/INTEGRATIONS.md) · [Validation and remaining physical coverage](docs/VALIDATION.md).
+
+Keep system information visible with **Settings → Behavior → Always show mini bar**. Hover details close when you leave; clicks do not pin the dock. Utilities weather uses the same city and forecast as the dock widget.
 
 ## Download
 
@@ -147,7 +149,7 @@ Windows 11 **22H2 or newer**, x64. Runtime included. Current builds are unsigned
 Built with **WinUI 3, Win2D and .NET**. [Build instructions](docs/BUILD.md) · [Architecture](docs/ARCHITECTURE.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md).
 
 ```powershell
-./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.2
+./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.2.1
 ```
 
 Every release produces a fresh **Nagi-Portable.exe in the project root** and a matching **Nagi-Dev-Portable.exe**. Development includes a debug menu, direct pages, notch/notification previews, diagnostics and automated UI checks, with separate preferences and logs. Production excludes developer tools. [Developer guide](docs/DEVELOPMENT.md).

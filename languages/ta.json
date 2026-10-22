@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi · Ctrl + Alt + H ஐ மறை",
     "ui.Hover_for_OBS_controls.81089b": "OBS கட்டுப்பாடுகளுக்கு வட்டமிடுங்கள்",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "கூடுதல் பயன்பாடுகளை விரிவாக்க வட்டமிடவும் அல்லது கிளிக் செய்யவும்.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "சிறிய கட்டுப்பாடுகளை வெளிப்படுத்த வட்டமிடுங்கள். அவற்றைத் திறந்து வைக்க கிளிக் செய்யவும், பின்னர் விரிவாக்க மீண்டும் கிளிக் செய்யவும்.",
     "ui.Local_private.903e57": "உள்ளூர் & தனிப்பட்ட",
     "ui.Lock_current_profile.9cfe5e": "தற்போதைய சுயவிவரத்தை பூட்டு",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "தற்போதைய சுயவிவரத்தைப் பூட்டவும் அல்லது திறக்கவும்",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Nagi கட்டுப்பாட்டு மையத்தைத் திறக்கவும்",
     "ui.Open_OBS.21abdd": "OBSஐத் திறக்கவும்",
     "ui.Open_OBS_Studio.13862e": "OBS ஸ்டுடியோவைத் திறக்கவும்",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "கட்டுப்பாட்டு மையத்தைத் திறக்கவும் · கப்பல்துறையை நகர்த்த இழுக்கவும்",
     "ui.Open_settings.ca381c": "அமைப்புகளைத் திறக்கவும்",
     "ui.Output_volume.735bac": "வெளியீட்டு அளவு",
     "ui.Overview.d4b1ea": "கண்ணோட்டம்",
@@ -716,6 +714,12 @@
     "Customize active profile": "செயலில் உள்ள சுயவிவரத்தைத் தனிப்பயனாக்கு",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "வானிலை விருப்பமானது. நீங்கள் தேர்ந்தெடுத்த நகர ஒருங்கிணைப்புகள் மட்டுமே Open-Meteo க்கு அனுப்பப்படும்.",
     "Within reach": "அடையக்கூடியது",
-    "Search also handles calculations, apps and indexed filenames.": "தேடல் கணக்கீடுகள், பயன்பாடுகள் மற்றும் அட்டவணைப்படுத்தப்பட்ட கோப்பு பெயர்களையும் கையாளுகிறது."
+    "Search also handles calculations, apps and indexed filenames.": "தேடல் கணக்கீடுகள், பயன்பாடுகள் மற்றும் அட்டவணைப்படுத்தப்பட்ட கோப்பு பெயர்களையும் கையாளுகிறது.",
+    "Always show mini bar": "எப்போதும் மினி பட்டியைக் காட்டு",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "வட்டமிடாமல் கணினித் தகவலைக் காணும்படி வைக்கவும். நீங்கள் வெளியேறும்போது முன்னோட்டங்கள் இன்னும் மூடப்படும்.",
+    "Hover to reveal compact controls.": "சிறிய கட்டுப்பாடுகளை வெளிப்படுத்த வட்டமிடுங்கள்.",
+    "Open control center": "கட்டுப்பாட்டு மையத்தைத் திறக்கவும்",
+    "Uses the same city, units and forecast as the dock weather widget.": "கப்பல்துறை வானிலை விட்ஜெட்டாக அதே நகரம், அலகுகள் மற்றும் முன்னறிவிப்பைப் பயன்படுத்துகிறது.",
+    "Show weather widget": "வானிலை விட்ஜெட்டைக் காட்டு"
   }
 }

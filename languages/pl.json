@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Ukryj Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Najedź kursorem, aby wyświetlić elementy sterujące OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Najedź kursorem lub kliknij, aby rozwinąć dodatkowe aplikacje.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Najedź kursorem, aby wyświetlić kompaktowe elementy sterujące. Kliknij, aby pozostawić je otwarte, a następnie kliknij ponownie, aby je rozwinąć.",
     "ui.Local_private.903e57": "Lokalne i prywatne",
     "ui.Lock_current_profile.9cfe5e": "Zablokuj bieżący profil",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Zablokuj lub odblokuj bieżący profil",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Otwórz centrum sterowania Nagi",
     "ui.Open_OBS.21abdd": "Otwórz OBS",
     "ui.Open_OBS_Studio.13862e": "Otwórz Studio OBS",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Otwórz centrum sterowania · przeciągnij, aby przesunąć stację dokującą",
     "ui.Open_settings.ca381c": "Otwórz ustawienia",
     "ui.Output_volume.735bac": "Głośność wyjściowa",
     "ui.Overview.d4b1ea": "Przegląd",
@@ -716,6 +714,12 @@
     "Customize active profile": "Dostosuj aktywny profil",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Pogoda jest opcjonalna. Do Open-Meteo wysyłane są tylko współrzędne wybranego miasta.",
     "Within reach": "W zasięgu ręki",
-    "Search also handles calculations, apps and indexed filenames.": "Wyszukiwanie obsługuje również obliczenia, aplikacje i indeksowane nazwy plików."
+    "Search also handles calculations, apps and indexed filenames.": "Wyszukiwanie obsługuje również obliczenia, aplikacje i indeksowane nazwy plików.",
+    "Always show mini bar": "Zawsze pokazuj minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Zachowaj widoczność informacji o systemie bez najeżdżania kursorem. Podgląd po najechaniu myszką nadal się zamyka, gdy wychodzisz.",
+    "Hover to reveal compact controls.": "Najedź kursorem, aby wyświetlić kompaktowe elementy sterujące.",
+    "Open control center": "Otwórz centrum sterowania",
+    "Uses the same city, units and forecast as the dock weather widget.": "Używa tego samego miasta, jednostek i prognozy, co widget pogody na stacji dokującej.",
+    "Show weather widget": "Pokaż widget pogody"
   }
 }

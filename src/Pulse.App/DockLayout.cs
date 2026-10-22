@@ -147,7 +147,6 @@ public sealed partial class MainWindow
         EdgeDrop.IsHitTestVisible = resting; Compact.IsHitTestVisible = !resting;
         ApplyWorkspaceVisibility();
         UpdateCompactMediaPresentation();
-        DockPinIndicator.Visibility = _dock.Pinned ? Visibility.Visible : Visibility.Collapsed;
     }
     private void UpdateCompactMediaPresentation()
     {

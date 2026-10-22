@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi ausblenden · Strg + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Bewegen Sie den Mauszeiger über OBS-Steuerelemente",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Bewegen Sie den Mauszeiger oder klicken Sie, um zusätzliche Apps zu erweitern.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Bewegen Sie den Mauszeiger, um kompakte Steuerelemente anzuzeigen. Klicken Sie, um sie geöffnet zu lassen, und klicken Sie dann erneut, um sie zu erweitern.",
     "ui.Local_private.903e57": "Lokal und privat",
     "ui.Lock_current_profile.9cfe5e": "Aktuelles Profil sperren",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Sperren oder entsperren Sie das aktuelle Profil",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Öffnen Sie das Nagi-Kontrollzentrum",
     "ui.Open_OBS.21abdd": "OBS öffnen",
     "ui.Open_OBS_Studio.13862e": "Öffnen Sie OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Öffnen Sie das Kontrollzentrum. Ziehen Sie, um das Dock zu verschieben",
     "ui.Open_settings.ca381c": "Einstellungen öffnen",
     "ui.Output_volume.735bac": "Ausgabevolumen",
     "ui.Overview.d4b1ea": "Übersicht",
@@ -716,6 +714,12 @@
     "Customize active profile": "Aktives Profil anpassen",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Wetter ist optional. Nur Ihre ausgewählten Stadtkoordinaten werden an Open-Meteo gesendet.",
     "Within reach": "In Reichweite",
-    "Search also handles calculations, apps and indexed filenames.": "Die Suche verarbeitet auch Berechnungen, Apps und indizierte Dateinamen."
+    "Search also handles calculations, apps and indexed filenames.": "Die Suche verarbeitet auch Berechnungen, Apps und indizierte Dateinamen.",
+    "Always show mini bar": "Minibar immer anzeigen",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Halten Sie die Systeminformationen sichtbar, ohne den Mauszeiger darauf zu bewegen. Die Hover-Vorschau wird weiterhin geschlossen, wenn Sie gehen.",
+    "Hover to reveal compact controls.": "Bewegen Sie den Mauszeiger, um kompakte Steuerelemente anzuzeigen.",
+    "Open control center": "Kontrollzentrum öffnen",
+    "Uses the same city, units and forecast as the dock weather widget.": "Verwendet dieselbe Stadt, dieselben Einheiten und dieselbe Vorhersage wie das Dock-Wetter-Widget.",
+    "Show weather widget": "Wetter-Widget anzeigen"
   }
 }

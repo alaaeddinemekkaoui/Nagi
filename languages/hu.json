@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi · Ctrl + Alt + H elrejtése",
     "ui.Hover_for_OBS_controls.81089b": "Mutasson rá a OBS vezérlőkhöz",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Mutasson rá vagy kattintson a további alkalmazások kibontásához.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Mutasson rá az egérrel a kompakt vezérlők megjelenítéséhez. Kattintson rá, hogy nyitva tartsa őket, majd kattintson újra a kibontáshoz.",
     "ui.Local_private.903e57": "Helyi és privát",
     "ui.Lock_current_profile.9cfe5e": "Az aktuális profil zárolása",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Az aktuális profil zárolása vagy feloldása",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Nyissa meg a Nagi vezérlőközpontot",
     "ui.Open_OBS.21abdd": "Nyissa meg a OBS-t",
     "ui.Open_OBS_Studio.13862e": "Nyissa meg a OBS Studio-t",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Vezérlőközpont megnyitása · húzással mozgassa a dokkolót",
     "ui.Open_settings.ca381c": "Nyissa meg a beállításokat",
     "ui.Output_volume.735bac": "Kimeneti hangerő",
     "ui.Overview.d4b1ea": "Áttekintés",
@@ -716,6 +714,12 @@
     "Customize active profile": "Aktív profil testreszabása",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Az időjárás nem kötelező. Csak a kiválasztott városi koordináták kerülnek elküldésre a Open-Meteo címre.",
     "Within reach": "Elérhető",
-    "Search also handles calculations, apps and indexed filenames.": "A keresés számításokat, alkalmazásokat és indexelt fájlneveket is kezel."
+    "Search also handles calculations, apps and indexed filenames.": "A keresés számításokat, alkalmazásokat és indexelt fájlneveket is kezel.",
+    "Always show mini bar": "Mindig mutasd a minibárt",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "A rendszerinformációk láthatóak maradnak lebegtetés nélkül. Az egérmutató előnézetei továbbra is bezáródnak, amikor kilép.",
+    "Hover to reveal compact controls.": "Mutasson rá az egérrel a kompakt vezérlők megjelenítéséhez.",
+    "Open control center": "Nyissa meg a vezérlőközpontot",
+    "Uses the same city, units and forecast as the dock weather widget.": "Ugyanazt a várost, mértékegységeket és előrejelzést használja, mint a dokk időjárás widgetje.",
+    "Show weather widget": "Időjárás widget megjelenítése"
   }
 }

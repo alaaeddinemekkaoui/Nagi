@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Ascunde Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Plasați cursorul pentru comenzile OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Treceți cu mouse-ul sau faceți clic pentru a extinde aplicații suplimentare.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Plasați cursorul pentru a dezvălui comenzile compacte. Faceți clic pentru a le menține deschise, apoi faceți clic din nou pentru a extinde.",
     "ui.Local_private.903e57": "Local și privat",
     "ui.Lock_current_profile.9cfe5e": "Blocați profilul curent",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Blocați sau deblocați profilul curent",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Deschide centrul de control Nagi",
     "ui.Open_OBS.21abdd": "Deschideți OBS",
     "ui.Open_OBS_Studio.13862e": "Deschideți OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Deschide centrul de control · trage pentru a muta andocarea",
     "ui.Open_settings.ca381c": "Deschide setările",
     "ui.Output_volume.735bac": "Volumul de ieșire",
     "ui.Overview.d4b1ea": "Prezentare generală",
@@ -716,6 +714,12 @@
     "Customize active profile": "Personalizați profilul activ",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Vremea este opțională. Numai coordonatele orașului selectat sunt trimise către Open-Meteo.",
     "Within reach": "La îndemână",
-    "Search also handles calculations, apps and indexed filenames.": "Căutarea se ocupă și de calcule, aplicații și nume de fișiere indexate."
+    "Search also handles calculations, apps and indexed filenames.": "Căutarea se ocupă și de calcule, aplicații și nume de fișiere indexate.",
+    "Always show mini bar": "Afișează întotdeauna minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Păstrați informațiile de sistem vizibile fără a trece cu mouse-ul. Previzualizările cu mouse-ul se închid încă când pleci.",
+    "Hover to reveal compact controls.": "Plasați cursorul pentru a dezvălui comenzile compacte.",
+    "Open control center": "Deschide centrul de control",
+    "Uses the same city, units and forecast as the dock weather widget.": "Utilizează același oraș, unități și prognoză ca și widgetul meteo de andocare.",
+    "Show weather widget": "Afișează widgetul meteo"
   }
 }

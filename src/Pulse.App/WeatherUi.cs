@@ -11,6 +11,10 @@ public sealed partial class MainWindow
     private readonly WeatherService _weather = new();
     private Task? _weatherPolling;
     private WeatherSnapshot _weatherSnapshot = WeatherSnapshot.Disabled;
+    private readonly SemaphoreSlim _weatherRefresh = new(0, 1);
+    private (bool Enabled, WeatherLocation? Location, string Unit)? _weatherConfiguration;
+    private WeatherSnapshot CurrentWeather => _weatherSnapshot.Location == ViewModel.Settings.WeatherLocation && _weatherSnapshot.Unit == ViewModel.Settings.WeatherUnit
+        ? _weatherSnapshot : new(ViewModel.Settings.WeatherLocation, null, null, null, null, true, null, ViewModel.Settings.WeatherUnit, "Checking weather…");
     private async Task PollWeatherAsync()
     {
         var token = _shutdown.Token;
@@ -26,7 +30,7 @@ public sealed partial class MainWindow
                         || settings.WeatherLocation != ViewModel.Settings.WeatherLocation || settings.WeatherUnit != ViewModel.Settings.WeatherUnit) return;
                     _weatherSnapshot = weather; RenderWeather();
                 });
-                await Task.Delay(TimeSpan.FromSeconds(30), token);
+                await _weatherRefresh.WaitAsync(TimeSpan.FromSeconds(30), token);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
         }
@@ -34,11 +38,16 @@ public sealed partial class MainWindow
     private void RenderWeather()
     {
         var settings = ViewModel.Settings;
+        var configuration = (settings.WeatherEnabled, settings.WeatherLocation, settings.WeatherUnit);
+        if (_weatherConfiguration != configuration)
+        {
+            _weatherConfiguration = configuration;
+            if (_weatherRefresh.CurrentCount == 0) _weatherRefresh.Release();
+        }
         var enabled = settings.WeatherEnabled && settings.WeatherLocation is { IsValid: true };
         WeatherCard.Visibility = RailWeatherButton.Visibility = enabled && settings.Workspace(ViewModel.Profile).Shows("Weather") ? Visibility.Visible : Visibility.Collapsed;
         if (!enabled) { UpdateUtilityWeather(); return; }
-        var current = _weatherSnapshot.Location == settings.WeatherLocation && _weatherSnapshot.Unit == settings.WeatherUnit
-            ? _weatherSnapshot : new(settings.WeatherLocation, null, null, null, null, true, null, settings.WeatherUnit, "Checking weather…");
+        var current = CurrentWeather;
         WeatherCityText.Text = settings.WeatherLocation!.Label;
         WeatherHeadline.Text = current.Temperature.HasValue ? current.TemperatureText + " · " + L.T(current.Conditions) : L.T(current.Status);
         WeatherDetailText.Text = (current.Stale ? L.T("Last available · ") : "")

@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "إخفاء Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "قم بالتمرير فوق عناصر تحكم OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "مرر الماوس أو انقر لتوسيع التطبيقات الإضافية.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "قم بالتمرير للكشف عن عناصر التحكم المدمجة. انقر لإبقائها مفتوحة، ثم انقر مرة أخرى للتوسيع.",
     "ui.Local_private.903e57": "محلي وخاص",
     "ui.Lock_current_profile.9cfe5e": "قفل الوضع الحالي",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "قفل أو إلغاء قفل ملف التعريف الحالي",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "افتح مركز التحكم Nagi",
     "ui.Open_OBS.21abdd": "افتح برنامج OBS",
     "ui.Open_OBS_Studio.13862e": "افتح OBS ستوديو",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "افتح مركز التحكم · اسحب لتحريك الرصيف",
     "ui.Open_settings.ca381c": "افتح الإعدادات",
     "ui.Output_volume.735bac": "حجم الإخراج",
     "ui.Overview.d4b1ea": "نظرة عامة",
@@ -716,6 +714,12 @@
     "Customize active profile": "تخصيص ملف التعريف النشط",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "الطقس اختياري. يتم إرسال إحداثيات المدينة التي اخترتها فقط إلى Open-Meteo.",
     "Within reach": "في متناول اليد",
-    "Search also handles calculations, apps and indexed filenames.": "يتعامل البحث أيضًا مع الحسابات والتطبيقات وأسماء الملفات المفهرسة."
+    "Search also handles calculations, apps and indexed filenames.": "يتعامل البحث أيضًا مع الحسابات والتطبيقات وأسماء الملفات المفهرسة.",
+    "Always show mini bar": "إظهار الميني بار دائمًا",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "إبقاء معلومات النظام مرئية دون المرور فوقها. لا تزال معاينات التمرير مغلقة عند المغادرة.",
+    "Hover to reveal compact controls.": "قم بالتمرير للكشف عن عناصر التحكم المدمجة.",
+    "Open control center": "افتح مركز التحكم",
+    "Uses the same city, units and forecast as the dock weather widget.": "يستخدم نفس المدينة والوحدات والتنبؤات مثل عنصر واجهة المستخدم الخاص بالطقس.",
+    "Show weather widget": "عرض أداة الطقس"
   }
 }

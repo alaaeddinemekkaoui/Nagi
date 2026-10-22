@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Skjul Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Hold musepekeren for OBS-kontroller",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Hold markøren eller klikk for å utvide ekstra apper.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Hold musepekeren for å avdekke kompakte kontroller. Klikk for å holde dem åpne, og klikk deretter igjen for å utvide.",
     "ui.Local_private.903e57": "Lokalt og privat",
     "ui.Lock_current_profile.9cfe5e": "Lås gjeldende profil",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Lås eller lås opp gjeldende profil",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Åpne Nagi kontrollsenter",
     "ui.Open_OBS.21abdd": "Åpne OBS",
     "ui.Open_OBS_Studio.13862e": "Åpne OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Åpne kontrollsenter · dra for å flytte dokken",
     "ui.Open_settings.ca381c": "Åpne innstillinger",
     "ui.Output_volume.735bac": "Utgangsvolum",
     "ui.Overview.d4b1ea": "Oversikt",
@@ -716,6 +714,12 @@
     "Customize active profile": "Tilpass aktiv profil",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Været er valgfritt. Bare de valgte bykoordinatene sendes til Open-Meteo.",
     "Within reach": "Innen rekkevidde",
-    "Search also handles calculations, apps and indexed filenames.": "Søk håndterer også beregninger, apper og indekserte filnavn."
+    "Search also handles calculations, apps and indexed filenames.": "Søk håndterer også beregninger, apper og indekserte filnavn.",
+    "Always show mini bar": "Vis alltid minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Hold systeminformasjon synlig uten å sveve. Forhåndsvisninger av musepekeren lukkes fortsatt når du drar.",
+    "Hover to reveal compact controls.": "Hold musepekeren for å avdekke kompakte kontroller.",
+    "Open control center": "Åpne kontrollsenteret",
+    "Uses the same city, units and forecast as the dock weather widget.": "Bruker samme by, enheter og værvarsel som værwidgeten til kai.",
+    "Show weather widget": "Vis værwidget"
   }
 }

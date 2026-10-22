@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Sembunyikan Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Tuding untuk kawalan OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Tuding atau klik untuk mengembangkan apl tambahan.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Tuding untuk mendedahkan kawalan padat. Klik untuk memastikannya terbuka, kemudian klik sekali lagi untuk mengembangkan.",
     "ui.Local_private.903e57": "Tempatan & peribadi",
     "ui.Lock_current_profile.9cfe5e": "Kunci profil semasa",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Kunci atau buka kunci profil semasa",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Buka pusat kawalan Nagi",
     "ui.Open_OBS.21abdd": "Buka OBS",
     "ui.Open_OBS_Studio.13862e": "Buka OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Buka pusat kawalan · seret untuk mengalihkan dok",
     "ui.Open_settings.ca381c": "Buka tetapan",
     "ui.Output_volume.735bac": "Kelantangan output",
     "ui.Overview.d4b1ea": "Gambaran keseluruhan",
@@ -716,6 +714,12 @@
     "Customize active profile": "Sesuaikan profil aktif",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Cuaca adalah pilihan. Hanya koordinat bandar pilihan anda dihantar ke Open-Meteo.",
     "Within reach": "Dalam jangkauan",
-    "Search also handles calculations, apps and indexed filenames.": "Carian juga mengendalikan pengiraan, apl dan nama fail diindeks."
+    "Search also handles calculations, apps and indexed filenames.": "Carian juga mengendalikan pengiraan, apl dan nama fail diindeks.",
+    "Always show mini bar": "Sentiasa tunjukkan bar mini",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Pastikan maklumat sistem kelihatan tanpa melayang. Tuding pratonton masih ditutup apabila anda pergi.",
+    "Hover to reveal compact controls.": "Tuding untuk mendedahkan kawalan padat.",
+    "Open control center": "Buka pusat kawalan",
+    "Uses the same city, units and forecast as the dock weather widget.": "Menggunakan bandar, unit dan ramalan yang sama seperti widget cuaca dok.",
+    "Show weather widget": "Tunjukkan widget cuaca"
   }
 }

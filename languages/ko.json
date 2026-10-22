@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi · Ctrl + Alt + H 숨기기",
     "ui.Hover_for_OBS_controls.81089b": "OBS 컨트롤을 마우스로 가리키면",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "추가 앱을 확장하려면 마우스를 올리거나 클릭하세요.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "마우스를 올리면 컴팩트 컨트롤이 표시됩니다. 열린 상태로 유지하려면 클릭한 다음 확장하려면 다시 클릭하세요.",
     "ui.Local_private.903e57": "로컬 & 프라이빗",
     "ui.Lock_current_profile.9cfe5e": "현재 프로필 잠금",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "현재 프로필 잠금 또는 잠금 해제",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Nagi 제어 센터 열기",
     "ui.Open_OBS.21abdd": "OBS를 엽니다",
     "ui.Open_OBS_Studio.13862e": "OBS 스튜디오 열기",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "제어 센터 열기 · 드래그하여 도크 이동",
     "ui.Open_settings.ca381c": "설정 열기",
     "ui.Output_volume.735bac": "출력 볼륨",
     "ui.Overview.d4b1ea": "개요",
@@ -716,6 +714,12 @@
     "Customize active profile": "활성 프로필 사용자 정의",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "날씨는 선택사항입니다. 선택한 도시 좌표만 Open-Meteo로 전송됩니다.",
     "Within reach": "손이 닿는 곳에",
-    "Search also handles calculations, apps and indexed filenames.": "검색은 계산, 앱 및 색인화된 파일 이름도 처리합니다."
+    "Search also handles calculations, apps and indexed filenames.": "검색은 계산, 앱 및 색인화된 파일 이름도 처리합니다.",
+    "Always show mini bar": "미니바 항상 표시",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "마우스를 올리지 않고도 시스템 정보를 계속 볼 수 있습니다. 떠날 때 마우스오버 미리보기는 여전히 닫힙니다.",
+    "Hover to reveal compact controls.": "마우스를 올리면 컴팩트 컨트롤이 표시됩니다.",
+    "Open control center": "관제센터 오픈",
+    "Uses the same city, units and forecast as the dock weather widget.": "부두 날씨 위젯과 동일한 도시, 단위 및 예측을 사용합니다.",
+    "Show weather widget": "날씨 위젯 표시"
   }
 }

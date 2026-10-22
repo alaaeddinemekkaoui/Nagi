@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Sembunyikan Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Arahkan kursor ke kontrol OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Arahkan kursor atau klik untuk memperluas aplikasi tambahan.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Arahkan kursor untuk menampilkan kontrol ringkas. Klik untuk tetap membukanya, lalu klik lagi untuk meluaskan.",
     "ui.Local_private.903e57": "Lokal & pribadi",
     "ui.Lock_current_profile.9cfe5e": "Kunci profil saat ini",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Mengunci atau membuka kunci profil saat ini",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Buka pusat kendali Nagi",
     "ui.Open_OBS.21abdd": "Buka OBS",
     "ui.Open_OBS_Studio.13862e": "Buka OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Buka pusat kendali · seret untuk memindahkan dok",
     "ui.Open_settings.ca381c": "Buka pengaturan",
     "ui.Output_volume.735bac": "Volume keluaran",
     "ui.Overview.d4b1ea": "Ikhtisar",
@@ -716,6 +714,12 @@
     "Customize active profile": "Sesuaikan profil aktif",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Cuaca bersifat opsional. Hanya koordinat kota pilihan Anda yang dikirim ke Open-Meteo.",
     "Within reach": "Dalam jangkauan",
-    "Search also handles calculations, apps and indexed filenames.": "Pencarian juga menangani penghitungan, aplikasi, dan nama file yang diindeks."
+    "Search also handles calculations, apps and indexed filenames.": "Pencarian juga menangani penghitungan, aplikasi, dan nama file yang diindeks.",
+    "Always show mini bar": "Selalu tampilkan mini bar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Jaga agar informasi sistem tetap terlihat tanpa melayang. Pratinjau arahkan kursor masih ditutup saat Anda keluar.",
+    "Hover to reveal compact controls.": "Arahkan kursor untuk menampilkan kontrol ringkas.",
+    "Open control center": "Buka pusat kendali",
+    "Uses the same city, units and forecast as the dock weather widget.": "Menggunakan kota, unit, dan ramalan cuaca yang sama dengan widget cuaca dermaga.",
+    "Show weather widget": "Tampilkan widget cuaca"
   }
 }

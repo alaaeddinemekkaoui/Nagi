@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "הסתר Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "רחף עבור בקרי OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "העבר את העכבר או לחץ כדי להרחיב אפליקציות נוספות.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "רחף כדי לחשוף פקדים קומפקטיים. לחץ כדי להשאיר אותם פתוחים, ולאחר מכן לחץ שוב כדי להרחיב.",
     "ui.Local_private.903e57": "מקומי ופרטי",
     "ui.Lock_current_profile.9cfe5e": "נעל את הפרופיל הנוכחי",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "נעילה או בטל את הנעילה של הפרופיל הנוכחי",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "פתח את מרכז הבקרה Nagi",
     "ui.Open_OBS.21abdd": "פתח את OBS",
     "ui.Open_OBS_Studio.13862e": "פתח את OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "פתח את מרכז הבקרה · גרור כדי להזיז את הרציף",
     "ui.Open_settings.ca381c": "פתח את ההגדרות",
     "ui.Output_volume.735bac": "נפח פלט",
     "ui.Overview.d4b1ea": "סקירה כללית",
@@ -716,6 +714,12 @@
     "Customize active profile": "התאם אישית את הפרופיל הפעיל",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "מזג האוויר הוא אופציונלי. רק קואורדינטות העיר שבחרת נשלחות אל Open-Meteo.",
     "Within reach": "בהישג יד",
-    "Search also handles calculations, apps and indexed filenames.": "החיפוש מטפל גם בחישובים, אפליקציות ושמות קבצים שנוספו לאינדקס."
+    "Search also handles calculations, apps and indexed filenames.": "החיפוש מטפל גם בחישובים, אפליקציות ושמות קבצים שנוספו לאינדקס.",
+    "Always show mini bar": "הצג תמיד מיני בר",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "שמור על מידע מערכת גלוי מבלי לרחף. תצוגות מקדימות של הרחף עדיין נסגרות כשאתה עוזב.",
+    "Hover to reveal compact controls.": "רחף כדי לחשוף פקדים קומפקטיים.",
+    "Open control center": "פתח את מרכז הבקרה",
+    "Uses the same city, units and forecast as the dock weather widget.": "משתמש באותה עיר, יחידות ותחזית כמו ווידג'ט מזג האוויר של המזח.",
+    "Show weather widget": "הצג ווידג'ט מזג אוויר"
   }
 }

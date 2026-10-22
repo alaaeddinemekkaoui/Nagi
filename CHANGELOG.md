@@ -1,5 +1,13 @@
 # Changelog
 
+## Nagi v0.2.1 — 2026-10-22
+
+- Fix brief, disappearing now-playing hover tips by using the full media preview instead of recreating a native tooltip on each refresh. Keep hover timers stable during transitions and respect scaled widget bounds.
+- Fix the dock and media preview getting stuck after opening empty search and pressing Escape without moving the mouse. Settle the owner when search opens or closes and pause hover handling while search is active.
+- Add Settings → Behavior → Always show mini bar. Keep compact system information visible while allowing hover details to dismiss normally.
+- Remove click-to-pin and logo drag-to-move behavior. Choose the dock edge and position in Settings; clicking the logo opens the control center.
+- Connect Utilities weather and its profile visibility switch to the dock's existing city, units and weather provider. Refresh promptly after changing weather settings.
+
 ## Nagi v0.2 — 2026-10-22
 
 - Add a floating Overview / Profiles / Utilities / Settings navigation bar. Utilities brings the existing countdown and city weather together, with a native vector timer ring, start/pause/resume/reset and a per-profile dock-widget switch.

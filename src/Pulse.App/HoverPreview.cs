@@ -24,7 +24,7 @@ public sealed partial class MainWindow
 #if NAGI_DEVELOPMENT
             if (DevelopmentOwnsPreview) return;
 #endif
-            if (_closed || _dock.Stage != DockStage.Compact || _userHidden || _dialogOpen || _quickMenuOpen || _tray?.IsMenuOpen == true || !_windowManager.IsVisible) return;
+            if (_closed || _dock.Stage != DockStage.Compact || _userHidden || _dialogOpen || _searchWindow?.IsOpen == true || _quickMenuOpen || _tray?.IsMenuOpen == true || !_windowManager.IsVisible) return;
             if (_previewSuppressed) return;
             if (_pendingPreviewTarget is null || !PointerOver(_pendingPreviewTarget)) return;
             ShowPreview(_pendingPreview);
@@ -34,10 +34,10 @@ public sealed partial class MainWindow
 #if NAGI_DEVELOPMENT
             if (DevelopmentOwnsPreview) { _previewClose.Stop(); return; }
 #endif
-            if (_quickMenuOpen || _tray?.IsMenuOpen == true) { _previewClose.Stop(); return; }
+            if (_motion.IsMoving || _searchWindow?.IsOpen == true || _quickMenuOpen || _tray?.IsMenuOpen == true) { _previewClose.Stop(); return; }
             if (!PointerInsideHalo())
             {
-                if (_dock.Stage == DockStage.Compact && !_dock.Pinned) Collapse(); else ClosePreview();
+                if (_dock.Stage == DockStage.Compact && !_dock.AlwaysShowMiniBar) Collapse(); else ClosePreview();
             }
             else _previewClose.Stop();
         };
@@ -48,7 +48,7 @@ public sealed partial class MainWindow
 #if NAGI_DEVELOPMENT
             if (DevelopmentOwnsPreview) return;
 #endif
-            if (_closed || _expanded || _userHidden || _dialogOpen || _quickMenuOpen || _tray?.IsMenuOpen == true || !_windowManager.IsVisible) return;
+            if (_closed || _expanded || _userHidden || _dialogOpen || _searchWindow?.IsOpen == true || _quickMenuOpen || _tray?.IsMenuOpen == true || !_windowManager.IsVisible) return;
             if (ObserveDockPointer()) { _previewOpen.Stop(); return; }
             if (_previewSuppressed)
             {
@@ -73,6 +73,7 @@ public sealed partial class MainWindow
 
     private void ShowPreview(PreviewKind kind)
     {
+        _previewOpen.Stop(); _previewClose.Stop();
         var switching = PreviewVisible;
         _preview = kind;
         PeekHeading.Text = L.T(kind switch { PreviewKind.Timer => "Timer", PreviewKind.Apps => "More apps", PreviewKind.Obs => "OBS Studio", PreviewKind.Media => "Media & audio", _ => "System at a glance" });
@@ -99,7 +100,7 @@ public sealed partial class MainWindow
     {
         _previewClose.Stop();
         if (kind == PreviewKind.Obs && ViewModel.Settings.Workspace(ViewModel.Profile).ObsPresentation != "Widget") return;
-        if (_closed || _dock.Stage != DockStage.Compact || _userHidden || _dialogOpen || _quickMenuOpen || _previewSuppressed || _motion.IsMoving || PointerOnEdgeLip()) return;
+        if (_closed || _dock.Stage != DockStage.Compact || _userHidden || _dialogOpen || _searchWindow?.IsOpen == true || _quickMenuOpen || _previewSuppressed || _motion.IsMoving || PointerOnEdgeLip()) return;
         if (_previewOpen.IsEnabled && _pendingPreview == kind && ReferenceEquals(_pendingPreviewTarget, target)) return;
         _pendingPreview = kind;
         _pendingPreviewTarget = target;
@@ -119,7 +120,7 @@ public sealed partial class MainWindow
         // Ignore descendant exits and exits generated while the native bounds spring resizes.
         if (point.X >= 0 && point.Y >= 0 && point.X < Root.ActualWidth && point.Y < Root.ActualHeight) return;
         _previewOpen.Stop();
-        if (PreviewVisible || (_dock.Stage == DockStage.Compact && !_dock.Pinned)) { _previewClose.Stop(); _previewClose.Start(); }
+        if (PreviewVisible || (_dock.Stage == DockStage.Compact && !_dock.AlwaysShowMiniBar)) { _previewClose.Stop(); _previewClose.Start(); }
     }
 
     private void ClosePreview()
@@ -127,6 +128,7 @@ public sealed partial class MainWindow
         _previewOpen.Stop(); _previewClose.Stop();
         if (_preview == PreviewKind.None) return;
         _preview = _pendingPreview = PreviewKind.None;
+        _pendingPreviewTarget = null;
         if (!_closed && !_expanded && !_userHidden) Layout(true);
     }
     private void ResetPreview()
@@ -144,8 +146,8 @@ public sealed partial class MainWindow
     {
         if (!target.IsLoaded || !Root.IsLoaded || target.Visibility != Visibility.Visible) return false;
         if (!_windowManager.TryGetPointerPosition(out var x, out var y)) return false;
-        var origin = target.TransformToVisual(Shell).TransformPoint(new(0, 0));
-        return x >= origin.X && y >= origin.Y && x < origin.X + target.ActualWidth && y < origin.Y + target.ActualHeight;
+        var bounds = target.TransformToVisual(Shell).TransformBounds(new(0, 0, target.ActualWidth, target.ActualHeight));
+        return bounds.Contains(new(x, y));
     }
     private bool PointerInsideHalo()
     {

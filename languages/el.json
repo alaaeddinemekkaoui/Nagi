@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Απόκρυψη Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Τοποθετήστε το δείκτη του ποντικιού για χειριστήρια OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Τοποθετήστε το δείκτη του ποντικιού ή κάντε κλικ για να αναπτύξετε επιπλέον εφαρμογές.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Τοποθετήστε το δείκτη του ποντικιού για να αποκαλύψετε τα συμπαγή χειριστήρια. Κάντε κλικ για να τα διατηρήσετε ανοιχτά και μετά κάντε ξανά κλικ για ανάπτυξη.",
     "ui.Local_private.903e57": "Τοπικό και ιδιωτικό",
     "ui.Lock_current_profile.9cfe5e": "Κλείδωμα τρέχοντος προφίλ",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Κλείδωμα ή ξεκλείδωμα του τρέχοντος προφίλ",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Ανοίξτε το κέντρο ελέγχου Nagi",
     "ui.Open_OBS.21abdd": "Ανοίξτε το OBS",
     "ui.Open_OBS_Studio.13862e": "Ανοίξτε το OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Ανοίξτε το κέντρο ελέγχου · σύρετε για να μετακινήσετε το dock",
     "ui.Open_settings.ca381c": "Ανοίξτε τις ρυθμίσεις",
     "ui.Output_volume.735bac": "Ένταση εξόδου",
     "ui.Overview.d4b1ea": "Επισκόπηση",
@@ -716,6 +714,12 @@
     "Customize active profile": "Προσαρμογή ενεργού προφίλ",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Ο καιρός είναι προαιρετικός. Μόνο οι επιλεγμένες συντεταγμένες της πόλης σας αποστέλλονται στο Open-Meteo.",
     "Within reach": "Σε κοντινή απόσταση",
-    "Search also handles calculations, apps and indexed filenames.": "Η Αναζήτηση χειρίζεται επίσης υπολογισμούς, εφαρμογές και ευρετηριασμένα ονόματα αρχείων."
+    "Search also handles calculations, apps and indexed filenames.": "Η Αναζήτηση χειρίζεται επίσης υπολογισμούς, εφαρμογές και ευρετηριασμένα ονόματα αρχείων.",
+    "Always show mini bar": "Να εμφανίζεται πάντα το μίνι μπαρ",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Διατηρήστε τις πληροφορίες συστήματος ορατές χωρίς να τοποθετείτε το δείκτη του ποντικιού. Οι προεπισκοπήσεις του δείκτη εξακολουθούν να κλείνουν όταν φεύγετε.",
+    "Hover to reveal compact controls.": "Τοποθετήστε το δείκτη του ποντικιού για να αποκαλύψετε τα συμπαγή χειριστήρια.",
+    "Open control center": "Ανοιχτό κέντρο ελέγχου",
+    "Uses the same city, units and forecast as the dock weather widget.": "Χρησιμοποιεί την ίδια πόλη, μονάδες και πρόγνωση με το γραφικό στοιχείο καιρού αποβάθρας.",
+    "Show weather widget": "Εμφάνιση γραφικού στοιχείου καιρού"
   }
 }

@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi · Ctrl + Alt + H छुपाएं",
     "ui.Hover_for_OBS_controls.81089b": "OBS नियंत्रणों के लिए होवर करें",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "अतिरिक्त ऐप्स का विस्तार करने के लिए होवर करें या क्लिक करें।",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "कॉम्पैक्ट नियंत्रण प्रकट करने के लिए होवर करें। उन्हें खुला रखने के लिए क्लिक करें, फिर विस्तार करने के लिए दोबारा क्लिक करें।",
     "ui.Local_private.903e57": "स्थानीय और निजी",
     "ui.Lock_current_profile.9cfe5e": "वर्तमान प्रोफ़ाइल लॉक करें",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "वर्तमान प्रोफ़ाइल को लॉक या अनलॉक करें",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Nagi नियंत्रण केंद्र खोलें",
     "ui.Open_OBS.21abdd": "OBS खोलें",
     "ui.Open_OBS_Studio.13862e": "OBS स्टूडियो खोलें",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "नियंत्रण केंद्र खोलें · डॉक को स्थानांतरित करने के लिए खींचें",
     "ui.Open_settings.ca381c": "सेटिंग्स खोलें",
     "ui.Output_volume.735bac": "आउटपुट वॉल्यूम",
     "ui.Overview.d4b1ea": "अवलोकन",
@@ -716,6 +714,12 @@
     "Customize active profile": "सक्रिय प्रोफ़ाइल को अनुकूलित करें",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "मौसम वैकल्पिक है। केवल आपके चयनित शहर के निर्देशांक Open-Meteo पर भेजे जाते हैं।",
     "Within reach": "पहुंच के भीतर",
-    "Search also handles calculations, apps and indexed filenames.": "खोज गणना, ऐप्स और अनुक्रमित फ़ाइल नामों को भी संभालती है।"
+    "Search also handles calculations, apps and indexed filenames.": "खोज गणना, ऐप्स और अनुक्रमित फ़ाइल नामों को भी संभालती है।",
+    "Always show mini bar": "हमेशा मिनी बार दिखाएं",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "सिस्टम जानकारी को बिना घुमाए दृश्यमान रखें। जब आप चले जाते हैं तब भी होवर पूर्वावलोकन बंद हो जाते हैं।",
+    "Hover to reveal compact controls.": "कॉम्पैक्ट नियंत्रण प्रकट करने के लिए होवर करें।",
+    "Open control center": "नियंत्रण केंद्र खोलें",
+    "Uses the same city, units and forecast as the dock weather widget.": "डॉक मौसम विजेट के रूप में उसी शहर, इकाइयों और पूर्वानुमान का उपयोग करता है।",
+    "Show weather widget": "मौसम विजेट दिखाएँ"
   }
 }

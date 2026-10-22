@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Nagi · Ctrl + Alt + H'yi gizle",
     "ui.Hover_for_OBS_controls.81089b": "OBS kontrolleri için fareyle üzerine gelin",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Ekstra uygulamaları genişletmek için üzerine gelin veya tıklayın.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Kompakt kontrolleri ortaya çıkarmak için üzerine gelin. Açık tutmak için tıklayın, ardından genişletmek için tekrar tıklayın.",
     "ui.Local_private.903e57": "Yerel ve özel",
     "ui.Lock_current_profile.9cfe5e": "Mevcut profili kilitle",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Geçerli profili kilitleme veya kilidini açma",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Nagi kontrol merkezini aç",
     "ui.Open_OBS.21abdd": "OBS'yi açın",
     "ui.Open_OBS_Studio.13862e": "OBS Studio'yu açın",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Kontrol merkezini açın · dock'u taşımak için sürükleyin",
     "ui.Open_settings.ca381c": "Ayarları aç",
     "ui.Output_volume.735bac": "Çıkış hacmi",
     "ui.Overview.d4b1ea": "Genel Bakış",
@@ -716,6 +714,12 @@
     "Customize active profile": "Etkin profili özelleştir",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Hava durumu isteğe bağlıdır. Open-Meteo'ye yalnızca seçtiğiniz şehir koordinatları gönderilir.",
     "Within reach": "Ulaşılabilir",
-    "Search also handles calculations, apps and indexed filenames.": "Arama aynı zamanda hesaplamaları, uygulamaları ve dizine eklenen dosya adlarını da yönetir."
+    "Search also handles calculations, apps and indexed filenames.": "Arama aynı zamanda hesaplamaları, uygulamaları ve dizine eklenen dosya adlarını da yönetir.",
+    "Always show mini bar": "Her zaman mini barı göster",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Sistem bilgilerini fareyle üzerine gelmenize gerek kalmadan görünür tutun. Fareyle üzerine gelindiğinde önizlemeler siz ayrıldığınızda hâlâ kapalıdır.",
+    "Hover to reveal compact controls.": "Kompakt kontrolleri ortaya çıkarmak için üzerine gelin.",
+    "Open control center": "Kontrol merkezini aç",
+    "Uses the same city, units and forecast as the dock weather widget.": "Rıhtım hava durumu widget'ıyla aynı şehri, birimleri ve tahmini kullanır.",
+    "Show weather widget": "Hava durumu widget'ını göster"
   }
 }

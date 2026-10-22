@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Skrýt Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Umístěním kurzoru na ovládací prvky OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Umístěním kurzoru nebo kliknutím rozbalte další aplikace.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Umístěním kurzoru zobrazíte kompaktní ovládací prvky. Kliknutím je ponecháte otevřené a dalším kliknutím je rozbalíte.",
     "ui.Local_private.903e57": "Místní a soukromé",
     "ui.Lock_current_profile.9cfe5e": "Uzamknout aktuální profil",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Zamkněte nebo odemkněte aktuální profil",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Otevřete ovládací centrum Nagi",
     "ui.Open_OBS.21abdd": "Otevřete OBS",
     "ui.Open_OBS_Studio.13862e": "Otevřete OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Otevřete ovládací centrum · přetažením přesunete dok",
     "ui.Open_settings.ca381c": "Otevřete nastavení",
     "ui.Output_volume.735bac": "Výstupní hlasitost",
     "ui.Overview.d4b1ea": "Přehled",
@@ -716,6 +714,12 @@
     "Customize active profile": "Přizpůsobte aktivní profil",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Počasí je volitelné. Do Open-Meteo jsou odeslány pouze vámi vybrané souřadnice města.",
     "Within reach": "Na dosah",
-    "Search also handles calculations, apps and indexed filenames.": "Vyhledávání také zpracovává výpočty, aplikace a indexované názvy souborů."
+    "Search also handles calculations, apps and indexed filenames.": "Vyhledávání také zpracovává výpočty, aplikace a indexované názvy souborů.",
+    "Always show mini bar": "Vždy zobrazovat mini bar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Udržujte systémové informace viditelné bez přecházení. Náhledy po najetí myší se při odchodu stále zavírají.",
+    "Hover to reveal compact controls.": "Umístěním kurzoru zobrazíte kompaktní ovládací prvky.",
+    "Open control center": "Otevřete ovládací centrum",
+    "Uses the same city, units and forecast as the dock weather widget.": "Používá stejné město, jednotky a předpověď jako widget počasí v doku.",
+    "Show weather widget": "Zobrazit widget počasí"
   }
 }

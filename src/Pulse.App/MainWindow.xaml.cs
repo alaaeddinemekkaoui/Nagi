@@ -135,7 +135,7 @@ public sealed partial class MainWindow : Window
             _tray.MenuOpening += () =>
             {
                 ResetPreview();
-                if (_dock.Stage == DockStage.Compact && !_dock.Pinned) _dock.Collapse();
+                if (_dock.Stage == DockStage.Compact) _dock.Collapse();
                 Layout(); // Settle the owner before its native menu enters the modal loop.
             };
             _tray.ProfileRequested += async profile => await ActivateProfileAsync(profile);
@@ -152,6 +152,7 @@ public sealed partial class MainWindow : Window
         // Observe the system preference on the existing UI refresh instead.
         _lastHighContrast = _themeAccessibility.HighContrast;
         Root.Loaded += (_, _) => { WireButtons(Root); ApplyLuaVisuals(); };
+        _dock.SetAlwaysShowMiniBar(configuration.AlwaysShowMiniBar);
         _expanded = configuration.StartExpanded && ViewModel.Profile != Profile.Focus;
         ApplyPreferences();
         ContentScroll.FlowDirection = L.Direction;
@@ -490,8 +491,9 @@ public sealed partial class MainWindow : Window
         CompactSecondaryLabel.Visibility = Visibility.Collapsed;
         CompactTrackTitle.Text = DockPresentation.ShortTitle(ViewModel.MediaTitle);
         UpdateCompactMediaPresentation();
-        ToolTipService.SetToolTip(CompactMediaButton, ViewModel.MediaTitle + "\n" + ViewModel.MediaArtist);
-        ToolTipService.SetToolTip(PeekTrackTitle, ViewModel.MediaTitle);
+        // The rich hover preview owns this information. Replacing a native tooltip every
+        // media refresh dismisses it under a stationary pointer and causes a brief flash.
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(CompactMediaButton, ViewModel.MediaTitle + "\n" + ViewModel.MediaArtist);
         if (!_controlCenter && Math.Abs(RequestedRailExtent - _railExtent) > .5) Layout(_motion.IsMoving);
         ApplyWorkspaceVisibility();
         RefreshMediaPreviewLayout();
@@ -501,6 +503,7 @@ public sealed partial class MainWindow : Window
     private void ApplyPreferences()
     {
         var settings = ViewModel.Settings;
+        if (_dock.AlwaysShowMiniBar != settings.AlwaysShowMiniBar) _dock.SetAlwaysShowMiniBar(settings.AlwaysShowMiniBar);
         EnsureSearchScope(); RenderWeather();
         _updating = true;
         Shell.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
@@ -575,15 +578,13 @@ public sealed partial class MainWindow : Window
     private void Rules_Click(object sender, RoutedEventArgs e) => Navigate("Profiles");
     private void Settings_Click(object sender, RoutedEventArgs e) => OpenControlCenter("Settings");
     private void Actions_Click(object sender, RoutedEventArgs e) { Navigate("Profiles"); }
-    private void Drag_PointerPressed(object sender, PointerRoutedEventArgs e)
-    { if (e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) { e.Handled = true; ResetPreview(); Layout(); _motion.Stop(); _windowManager.Drag(); } }
     private void Root_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         if (_dialogOpen) return;
         for (var source = e.OriginalSource as DependencyObject; source is not null; source = VisualTreeHelper.GetParent(source))
             if (ReferenceEquals(source, RailObsButton)) return; // Preserve the OBS-specific context menu.
         ResetPreview();
-        if (_dock.Stage == DockStage.Compact && !_dock.Pinned) _dock.Collapse();
+        if (_dock.Stage == DockStage.Compact) _dock.Collapse();
         _quickMenuOpen = true; Layout();
         var menu = new MenuFlyout();
         menu.Closed += (_, _) => { _quickMenuOpen = false; if (!_closed) Layout(); };
@@ -680,7 +681,7 @@ public sealed partial class MainWindow : Window
         _closed = true;
         _notchSystemColors.ColorValuesChanged -= NotchColorsChanged;
         _localMedia?.ClosePlayer();
-        DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
+        DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _shutdown.Cancel();
         _indexTimer.Stop(); _fileWatcher?.Dispose(); _searchCancellation?.Cancel(); _searchWindow?.DisposeWindow();
         ResetPreview();
         _motion.Dispose(); _tray?.Dispose(); _windowManager.Dispose();
@@ -695,7 +696,7 @@ public sealed partial class MainWindow : Window
         _microphone.Dispose();
         _gpu.Dispose();
         if (_weatherPolling is not null) { try { await _weatherPolling; } catch (OperationCanceledException) { } }
-        _weather.Dispose();
+        _weatherRefresh.Dispose(); _weather.Dispose();
         if (_searchWork is not null) { try { await _searchWork; } catch (OperationCanceledException) { } }
         _log.Write("lifecycle", "Nagi stopped");
         _settings.Dispose(); _shutdown.Dispose();

@@ -33,6 +33,7 @@ public sealed record PulseSettings
     public string WeatherUnit { get; init; } = "Celsius";
     public HaloPosition Position { get; init; } = new();
     public bool StartExpanded { get; init; }
+    public bool AlwaysShowMiniBar { get; init; }
     public Hotkey Hotkey { get; init; } = new();
     public Hotkey HideHotkey { get; init; } = new(3, 0x48); // Ctrl+Alt+H
     public Hotkey SearchHotkey { get; init; } = new(1, 0x20); // Alt+Space

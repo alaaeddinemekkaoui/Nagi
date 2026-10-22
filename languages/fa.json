@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "پنهان کردن Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "برای کنترل‌های OBS شناور کنید",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "برای بزرگ کردن برنامه‌های اضافی، ماوس را نگه دارید یا کلیک کنید.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "ماوس را نگه دارید تا کنترل‌های فشرده را آشکار کنید. برای باز نگه داشتن آنها کلیک کنید، سپس دوباره کلیک کنید تا باز شوند.",
     "ui.Local_private.903e57": "محلی و خصوصی",
     "ui.Lock_current_profile.9cfe5e": "نمایه فعلی را قفل کنید",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "نمایه فعلی را قفل یا باز کنید",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "مرکز کنترل Nagi را باز کنید",
     "ui.Open_OBS.21abdd": "OBS را باز کنید",
     "ui.Open_OBS_Studio.13862e": "OBS Studio را باز کنید",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "مرکز کنترل را باز کنید · برای جابجایی داک بکشید",
     "ui.Open_settings.ca381c": "تنظیمات را باز کنید",
     "ui.Output_volume.735bac": "حجم خروجی",
     "ui.Overview.d4b1ea": "بررسی اجمالی",
@@ -716,6 +714,12 @@
     "Customize active profile": "نمایه فعال را سفارشی کنید",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "آب و هوا اختیاری است. فقط مختصات شهر انتخابی شما به Open-Meteo ارسال می شود.",
     "Within reach": "در دسترس است",
-    "Search also handles calculations, apps and indexed filenames.": "جستجو همچنین محاسبات، برنامه‌ها و نام فایل‌های فهرست‌شده را انجام می‌دهد."
+    "Search also handles calculations, apps and indexed filenames.": "جستجو همچنین محاسبات، برنامه‌ها و نام فایل‌های فهرست‌شده را انجام می‌دهد.",
+    "Always show mini bar": "همیشه مینی بار نشان داده شود",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "اطلاعات سیستم را بدون معلق ماندن قابل مشاهده نگه دارید. هنگام خروج، پیش‌نمایش‌های ماوس همچنان بسته می‌شوند.",
+    "Hover to reveal compact controls.": "ماوس را نگه دارید تا کنترل‌های فشرده را نشان دهید.",
+    "Open control center": "مرکز کنترل را باز کنید",
+    "Uses the same city, units and forecast as the dock weather widget.": "از همان شهر، واحدها و پیش بینی ویجت آب و هوای حوض استفاده می کند.",
+    "Show weather widget": "نمایش ویجت آب و هوا"
   }
 }

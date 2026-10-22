@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "隐藏 Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "悬停用于 OBS 控件",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "将鼠标悬停或单击以展开额外的应用程序。",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "将鼠标悬停以显示紧凑的控件。单击以使其保持打开状态,然后再次单击以展开。",
     "ui.Local_private.903e57": "本地和私人",
     "ui.Lock_current_profile.9cfe5e": "锁定当前配置文件",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "锁定或解锁当前配置文件",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "打开Nagi控制中心",
     "ui.Open_OBS.21abdd": "打开OBS",
     "ui.Open_OBS_Studio.13862e": "打开OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "打开控制中心·拖动移动dock",
     "ui.Open_settings.ca381c": "打开设置",
     "ui.Output_volume.735bac": "输出音量",
     "ui.Overview.d4b1ea": "概述",
@@ -716,6 +714,12 @@
     "Customize active profile": "自定义活动配置文件",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "天气是可选的。仅您选择的城市坐标会发送至 Open-Meteo。",
     "Within reach": "触手可及",
-    "Search also handles calculations, apps and indexed filenames.": "搜索还处理计算、应用程序和索引文件名。"
+    "Search also handles calculations, apps and indexed filenames.": "搜索还处理计算、应用程序和索引文件名。",
+    "Always show mini bar": "始终显示迷你吧",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "无需悬停即可保持系统信息可见。当您离开时,悬停预览仍然会关闭。",
+    "Hover to reveal compact controls.": "将鼠标悬停以显示紧凑的控件。",
+    "Open control center": "打开控制中心",
+    "Uses the same city, units and forecast as the dock weather widget.": "使用与码头天气小部件相同的城市、单位和天气预报。",
+    "Show weather widget": "显示天气小部件"
   }
 }

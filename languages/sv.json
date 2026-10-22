@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Göm Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Håll muspekaren för OBS-kontroller",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Håll muspekaren eller klicka för att expandera extra appar.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Håll muspekaren för att avslöja kompakta kontroller. Klicka för att hålla dem öppna och klicka sedan igen för att expandera.",
     "ui.Local_private.903e57": "Lokalt och privat",
     "ui.Lock_current_profile.9cfe5e": "Lås nuvarande profil",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Lås eller lås upp den aktuella profilen",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Öppna Nagi kontrollcenter",
     "ui.Open_OBS.21abdd": "Öppna OBS",
     "ui.Open_OBS_Studio.13862e": "Öppna OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Öppna kontrollcenter · dra för att flytta dockan",
     "ui.Open_settings.ca381c": "Öppna inställningar",
     "ui.Output_volume.735bac": "Utgångsvolym",
     "ui.Overview.d4b1ea": "Översikt",
@@ -716,6 +714,12 @@
     "Customize active profile": "Anpassa aktiv profil",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Vädret är valfritt. Endast dina valda stadskoordinater skickas till Open-Meteo.",
     "Within reach": "Inom räckhåll",
-    "Search also handles calculations, apps and indexed filenames.": "Sök hanterar även beräkningar, appar och indexerade filnamn."
+    "Search also handles calculations, apps and indexed filenames.": "Sök hanterar även beräkningar, appar och indexerade filnamn.",
+    "Always show mini bar": "Visa alltid minibar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Håll systeminformation synlig utan att sväva. Förhandsvisningar av muspekaren stängs fortfarande när du lämnar.",
+    "Hover to reveal compact controls.": "Håll muspekaren för att avslöja kompakta kontroller.",
+    "Open control center": "Öppna kontrollcenter",
+    "Uses the same city, units and forecast as the dock weather widget.": "Använder samma stad, enheter och prognos som dockväderwidgeten.",
+    "Show weather widget": "Visa väderwidget"
   }
 }

@@ -1,35 +1,45 @@
 using Pulse.Core;
 using Xunit;
-
 namespace Pulse.Tests;
-
 public sealed class DockInteractionTests
 {
-    [Fact] public void HoverRevealsCompactAndLeavingReturnsToTheEdge()
+    [Fact] public void HoverAndClicksNeverPinTheMiniBar()
     {
         var dock = new DockInteraction();
         Assert.Equal(DockStage.Resting, dock.Stage);
-        dock.Hover(); Assert.Equal(DockStage.Compact, dock.Stage); Assert.False(dock.Pinned);
+        dock.Hover(); dock.Click(); dock.Click();
+        Assert.Equal(DockStage.Compact, dock.Stage);
         dock.Leave(); Assert.Equal(DockStage.Resting, dock.Stage);
+        dock.Click(); dock.Leave(); Assert.Equal(DockStage.Resting, dock.Stage);
     }
-    [Fact] public void FirstClickPinsTheHoverRevealAndSecondClickExpands()
+    [Fact] public void PersistentMiniBarSurvivesLeavingAndPanelCollapse()
     {
-        var dock = new DockInteraction(); dock.Hover(); dock.Click(); dock.Leave();
-        Assert.Equal(DockStage.Compact, dock.Stage); Assert.True(dock.Pinned);
-        dock.Click(); Assert.Equal(DockStage.Expanded, dock.Stage);
-        dock.Leave(); Assert.Equal(DockStage.Expanded, dock.Stage);
+        var dock = new DockInteraction(); dock.SetAlwaysShowMiniBar(true);
+        Assert.Equal(DockStage.Compact, dock.Stage);
+        dock.Leave(); Assert.Equal(DockStage.Compact, dock.Stage);
+        dock.Expand(); dock.Leave(); Assert.Equal(DockStage.Expanded, dock.Stage);
+        dock.Collapse(); Assert.Equal(DockStage.Compact, dock.Stage);
+        dock.SetAlwaysShowMiniBar(false); Assert.Equal(DockStage.Resting, dock.Stage);
     }
-    [Fact] public void ClickingTheRestingDropAlsoRequiresTwoClicksToExpand()
+    [Theory] [InlineData(true)] [InlineData(false)]
+    public void SearchDismissalReturnsToConfiguredIdleStage(bool alwaysVisible)
     {
-        var dock = new DockInteraction(); dock.Click();
-        Assert.Equal(DockStage.Compact, dock.Stage); Assert.True(dock.Pinned);
-        dock.Click(); Assert.Equal(DockStage.Expanded, dock.Stage);
+        var dock = new DockInteraction(); dock.SetAlwaysShowMiniBar(alwaysVisible);
+        dock.Hover(); dock.Click(); dock.Collapse();
+        Assert.Equal(alwaysVisible ? DockStage.Compact : DockStage.Resting, dock.Stage);
     }
-    [Fact] public void ExplicitDismissalClearsPinnedAndExpandedState()
+    [Fact] public void ChangingThePreferenceDoesNotCloseAnExpandedWindow()
     {
-        var dock = new DockInteraction(); dock.Click(); dock.Collapse();
-        dock.Hover(); Assert.False(dock.Pinned);
-        dock.Expand(); dock.Collapse(); Assert.Equal(DockStage.Resting, dock.Stage);
+        var dock = new DockInteraction(); dock.Expand();
+        dock.SetAlwaysShowMiniBar(true); Assert.Equal(DockStage.Expanded, dock.Stage);
+        dock.SetAlwaysShowMiniBar(false); Assert.Equal(DockStage.Expanded, dock.Stage);
+        dock.Collapse(); Assert.Equal(DockStage.Resting, dock.Stage);
+    }
+    [Fact] public void PreferencePersistsWithoutChangingOlderSettingsDefaults()
+    {
+        Assert.False(System.Text.Json.JsonSerializer.Deserialize<PulseSettings>("{}")!.Normalize().AlwaysShowMiniBar);
+        var saved = System.Text.Json.JsonSerializer.Serialize(new PulseSettings { AlwaysShowMiniBar = true });
+        Assert.True(System.Text.Json.JsonSerializer.Deserialize<PulseSettings>(saved)!.Normalize().AlwaysShowMiniBar);
     }
     [Theory]
     [InlineData("Bottom left", "Left edge")]

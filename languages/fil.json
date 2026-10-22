@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Itago ang Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Mag-hover para sa mga kontrol ng OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Mag-hover o mag-click para palawakin ang mga karagdagang app.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Mag-hover para ipakita ang mga compact na kontrol. I-click upang panatilihing bukas ang mga ito, pagkatapos ay i-click muli upang palawakin.",
     "ui.Local_private.903e57": "Lokal at pribado",
     "ui.Lock_current_profile.9cfe5e": "I-lock ang kasalukuyang profile",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "I-lock o i-unlock ang kasalukuyang profile",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Buksan ang Nagi control center",
     "ui.Open_OBS.21abdd": "Buksan ang OBS",
     "ui.Open_OBS_Studio.13862e": "Buksan ang OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Buksan ang control center · i-drag para ilipat ang dock",
     "ui.Open_settings.ca381c": "Buksan ang mga setting",
     "ui.Output_volume.735bac": "Dami ng output",
     "ui.Overview.d4b1ea": "Pangkalahatang-ideya",
@@ -716,6 +714,12 @@
     "Customize active profile": "I-customize ang aktibong profile",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Opsyonal ang panahon. Tanging ang iyong mga napiling coordinate ng lungsod ang ipapadala sa Open-Meteo.",
     "Within reach": "Maabot",
-    "Search also handles calculations, apps and indexed filenames.": "Pinangangasiwaan din ng Search ang mga kalkulasyon, app at na-index na filename."
+    "Search also handles calculations, apps and indexed filenames.": "Pinangangasiwaan din ng Search ang mga kalkulasyon, app at na-index na filename.",
+    "Always show mini bar": "Palaging ipakita ang mini bar",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Panatilihing nakikita ang impormasyon ng system nang hindi nag-hover. Isara pa rin ang mga preview ng hover kapag umalis ka.",
+    "Hover to reveal compact controls.": "Mag-hover para ipakita ang mga compact na kontrol.",
+    "Open control center": "Buksan ang control center",
+    "Uses the same city, units and forecast as the dock weather widget.": "Gumagamit ng parehong lungsod, mga yunit at pagtataya bilang widget ng lagay ng panahon.",
+    "Show weather widget": "Ipakita ang widget ng panahon"
   }
 }

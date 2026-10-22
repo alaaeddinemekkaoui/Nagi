@@ -552,7 +552,6 @@
     "ui.Hide_Nagi_Ctrl_Alt_H.6f1ebb": "Ẩn Nagi · Ctrl + Alt + H",
     "ui.Hover_for_OBS_controls.81089b": "Di chuột để điều khiển OBS",
     "ui.Hover_or_click_to_expand_extra_apps.57f8b8": "Di chuột hoặc nhấp để mở rộng các ứng dụng bổ sung.",
-    "ui.Hover_to_reveal_compact_controls_Click_to_keep_them_ope.728593": "Di chuột để hiển thị các điều khiển thu gọn. Nhấp để giữ chúng mở, sau đó nhấp lại để mở rộng.",
     "ui.Local_private.903e57": "Cục bộ & riêng tư",
     "ui.Lock_current_profile.9cfe5e": "Khóa hồ sơ hiện tại",
     "ui.Lock_or_unlock_the_current_profile.76cc39": "Khóa hoặc mở khóa hồ sơ hiện tại",
@@ -576,7 +575,6 @@
     "ui.Open_Nagi_control_center.970e31": "Mở trung tâm điều khiển Nagi",
     "ui.Open_OBS.21abdd": "Mở OBS",
     "ui.Open_OBS_Studio.13862e": "Mở OBS Studio",
-    "ui.Open_control_center_drag_to_move_the_dock.d2e1e8": "Mở trung tâm điều khiển · kéo để di chuyển dock",
     "ui.Open_settings.ca381c": "Mở cài đặt",
     "ui.Output_volume.735bac": "Âm lượng đầu ra",
     "ui.Overview.d4b1ea": "Tổng quan",
@@ -716,6 +714,12 @@
     "Customize active profile": "Tùy chỉnh hồ sơ đang hoạt động",
     "Weather is optional. Only your selected city coordinates are sent to Open-Meteo.": "Thời tiết là tùy chọn. Chỉ tọa độ thành phố đã chọn của bạn mới được gửi tới Open-Meteo.",
     "Within reach": "Trong tầm tay",
-    "Search also handles calculations, apps and indexed filenames.": "Tìm kiếm cũng xử lý các phép tính, ứng dụng và tên tệp được lập chỉ mục."
+    "Search also handles calculations, apps and indexed filenames.": "Tìm kiếm cũng xử lý các phép tính, ứng dụng và tên tệp được lập chỉ mục.",
+    "Always show mini bar": "Luôn hiển thị thanh mini",
+    "Keep system information visible without hovering. Hover previews still close when you leave.": "Giữ thông tin hệ thống hiển thị mà không cần di chuột. Bản xem trước khi di chuột vẫn đóng khi bạn rời đi.",
+    "Hover to reveal compact controls.": "Di chuột để hiển thị các điều khiển nhỏ gọn.",
+    "Open control center": "Trung tâm điều khiển mở",
+    "Uses the same city, units and forecast as the dock weather widget.": "Sử dụng cùng thành phố, đơn vị và dự báo như tiện ích thời tiết ở bến tàu.",
+    "Show weather widget": "Hiển thị tiện ích thời tiết"
   }
 }

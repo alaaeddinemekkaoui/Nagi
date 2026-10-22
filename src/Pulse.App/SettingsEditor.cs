@@ -182,6 +182,9 @@ public sealed partial class MainWindow
     private void BuildBehaviorSettings()
     {
         var behavior = Stack(); behavior.Children.Add(Heading(L.T("Behavior")));
+        var miniBar = Toggle(L.T("Always show mini bar"), L.T("Keep system information visible without hovering. Hover previews still close when you leave."), ViewModel.Settings.AlwaysShowMiniBar, (s, v) => s with { AlwaysShowMiniBar = v });
+        AutomationProperties.SetAutomationId(miniBar, "AlwaysShowMiniBar");
+        behavior.Children.Add(miniBar);
         var cadence = Select(["Display", "Efficiency"], ViewModel.Settings.AnimationMode, "Animation mode");
         cadence.SelectionChanged += async (_, _) => { if (cadence.SelectedItem is string mode) await CommitAsync(s => s with { AnimationMode = mode }); };
         behavior.Children.Add(Labeled(L.T("Animation mode"), cadence));
