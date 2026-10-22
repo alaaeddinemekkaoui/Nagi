@@ -7,6 +7,7 @@ public sealed class FpsService(string executable, string? externalCsvPath = null
 {
     private readonly string _externalCsv = externalCsvPath ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Pulse", "Telemetry", "foreground-presents.csv");
     private long _retryAfter;
+    private string _retryStatus = "PresentMon needs tracing permission · see Settings";
     public async Task<FpsSnapshot> SampleAsync(bool enabled, int processId, CancellationToken token)
     {
         if (!enabled) return new(null, processId, "FPS capture off · enable in Settings");
@@ -24,7 +25,7 @@ public sealed class FpsService(string executable, string? externalCsvPath = null
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         if (!File.Exists(executable)) return new(null, processId, "PresentMon is missing from this package");
-        if (Environment.TickCount64 < _retryAfter) return new(null, processId, "PresentMon needs tracing permission · see Settings");
+        if (Environment.TickCount64 < _retryAfter) return new(null, processId, _retryStatus);
         var session = "Pulse-FPS-" + Guid.NewGuid().ToString("N");
         using var process = new Process { StartInfo = new(executable) { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, RedirectStandardOutput = true, RedirectStandardError = true } };
         foreach (var value in new[] { "--process_id", processId.ToString(System.Globalization.CultureInfo.InvariantCulture), "--session_name", session,
@@ -42,8 +43,15 @@ public sealed class FpsService(string executable, string? externalCsvPath = null
                 if (!process.HasExited && !process.WaitForExit(1000)) process.Kill();
                 token.ThrowIfCancellationRequested(); return new(null, processId, "FPS trace timed out");
             }
-            var text = await stdout; _ = await stderr;
-            if (process.ExitCode != 0) { _retryAfter = Environment.TickCount64 + 30000; return new(null, processId, "PresentMon could not trace · permission or unsupported target"); }
+            var text = await stdout; var error = await stderr;
+            if (process.ExitCode != 0)
+            {
+                _retryAfter = Environment.TickCount64 + 30000;
+                _retryStatus = error.Contains("access denied", StringComparison.OrdinalIgnoreCase)
+                    ? "Windows denied FPS tracing · start the FPS helper in Integrations"
+                    : "PresentMon could not trace · permission or unsupported target";
+                return new(null, processId, _retryStatus);
+            }
             var fps = IntegrationMath.FpsFromCsv(text.Split('\n', StringSplitOptions.RemoveEmptyEntries), processId);
             return new(fps, processId, fps.HasValue ? "PresentMon · application presents/s" : "No present events from the foreground app");
         }

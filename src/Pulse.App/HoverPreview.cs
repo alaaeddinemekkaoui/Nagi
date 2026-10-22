@@ -6,7 +6,7 @@ namespace Pulse.App;
 
 public sealed partial class MainWindow
 {
-    private enum PreviewKind { None, System, Media, Obs, Apps, Timer }
+    private enum PreviewKind { None, System, Media, Obs, Apps, Timer, Mode }
     private PreviewKind _preview, _pendingPreview;
     private FrameworkElement? _pendingPreviewTarget;
     private bool _previewSuppressed;
@@ -55,11 +55,13 @@ public sealed partial class MainWindow
                 if (_motion.IsMoving) return;
                 if (_windowManager.TryGetPointerScreenPosition(out var x, out var y)
                     && (Math.Abs(x - _dismissPointerX) > 4 || Math.Abs(y - _dismissPointerY) > 4)
-                    && !PointerOver(CompactCpuButton) && !PointerOver(RailGpuButton) && !PointerOver(CompactMediaButton) && !PointerOver(CompactTimerButton) && !PointerOver(RailObsButton) && !PointerOver(AppFolderButton)) _previewSuppressed = false;
+                    && !PointerOver(CompactCpuButton) && !PointerOver(RailGpuButton) && !PointerOver(RailFpsButton) && !PointerOver(RailModeButton) && !PointerOver(CompactMediaButton) && !PointerOver(CompactTimerButton) && !PointerOver(RailObsButton) && !PointerOver(AppFolderButton)) _previewSuppressed = false;
                 return;
             }
-            if (PointerOver(CompactCpuButton)) QueuePreview(PreviewKind.System, CompactCpuButton);
+            if (PointerOver(RailModeButton)) QueuePreview(PreviewKind.Mode, RailModeButton);
+            else if (PointerOver(CompactCpuButton)) QueuePreview(PreviewKind.System, CompactCpuButton);
             else if (PointerOver(RailGpuButton)) QueuePreview(PreviewKind.System, RailGpuButton);
+            else if (PointerOver(RailFpsButton)) QueuePreview(PreviewKind.System, RailFpsButton);
             else if (PointerOver(CompactMediaButton)) QueuePreview(
                 PreviewKind.Media, CompactMediaButton);
             else if (PointerOver(CompactTimerButton)) QueuePreview(PreviewKind.Timer, CompactTimerButton);
@@ -76,6 +78,8 @@ public sealed partial class MainWindow
         _previewOpen.Stop(); _previewClose.Stop();
         var switching = PreviewVisible;
         _preview = kind;
+        if (kind == PreviewKind.Mode) BuildModePanels();
+        ModePeek.Visibility = kind == PreviewKind.Mode ? Visibility.Visible : Visibility.Collapsed;
         PeekHeading.Text = L.T(kind switch { PreviewKind.Timer => "Timer", PreviewKind.Apps => "More apps", PreviewKind.Obs => "OBS Studio", PreviewKind.Media => "Media & audio", _ => "System at a glance" });
         SystemPeek.Visibility = kind == PreviewKind.System ? Visibility.Visible : Visibility.Collapsed;
         MediaPeek.Visibility = kind == PreviewKind.Media ? Visibility.Visible : Visibility.Collapsed;
@@ -83,8 +87,9 @@ public sealed partial class MainWindow
         AppsPeek.Visibility = kind == PreviewKind.Apps ? Visibility.Visible : Visibility.Collapsed;
         TimerPeek.Visibility = kind == PreviewKind.Timer ? Visibility.Visible : Visibility.Collapsed;
         PeekSpeakersButton.Visibility = kind == PreviewKind.Media ? Visibility.Visible : Visibility.Collapsed;
+        if (kind == PreviewKind.Mode) PeekHeading.Text = L.T(ModePresets.For(ViewModel.Settings.Workspace(ViewModel.Profile)) + " mode");
         Layout(true); // Hover preserves the dock's screen position without taking focus.
-        if (switching) _motion.Reveal(kind switch { PreviewKind.Timer => TimerPeek, PreviewKind.Apps => AppsPeek, PreviewKind.Obs => ObsPeek,
+        if (switching) _motion.Reveal(kind switch { PreviewKind.Mode => ModePeek, PreviewKind.Timer => TimerPeek, PreviewKind.Apps => AppsPeek, PreviewKind.Obs => ObsPeek,
             PreviewKind.Media => MediaPeek, _ => SystemPeek }, 0, 160, 1);
     }
     private void AppFolder_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(PreviewKind.Apps, AppFolderButton);

@@ -38,7 +38,12 @@ public sealed record PulseSettings
     public Hotkey HideHotkey { get; init; } = new(3, 0x48); // Ctrl+Alt+H
     public Hotkey SearchHotkey { get; init; } = new(1, 0x20); // Alt+Space
     public bool IndexFiles { get; init; } = true;
+    public bool ShowDockSearch { get; init; } = true;
     public bool FpsEnabled { get; init; }
+    public bool AutomaticGameDetection { get; init; }
+    public bool GitHubEnabled { get; init; }
+    public string[] PinnedRepositories { get; init; } = [];
+    public bool CalendarEnabled { get; init; }
     public bool ObsEnabled { get; init; }
     public int ObsPort { get; init; } = 4455;
     public string[] ObsScenes { get; init; } = ["", "", ""];
@@ -73,6 +78,7 @@ public sealed record PulseSettings
     public PulseSettings Normalize() => this with
     {
         Theme = Theme is "Dark" or "Light" or "System" or "Akeno" ? Theme : "System",
+        PinnedRepositories = (PinnedRepositories ?? []).Select(RepositoryName.Normalize).Where(x => x is not null).Cast<string>().Distinct(StringComparer.OrdinalIgnoreCase).Take(6).ToArray(),
         Language = !string.IsNullOrWhiteSpace(Language) && Language.Length <= 35 && Language.All(c => char.IsAsciiLetterOrDigit(c) || c == '-') ? Language : "System",
         AkenoBackground = AkenoBackground is "Samurai" or "Gradient" or "None" ? AkenoBackground : "Samurai",
         NotchColorMode = NotchColorMode is "System" or "Custom" ? NotchColorMode : "Theme",
@@ -123,6 +129,8 @@ public sealed record SystemSnapshot(double? Cpu, ulong TotalMemory, ulong Availa
 }
 public sealed record ForegroundApplication(int ProcessId, string Name, string? ExecutablePath, bool IsFullscreen = false)
 {
+    public bool IsGame { get; init; }
+    public string? GameSource { get; init; }
     public static ForegroundApplication Empty { get; } = new(0, "Desktop", null);
 }
 public sealed record MediaSnapshot(string Title, string Artist, bool Playing, bool Available, bool CanPlayPause = false,

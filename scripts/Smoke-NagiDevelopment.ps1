@@ -58,7 +58,7 @@ try{
  Invoke 'DevelopmentTestError'
  if((Get-Content -LiteralPath (Join-Path $qaRoot 'logs/errors.jsonl') -Raw) -notlike '*Developer test error*'){throw 'Separate error log did not record intentional test error'}
  if($MediaAppearance){
-  Invoke 'DevelopmentPage12';Select-DevelopmentColor 'Custom';Invoke 'ChooseVisualizerColor'
+  $appearancePage=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Appearance & dock'));if(!$appearancePage){throw 'Missing appearance page'};$appearancePage.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 400;Select-DevelopmentColor 'Custom';Invoke 'ChooseVisualizerColor'
   $edits=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::Edit))
   $hex=$edits|Where-Object {$_.Current.AutomationId -match 'Hex' -or $_.Current.Name -match 'Hex'}|Select-Object -First 1
   if(!$hex){$edits|ForEach-Object {@{Id=$_.Current.AutomationId;Name=$_.Current.Name}}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $qaRoot 'color-picker-tree.json');throw 'Missing color picker hex input'}

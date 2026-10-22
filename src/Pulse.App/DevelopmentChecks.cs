@@ -127,7 +127,7 @@ public sealed partial class MainWindow
                 Require(RestingComplete.Visibility == Visibility.Visible && RestingCountdown.Text == "00:00", "Completion check or 00:00 is missing.");
                 AssertDevelopmentActivityFits();
             });
-            foreach (var preview in new[] { PreviewKind.System, PreviewKind.Media, PreviewKind.Obs, PreviewKind.Apps, PreviewKind.Timer })
+            foreach (var preview in new[] { PreviewKind.System, PreviewKind.Media, PreviewKind.Obs, PreviewKind.Apps, PreviewKind.Timer, PreviewKind.Mode })
                 await Check("Hover panel: " + preview, async () =>
                 {
                     Collapse(); _dock.Hover(); ShowPreview(preview); await Settle();

@@ -14,8 +14,8 @@ const icons = {
 function icon(name) { return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name] || icons.sparkles}"/></svg>`; }
 function renderIcons(root = document) { root.querySelectorAll('[data-icon]').forEach(el => { el.replaceWith(document.createRange().createContextualFragment(icon(el.dataset.icon))); }); }
 const isRoadmap = location.pathname.replace(/\/$/, '').replace(/\.html$/, '') === '/roadmap';
-document.querySelector('[data-header]').innerHTML = `<div class="header-inner wrap"><a class="wordmark" href="/" aria-label="Nagi home"><img src="/logo.svg" alt="" width="27" height="27">nagi</a><nav class="header-nav" aria-label="Main navigation"><a href="/#experience">Explore</a><a class="nav-themes" href="/#themes">Themes</a><a href="/roadmap" ${isRoadmap ? 'aria-current="page"' : ''}>Roadmap</a></nav><div class="header-right"><a class="version-pill" data-release-link href="${REPO}/releases/latest" aria-label="Latest Nagi release"><span class="status-dot"></span><span data-release-version>Latest release</span></a><a class="github-link" href="${REPO}" target="_blank" rel="noopener noreferrer" aria-label="Nagi on GitHub">GitHub ${icon('github')}</a></div></div>`;
-document.querySelector('[data-footer]').innerHTML = `<div class="footer-top"><a class="wordmark" href="/"><img src="/logo.svg" alt="" width="23" height="23">nagi</a><nav class="footer-links" aria-label="Footer"><a href="/#experience">Explore</a><a href="/roadmap">Roadmap</a><a href="${REPO}" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="${REPO}/blob/main/docs/USER-GUIDE.md" target="_blank" rel="noopener noreferrer">Documentation ↗</a></nav></div><div class="footer-bottom"><span>Made with care. Improved together. Thanks to <a href="https://www.reddit.com/user/alkidnn/" target="_blank" rel="noopener noreferrer">u/alkidnn</a> for the suggestions.</span><span>A LITTLE SPACE. MORE CONTROL.</span></div>`;
+document.querySelector('[data-header]').innerHTML = `<div class="header-inner wrap"><a class="wordmark" href="/" aria-label="Nagi home"><img src="/logo.svg" alt="" width="27" height="27">nagi</a><nav class="header-nav" aria-label="Main navigation"><a href="/#experience">Explore</a><a class="nav-themes" href="/#modes">Modes</a><a href="/#about">About</a><a href="/roadmap" ${isRoadmap ? 'aria-current="page"' : ''}>Roadmap</a></nav><div class="header-right"><a class="version-pill" data-release-link href="${REPO}/releases/latest" aria-label="Latest Nagi release"><span class="status-dot"></span><span data-release-version>Latest release</span></a><a class="github-link" href="${REPO}" target="_blank" rel="noopener noreferrer" aria-label="Nagi on GitHub">GitHub ${icon('github')}</a></div></div>`;
+document.querySelector('[data-footer]').innerHTML = `<div class="footer-top"><a class="wordmark" href="/"><img src="/logo.svg" alt="" width="23" height="23">nagi</a><nav class="footer-links" aria-label="Footer"><a href="/#experience">Explore</a><a href="/#about">About me</a><a href="/roadmap">Roadmap</a><a href="${REPO}" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="${REPO}/blob/main/docs/USER-GUIDE.md" target="_blank" rel="noopener noreferrer">Documentation ↗</a></nav></div><div class="footer-bottom"><span>Made with care. Improved together. Thanks to <a href="https://www.reddit.com/user/alkidnn/" target="_blank" rel="noopener noreferrer">u/alkidnn</a> and <a href="https://www.reddit.com/user/will25u1/" target="_blank" rel="noopener noreferrer">u/will25u1</a> for the ideas, testing and feedback.</span><span>A LITTLE SPACE. MORE CONTROL.</span></div>`;
 renderIcons();
 
 // Render release text as text, never as HTML supplied by an external API.
@@ -109,10 +109,10 @@ document.querySelector('[data-media-prev]')?.addEventListener('click', () => cha
 document.querySelector('[data-media-next]')?.addEventListener('click', () => changeTrack(1));
 
 const profiles = {
-  Work: [['code','VS Code'], ['terminal','Terminal'], ['globe','Browser'], ['headphones','Music']],
-  Gaming: [['gamepad','Steam'], ['globe','Browser'], ['headphones','Music'], ['monitor','Performance']],
+  Work: [['code','GitHub notifications'], ['terminal','Actions build status'], ['folder','Pinned repositories'], ['monitor','CPU & RAM']],
+  Gaming: [['gamepad','Active game time'], ['monitor','PresentMon FPS'], ['cloud','Temperatures'], ['headphones','Discord desktop']],
   Stream: [['video','OBS Studio'], ['globe','Browser'], ['mic','Microphone'], ['monitor','Three scenes']],
-  Focus: [['timer','30-minute timer'], ['headphones','Now playing'], ['search','Quick search'], ['feather','A little less noise']]
+  Focus: [['timer','Focus timer'], ['code','One current task'], ['cloud','Next calendar meeting'], ['feather','Important Nagi notices']]
 };
 function selectProfile(name) {
   const root = document.querySelector('[data-profile-apps]');

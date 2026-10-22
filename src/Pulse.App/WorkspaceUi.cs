@@ -148,6 +148,8 @@ public sealed partial class MainWindow
     {
         var workspace = ViewModel.Settings.Workspace(ViewModel.Profile);
         Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+        RailSearchButton.Visibility = Show(ViewModel.Settings.ShowDockSearch);
+        RailModeButton.Visibility = Show(workspace.ModeEnabled && ModePresets.For(workspace) != "Default");
         RamMetric.Visibility = ViewModel.Profile == Profile.Default ? Visibility.Collapsed : Visibility.Visible;
         MetricsGrid.ColumnDefinitions[1].Width = ViewModel.Profile == Profile.Default ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         QuickActionsHeader.Visibility = QuickActionsPanel.Visibility = Show(ViewModel.Profile != Profile.Default);
@@ -160,6 +162,7 @@ public sealed partial class MainWindow
         RailObsButton.Visibility = Show(ProfileWorkspaces.ShowObs(workspace));
         WeatherCard.Visibility = RailWeatherButton.Visibility = Show(workspace.Shows("Weather") && ViewModel.Settings.WeatherEnabled);
         CompactCpuButton.Visibility = RailGpuButton.Visibility = Show(workspace.Shows("Performance"));
+        RailFpsButton.Visibility = Show(workspace.Shows("Performance") && ViewModel.Settings.FpsEnabled && workspace.WantsFps());
         CompactMediaButton.Visibility = Show(workspace.Shows("Media") && ViewModel.Settings.ShowMedia || workspace.Shows("Audio"));
         CompactTimerButton.Visibility = Show(HasDockTimer);
         RailMicrophoneButton.Visibility = Show(workspace.Shows("Microphone"));
@@ -176,6 +179,7 @@ public sealed partial class MainWindow
         var activate = Button(L.T("Activate ") + ProfileLabel(profile), async (_, _) => { await ActivateProfileAsync(profile); BuildRulesPage(); });
         Grid.SetColumn(activate, 1); header.Children.Add(activate); WorkspacePage.Children.Add(header);
         WorkspacePage.Children.Add(Note(L.T("Customize this profile's widgets, apps and activation.")));
+        BuildProfileModeEditor(workspace);
         var apps = Stack(); apps.Children.Add(Heading(L.T("App dock")));
         apps.Children.Add(Note(L.T("Up to two apps appear directly on the dock. More than two apps share one folder that expands on hover or click. Overview shows all apps, up to four per row.")));
         foreach (var app in workspace.Apps)

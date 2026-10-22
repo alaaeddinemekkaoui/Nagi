@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <AssemblyName>Nagi</AssemblyName>
     <RootNamespace>Pulse.App</RootNamespace>
     <Product>Nagi</Product>
@@ -40,6 +40,7 @@
   <ItemGroup><Content Include="Assets/Tools/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <ItemGroup><Content Include="../../languages/*.json" Link="languages/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><Content Include="../../scripts/Apply-NagiUpdate.ps1" Link="Apply-NagiUpdate.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><Content Include="../../scripts/Start-NagiFpsCapture.ps1" Link="Start-NagiFpsCapture.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><Content Include="Assets/Nagi.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <ItemGroup><Content Include="Assets/Akeno.*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" /></ItemGroup>
   <!-- The unpackaged WinUI publish pipeline omits app XBF/PRI files. Export them explicitly. -->

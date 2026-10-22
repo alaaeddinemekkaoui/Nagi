@@ -108,6 +108,18 @@ First launch draws **Nagi / ナギ**, then lets you choose a language, name, the
 
 [Welcome and layouts](docs/WELCOME-AND-LAYOUT.md) · [Complete guide](docs/USER-GUIDE.md).
 
+## Functional modes
+
+Gaming adds frame timing, available temperatures, active game time and Discord desktop status. Work becomes a Developer workspace with GitHub notifications, pinned repositories and Actions build status. Stream becomes a Creator workspace with a visible-only microphone meter and OBS/media controls. Focus keeps a saved task, a timer and your next meeting from an encrypted .ics file or HTTPS calendar feed. Custom profiles can choose any integrated mode; apply a layout explicitly to change its widgets. [Mode setup and provider requirements](docs/MODES.md).
+
+| Gaming | Developer |
+| --- | --- |
+| ![Gaming mode with FPS, temperature, game time and Discord desktop status](docs/images/nagi-gaming-mode.png) | ![Developer mode with GitHub notifications and pinned workflow status](docs/images/nagi-developer-mode.png) |
+| Creator | Focus |
+| ![Creator mode with OBS state, media and a microphone meter](docs/images/nagi-creator-mode.png) | ![Focus mode with task, timer and a meeting from a local test calendar](docs/images/nagi-focus-mode.png) |
+
+Native screenshots use isolated settings and a test calendar. Missing provider data stays visibly unavailable; FPS requires the Windows tracing permission described in the guide.
+
 ## A few useful moves
 
 | Control | Action |
@@ -117,6 +129,7 @@ First launch draws **Nagi / ナギ**, then lets you choose a language, name, the
 | Click the logo | Open the control center |
 | Settings → Appearance | Choose dock edge and position |
 | **Alt + Space** | Search apps, indexed filenames, calculations and commands |
+| **Tab** in search | Cycle Nagi, Google and YouTube; or type browser:, google: or youtube: |
 | **Ctrl + Alt + Space** | Expand/collapse the panel |
 | **Ctrl + Alt + H** | Hide/show Nagi |
 | **Escape** | Dismiss search or the expanded panel |
@@ -130,7 +143,9 @@ No account or activity telemetry. App settings, scripts, logs and protected OBS 
 
 GPU counters depend on the driver. Temperatures require a supported Libre Hardware Monitor/Open Hardware Monitor WMI provider; FPS requires PresentMon tracing permission; OBS requires its local WebSocket v5 server. [Integration setup](docs/INTEGRATIONS.md) · [Validation and remaining physical coverage](docs/VALIDATION.md).
 
-Keep system information visible with **Settings → Behavior → Always show mini bar**. Hover details close when you leave; clicks do not pin the dock. Utilities weather uses the same city and forecast as the dock widget.
+**Settings → Integrations** brings Gaming, PresentMon FPS, GitHub, Calendar and OBS together. Optional local Steam/Epic/GOG recognition switches to Gaming when a game becomes active; explicit executable rules and profile locks keep priority. Enable FPS to show a stacked value beside CPU/GPU. If Windows denies tracing, FPS help can launch a separate helper after an explicit Windows permission request. **Hardware & audio** and **About & diagnostics** use responsive cards, with technical details tucked away and community thanks at the bottom.
+
+Keep system information visible with **Settings → Behavior → Always show mini bar**. Hover details close when you leave; clicks do not pin the dock. Utilities weather uses the same city and forecast as the dock widget. Hide the magnifying glass separately with **Settings → Search & shortcuts → Show search button on mini bar**; keyboard and tray search remain available.
 
 ## Download
 
@@ -149,7 +164,7 @@ Windows 11 **22H2 or newer**, x64. Runtime included. Current builds are unsigned
 Built with **WinUI 3, Win2D and .NET**. [Build instructions](docs/BUILD.md) · [Architecture](docs/ARCHITECTURE.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md).
 
 ```powershell
-./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.2.1
+./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.2.2
 ```
 
 Every release produces a fresh **Nagi-Portable.exe in the project root** and a matching **Nagi-Dev-Portable.exe**. Development includes a debug menu, direct pages, notch/notification previews, diagnostics and automated UI checks, with separate preferences and logs. Production excludes developer tools. [Developer guide](docs/DEVELOPMENT.md).
@@ -158,4 +173,4 @@ The dependency-free [website source](website/) includes the interactive tour, ro
 
 ## Thanks
 
-Thanks to [u/alkidnn](https://www.reddit.com/user/alkidnn/) on Reddit for suggestions to improve Nagi, and to everyone contributing translations, testing and ideas.
+Thanks to [u/alkidnn](https://www.reddit.com/user/alkidnn/) for suggestions, and [u/will25u1](https://www.reddit.com/user/will25u1/) for testing the mini bar and reporting hover/search issues. Thanks to everyone contributing translations, testing and ideas.

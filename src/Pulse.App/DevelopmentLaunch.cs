@@ -34,6 +34,6 @@ internal sealed record DevelopmentLaunch(string Page, bool RunChecks, string[] A
 internal static class DevelopmentPages
 {
     internal static readonly string[] Settings = ["General", "Language", "Appearance & dock", "Profiles & apps", "Weather",
-        "Hardware & studio", "Search & shortcuts", "Lua UI studio", "Music", "Timer & live activity", "Updates", "Behavior", "About & diagnostics", "Developer tools"];
+        "Hardware & audio", "Integrations", "Search & shortcuts", "Lua UI studio", "Music", "Timer & live activity", "Updates", "Behavior", "About & diagnostics", "Developer tools"];
     internal static readonly string[] All = ["Overview", "Profiles", "Utilities", "Settings", .. Settings];
 }

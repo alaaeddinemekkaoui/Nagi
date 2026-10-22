@@ -6,11 +6,18 @@ public sealed record ProfileTimer(bool AutoStart = false, int Minutes = 30);
 
 public sealed record ProfileWorkspace(Profile Profile, ProfileApp[] Apps, string[] Widgets, bool AutoOpenApps = false)
 {
+    public string Mode { get; init; } = "Automatic";
+    public bool ModeEnabled { get; init; } = true;
+    public string FocusTask { get; init; } = "";
+    public bool? ShowFps { get; init; }
+    public bool WantsFps() => ShowFps ?? ModePresets.For(this) == "Gaming";
     public string ObsPresentation { get; init; } = "Widget";
     public ProfileTimer? Timer { get; init; }
     public bool Shows(string widget) => Widgets.Contains(widget, StringComparer.Ordinal);
     public ProfileWorkspace Normalize() => this with
     {
+        Mode = ModePresets.Names.Contains(Mode) ? Mode : "Automatic",
+        FocusTask = new string((FocusTask ?? "").Where(c => !char.IsControl(c)).Take(160).ToArray()).Trim(),
         ObsPresentation = ObsPresentation is "App" or "Hidden" ? ObsPresentation : "Widget",
         Timer = Timer is { } timer ? timer with { Minutes = Math.Clamp(timer.Minutes, 1, 1440) } : null,
         Apps = (Apps ?? []).Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Name)

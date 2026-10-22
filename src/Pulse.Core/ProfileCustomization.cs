@@ -8,7 +8,7 @@ public static class ProfileCustomization
         if (settings.CustomProfiles.Length >= 16) throw new ArgumentException("You can create up to 16 custom profiles.");
         var id = (Profile)Enumerable.Range(1000, 1000).First(i => settings.CustomProfiles.All(p => (int)p.Id != i));
         return (settings with { CustomProfiles = [.. settings.CustomProfiles, new(id, name)],
-            Workspaces = [.. settings.Workspaces, settings.Workspace(template) with { Profile = id, AutoOpenApps = false, Timer = settings.TimerFor(template) }] }).Normalize();
+            Workspaces = [.. settings.Workspaces, settings.Workspace(template) with { Profile = id, AutoOpenApps = false, Mode = ModePresets.For(settings.Workspace(template)), Timer = settings.TimerFor(template) }] }).Normalize();
     }
     public static PulseSettings Rename(PulseSettings settings, Profile id, string name)
     {

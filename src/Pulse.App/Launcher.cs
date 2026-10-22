@@ -191,6 +191,9 @@ public sealed partial class MainWindow
         search.Children.Add(Button(L.T("Open quick search"), (_, _) => ToggleQuickSearch()));
         search.Children.Add(Button(L.T("Search shortcut · ") + ViewModels.PulseViewModel.FormatHotkey(ViewModel.Settings.SearchHotkey), async (_, _) => await EditHotkeyAsync(searchShortcut: true)));
         search.Children.Add(Note(_searchHotkeyAvailable ? L.T("Search shortcut registered. Type app:, file:, folder: or > to filter. Try 24 * 7 for the calculator.") : L.T("Search shortcut is in use by another app. Choose another shortcut or use Open quick search.")));
+        var dockSearch = Toggle(L.T("Show search button on mini bar"), L.T("Hiding the button keeps the search shortcut and tray action available."), ViewModel.Settings.ShowDockSearch, (s, enabled) => s with { ShowDockSearch = enabled });
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(dockSearch, "ShowDockSearch");
+        search.Children.Add(dockSearch);
         search.Children.Add(Toggle(L.T("Index local files"), L.T("Search filenames in your selected folders. File contents are never read."), ViewModel.Settings.IndexFiles, (s, enabled) => s with { IndexFiles = enabled }));
         foreach (var folder in ViewModel.Settings.SearchFolders.Length > 0 ? ViewModel.Settings.SearchFolders : SearchApplications.StandardFolders()) search.Children.Add(Note(folder));
         search.Children.Add(Button(L.T("Add search folder"), async (_, _) =>

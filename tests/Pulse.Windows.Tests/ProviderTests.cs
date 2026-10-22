@@ -5,6 +5,36 @@ namespace Pulse.Windows.Tests;
 
 public sealed class ProviderTests
 {
+    [Fact] public void FpsHelperRequestsPermissionOnlyForAFileAndPassesLiteralArguments()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "Nagi helper test", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory); var script = Path.Combine(directory, "Start-NagiFpsCapture.ps1"); File.WriteAllText(script, "# fixture");
+        try
+        {
+            var settings = Path.Combine(directory, "settings.json");
+            var start = FpsCaptureHelper.CreateStartInfo(script, settings, 123, 456);
+            Assert.True(start.UseShellExecute); Assert.Equal("runas", start.Verb); Assert.Equal(System.Diagnostics.ProcessWindowStyle.Hidden, start.WindowStyle);
+            Assert.EndsWith(@"WindowsPowerShell\v1.0\powershell.exe", start.FileName);
+            Assert.Contains(script, start.ArgumentList); Assert.Contains(settings, start.ArgumentList);
+            Assert.Contains(Path.Combine(directory, "Telemetry"), start.ArgumentList); Assert.DoesNotContain("-Command", start.ArgumentList);
+            Assert.Throws<ArgumentException>(() => FpsCaptureHelper.CreateStartInfo(script, settings, 123, 123));
+            Assert.Throws<ArgumentException>(() => FpsCaptureHelper.CreateStartInfo("missing.ps1", settings, 123, 456));
+        }
+        finally { Directory.Delete(directory, true); }
+    }
+    [Fact] public void GameCatalogIsCachedAndRescanRefreshesInstalledLibraries()
+    {
+        var reads = 0;
+        var games = new GameDetectionService(() => { reads++; return reads == 1 ? [new(@"D:\Games\First", "Steam")] : [new(@"D:\Games\Second", "Epic Games")]; });
+        var first = new Pulse.Core.ForegroundApplication(123, "game", @"D:\Games\First\game.exe");
+        Assert.True(games.Classify(first).IsGame);
+        Assert.Equal("Steam", games.Classify(first).GameSource); Assert.Equal(1, reads);
+        var second = first with { ExecutablePath = @"D:\Games\Second\game.exe" };
+        Assert.False(games.Classify(second).IsGame);
+        games.Invalidate();
+        Assert.Equal("Epic Games", games.Classify(second).GameSource); Assert.Equal(2, reads);
+        Assert.False(games.Classify(first).IsGame);
+    }
     [Fact] public async Task ExternalFpsHelperReportsOnlyFreshFramesForTheSelectedProcess()
     {
         var directory = Path.Combine(Path.GetTempPath(), "PulseFpsTest", Guid.NewGuid().ToString("N")); Directory.CreateDirectory(directory);

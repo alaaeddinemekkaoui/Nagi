@@ -164,7 +164,7 @@ public sealed partial class MainWindow
         var anchors = Select(edges, ViewModel.Settings.Position.Anchor, "Nagi position");
         anchors.SelectionChanged += async (_, _) =>
         { if (anchors.SelectedItem is string selected) await CommitAsync(s => s with { Position = s.Position with { Anchor = selected, OffsetX = 0, OffsetY = 0 } }); };
-        appearance.Children.Add(Labeled(L.T("Screen edge · drag the logo to reposition"), anchors));
+        appearance.Children.Add(Labeled(L.T("Screen edge"), anchors));
         var monitors = HaloWindowManager.GetMonitors();
         var displayNames = new[] { "Primary display" }.Concat(monitors.Select(m => m.Label)).ToArray();
         var selectedDisplay = monitors.FirstOrDefault(m => m.Device == ViewModel.Settings.Position.Monitor)?.Label ?? "Primary display";
@@ -218,45 +218,7 @@ public sealed partial class MainWindow
 
     }
 
-    private void BuildDiagnosticsSettings()
-    {
-        var thanks = Stack(); thanks.Children.Add(Heading(L.T("Thanks")));
-        var reddit = new HyperlinkButton { Content = "u/alkidnn · Reddit", NavigateUri = new("https://www.reddit.com/user/alkidnn/"),
-            Padding = new(0), HorizontalAlignment = HorizontalAlignment.Left, Foreground = ThemeBrush("PulseAccentBrush") };
-        AutomationProperties.SetAutomationId(reddit, "AboutRedditCredit");
-        thanks.Children.Add(reddit);
-        var acknowledgment = Note(L.T("Thank you for the suggestions to improve Nagi."));
-        AutomationProperties.SetAutomationId(acknowledgment, "AboutAcknowledgment"); thanks.Children.Add(acknowledgment);
-        SettingsPage.Children.Add(Card(thanks));
-        var diagnostics = Stack(); diagnostics.Children.Add(Heading(L.T("Integrations & diagnostics")));
-        diagnostics.Children.Add(Note(L.F($"Nagi {CurrentVersion.ToString(3)} · WinUI 3 · .NET {Environment.Version}\nSession uptime: {_uptime.Elapsed:hh\\:mm\\:ss}\nForeground: {ViewModel.Foreground.Name} · PID {ViewModel.Foreground.ProcessId}")));
-        diagnostics.Children.Add(Note(L.T("CPU: ") + (ViewModel.Metrics.Cpu.HasValue ? L.T("available · GetSystemTimes") : L.T("waiting / unavailable"))
-            + L.T("\nMemory: ") + (ViewModel.Metrics.TotalMemory > 0 ? L.F($"{GiB(ViewModel.Metrics.AvailableMemory):0.0} GB available of {GiB(ViewModel.Metrics.TotalMemory):0.0} GB") : L.T("unavailable"))
-            + L.T("\nNetwork: ") + (ViewModel.Metrics.ReceiveBytesPerSecond.HasValue ? L.T("available · aggregate active adapters") : L.T("waiting / unavailable"))
-            + L.T("\nMedia: ") + (ViewModel.Media.Available ? L.T("Windows media session connected") : ViewModel.Media.Artist)
-            + L.T("\nAudio: ") + ViewModel.Audio.Device
-            + L.T("\nBattery: ") + ViewModel.BatteryDetail
-            + L.T("\nGlobal hotkey: ") + (_hotkeyAvailable ? L.T("registered") : L.T("unavailable · choose a different shortcut"))
-            + L.T("\nHide / show hotkey: ") + (_hideHotkeyAvailable ? L.T("registered") : L.T("unavailable · choose a different shortcut"))
-            + L.T("\nSystem tray: ") + (_tray?.IsRegistered == true ? L.T("registered · right-click for controls") : L.T("unavailable"))
-            + L.T("\nGlass material: ") + _glass.MaterialStatus
-            + L.T("\nGPU: ") + _gpuSnapshot.Status + L.T("\nTemperatures: ") + _temperatureSnapshot.Status + L.T("\nFPS: ") + _fpsSnapshot.Status + L.T("\nMicrophone: ") + _microphoneSnapshot.Device + L.T("\nOBS: ") + _obsSnapshot.Status));
-        diagnostics.Children.Add(Note(L.T("Settings: ") + _settings.FilePath + L.T("\nActivity log: ") + _log.FilePath + L.T("\nError log: ") + _log.ErrorFilePath));
-        diagnostics.Children.Add(Button(L.T("Open activity log"), (_, _) => Report(ActionLauncher.Launch(new("Activity log", ActionKind.File, _log.FilePath)))));
-        diagnostics.Children.Add(Button(L.T("Open error log"), (_, _) => Report(ActionLauncher.Launch(new("Error log", ActionKind.File, _log.ErrorFilePath)))));
-        diagnostics.Children.Add(Note(L.F($"Audio refresh: {Volatile.Read(ref _runtimeDemand).AudioIntervalMs} ms · Signal meter: {(ViewModel.Audio.Peak.HasValue ? "available" : "unavailable")} · Frames: {_audioFrameCount}")));
-        diagnostics.Children.Add(Note(L.T("Media artwork: ") + (_artwork is { Length: > 0 } ? L.T("provided by media app") : L.T("not provided by the current session"))));
-        diagnostics.Children.Add(Button(L.T("Open Nagi data folder"), (_, _) => Report(ActionLauncher.Launch(new("Nagi data", ActionKind.Folder, Path.GetDirectoryName(_settings.FilePath)!)))));
-        diagnostics.Children.Add(Button(L.T("Refresh diagnostics"), (_, _) => BuildSettingsPage()));
-        SettingsPage.Children.Add(Card(diagnostics));
-        SettingsPage.Children.Add(Heading(L.T("Recent activity · this session only")));
-        if (ViewModel.Activity.Count == 0) SettingsPage.Children.Add(Note(L.T("No profile changes yet.")));
-        foreach (var entry in ViewModel.Activity) SettingsPage.Children.Add(Note(entry.Time.ToString("HH:mm:ss") + "   " + entry.Message));
-        var footer = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        footer.Children.Add(Button(L.T("Restore defaults"), async (_, _) => await RestoreDefaultsAsync()));
-        footer.Children.Add(Button(L.T("Quit Nagi"), (_, _) => Close()));
-        SettingsPage.Children.Add(footer);
-    }
+    private void BuildDiagnosticsSettings() => BuildFriendlyDiagnosticsSettings();
 
     private async Task EditHotkeyAsync(bool hideShortcut = false, bool searchShortcut = false)
     {

@@ -73,7 +73,7 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
     public void Refresh() => OnPropertyChanged("");
     public void Publish(string message, bool essential = false)
     {
-        if (!essential && (!Settings.Notifications || Profile == Profile.Focus)) return;
+        if (!essential && (!Settings.Notifications || ModePresets.For(Settings.Workspace(Profile)) == "Focus")) return;
         Notice = message;
         Activity.Insert(0, new(DateTimeOffset.Now, message));
         while (Activity.Count > 12) Activity.RemoveAt(Activity.Count - 1);

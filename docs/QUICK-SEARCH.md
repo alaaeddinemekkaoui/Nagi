@@ -10,12 +10,20 @@ Press **Alt + Space**, click the search icon in Nagi, or select **Quick search**
 | `> volume` | Nagi actions only |
 | `24 * 7` or `(8 + 4) / 3` | Calculator; Enter copies the result |
 | `web your search` | Browser search, sent only when opened |
+| `browser: your search` or `google: your search` | Search Google in your default browser |
+| `youtube: your search` or `yt: your search` | Search YouTube in your default browser |
+| Tab while typing | Cycle Nagi → Google → YouTube while keeping your search words |
+| Shift + Tab | Move keyboard focus to the previous control |
 | Ctrl + Enter | Open the selected file's containing folder |
 | Ctrl + C | Copy a selected path/result when no query text is selected |
 
 Useful actions include Work/Gaming/Focus and Automatic profiles, output mute, volume up/down, Nagi visibility, settings, index rebuilding, and copying the local date/time. Files and folders also have visible Open, Show in folder and Copy path buttons. Query text remains local unless you deliberately open a web result. Search does not execute typed shell commands.
 
+Enter refreshes the current query before opening it, including when you type faster than the result debounce. The Nagi, Google and YouTube buttons also select where to search. An explicit prefix selects its matching service; switching with Tab or a button removes the old prefix and keeps the search words. Empty Google/YouTube searches open that service's home page only after Enter. App/file/folder filters and `>` actions return to local search.
+
 ## Folders and index
+
+Hide the mini-bar magnifying glass under **Settings → Search & shortcuts → Show search button on mini bar**. This visibility preference is separate from **Index local files**, saves across restarts and removes the empty space in either dock layout. The search shortcut, tray action and control-center search remain available.
 
 Under **Settings → Quick search**, enable/disable file indexing, add a folder with the Windows folder picker, edit the folder list, restore standard folders, or rebuild the index. Defaults are the current user's Desktop, Documents and Downloads, including their Windows-known redirected locations. Turning off file indexing retains app search and commands. An empty custom list selects standard folders; saving an empty list in the editor disables file indexing.
 

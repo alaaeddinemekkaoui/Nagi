@@ -114,10 +114,10 @@ public sealed partial class MainWindow
         SettingsPage.Children.Add(Card(previews));
 
         var diagnostics = Stack(); diagnostics.Children.Add(Heading("Diagnostics and integrations"));
-        diagnostics.Children.Add(Note("Hardware & studio opens live provider status and OBS controls. This test runner does not start recording, streaming, external apps, startup registration or update installation."));
+        diagnostics.Children.Add(Note("Hardware & audio opens live provider status. Integrations contains gaming, FPS and OBS controls. This test runner does not start recording, streaming, external apps, startup registration or update installation."));
         diagnostics.Children.Add(DevelopmentGrid(new[]
         {
-            DevelopmentButton("Open integration controls", "DevelopmentIntegrations", "\uE7F4", (_, _) => OpenDevelopmentPage("Hardware & studio")),
+            DevelopmentButton("Open integration controls", "DevelopmentIntegrations", "\uE7F4", (_, _) => OpenDevelopmentPage("Integrations")),
             DevelopmentButton("Export state snapshot", "DevelopmentExport", "\uE74E", async (_, _) => await ExportDevelopmentStateAsync()),
             DevelopmentButton("Open application logs", "DevelopmentLogs", "\uE8A5", async (_, _) => await OpenDevelopmentFolderAsync(Path.GetDirectoryName(_log.FilePath)!)),
             DevelopmentButton("Open error log", "DevelopmentErrors", "\uEA39", async (_, _) => await Launcher.LaunchFileAsync(await global::Windows.Storage.StorageFile.GetFileFromPathAsync(_log.ErrorFilePath))),

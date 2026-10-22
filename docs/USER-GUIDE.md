@@ -95,7 +95,7 @@ The waveform tray icon may be under Windows **Show Hidden Icons**. Use **Setting
 | Temperatures | Readings from a supported, running WMI sensor provider |
 | FPS | Optional PresentMon application-presentation rate for the foreground process |
 
-Sparklines show real samples retained in memory. A missing value or provider status means a reading is unavailable; it is not replaced with a simulated number. The main polling interval is configurable from 500 to 10,000 milliseconds. Output audio samples peaks every 50 ms only while a meter is visible, refreshes volume every 500 ms in the dock and every two seconds at rest, and wakes immediately on reveal. GPU, microphone, sensors and FPS follow visible widgets or Hardware & studio settings. OBS connections and foreground profile detection continue independently.
+Sparklines show real samples retained in memory. A missing value or provider status means a reading is unavailable; it is not replaced with a simulated number. The main polling interval is configurable from 500 to 10,000 milliseconds. Output audio samples peaks every 50 ms only while a meter is visible, refreshes volume every 500 ms in the dock and every two seconds at rest, and wakes immediately on reveal. GPU, microphone and sensors follow visible widgets or Hardware & audio settings. FPS follows Performance visibility or its Integrations page. OBS connections and foreground profile detection continue independently.
 
 ## Media, audio and microphone
 
@@ -120,6 +120,8 @@ Press **Alt + Space**, click the rail search icon, or choose tray **Quick search
 
 **Ctrl + Enter** opens the selected file's containing folder. **Ctrl + C** copies its path/result when query text is not selected. File results also provide Open, Show in folder and Copy path controls.
 
+Use **Settings → Search & shortcuts → Show search button on mini bar** to hide or restore the magnifying glass independently of file indexing. The dock closes the empty space immediately; Alt + Space, the tray search action and control-center search remain available. The choice persists across restarts.
+
 Configure indexing under **Settings → Quick search**. Standard roots are your Desktop, Documents and Downloads. Add/edit roots, restore standard folders, rebuild, or turn indexing off while keeping app search and commands. The index covers names and paths, with up to 16 roots and 40,000 entries. It scans at startup, after scope changes and on manual rebuild. Filesystem events update created, renamed and deleted paths after a short debounce. Every ten minutes Nagi refreshes the application catalog and checks watcher health; unchanged file trees are not rescanned. Lost events or watcher errors trigger a recovery scan. File contents, linked/system entries and common build folders are excluded. Use a manual rebuild if the watcher cannot monitor a selected folder. See the [full search reference](QUICK-SEARCH.md) for syntax and bounds.
 
 ## Profiles, rules and quick actions
@@ -130,7 +132,7 @@ After first-time welcome, a dimmed introduction points out the edge drop. Hover 
 
 Click the rail logo once to open the large centered control center. Open **Profiles**, then select a profile card to edit its widgets, apps and executable activation rules. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. Up to two appear directly on the dock; profiles with more apps use one folder that expands on hover or click; Overview lists every app in rows of up to four single-line buttons. Missing suggestions show an actionable error rather than downloading or installing software.
 
-Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio, Battery and Timer checkboxes. Widget choices also filter the rail. Microphone, Weather and Battery can each be turned off independently per profile. Stream includes OBS controls; hover its OBS rail button to open OBS, start/stop recording or streaming, and switch between three scenes. Choose the scene shortcuts under Hardware & studio; Automatic uses the first three OBS scenes. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
+Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio, Battery and Timer checkboxes. Widget choices also filter the rail. Microphone, Weather and Battery can each be turned off independently per profile. Stream includes OBS controls; hover its OBS rail button to open OBS, start/stop recording or streaming, and switch between three scenes. Choose the scene shortcuts under Settings → Integrations → OBS Studio; Automatic uses the first three OBS scenes. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
 
 
 To map an app to a profile:
@@ -155,7 +157,8 @@ Settings always opens the category menu. Select a category to open its own page,
 | Appearance & dock | Glass (system), Akeno, Dark or Light; native glass; Samurai/Gradient/None background; layout; edge; display; reduced motion |
 | Lua UI studio | Enable, edit/apply and explicitly reload a script; current status/errors |
 | Quick search | Open launcher, search shortcut, indexing and folder scope |
-| Hardware & studio | GPU/provider status, FPS toggle/helper guidance and microphone mute |
+| Hardware & audio | Responsive CPU/memory, GPU, temperature, speaker, volume and microphone cards |
+| Integrations | Automatic Gaming detection, PresentMon FPS and OBS connection/scene controls |
 | OBS Studio | Connection toggle, port, password save/clear and status |
 | Behavior | Outside-click dismissal, fullscreen hiding, expanded startup, media visibility, contextual notices, polling interval, panel/hide shortcuts and sign-in startup |
 | Integrations & diagnostics | Version, session/device/provider status and diagnostic refresh |
@@ -208,7 +211,7 @@ For the optional FPS helper, from the extracted or installed Nagi folder:
 .\Start-NagiFpsCapture.ps1 -GameProcessId 12345
 ```
 
-Enable FPS in Nagi and focus the game. Ctrl+C stops the helper. Nagi itself stays unprivileged. The reading counts application presents on the dominant swap chain; it is not the monitor refresh rate or guaranteed displayed frames.
+Enable FPS in Nagi and focus the game. Integrations → PresentMon FPS → FPS help also provides a Start FPS helper button with an explicit Windows permission request. An app-started helper stops when Nagi/the game closes or FPS is disabled. Ctrl+C stops a manual helper. Nagi itself stays unprivileged. The reading counts application presents on the dominant swap chain; it is not the monitor refresh rate or guaranteed displayed frames.
 
 OBS connects only to `127.0.0.1`. It reports recording, streaming and render-FPS state. The explicit **OBS record / Stop recording** button controls local recording; Nagi does not start a stream. The password is protected for the current Windows user with DPAPI and saved separately from JSON. **Clear saved OBS password** removes it. See [integration instructions](INTEGRATIONS.md) for provider requirements and failure states.
 
@@ -242,7 +245,7 @@ To back up customization, **Quit Nagi** and copy the settings and scripts to a s
 | Audio slider differs from a player | Nagi controls the default system output endpoint; inspect the device name and the player's own output/volume |
 | Microphone state differs from an app | Compare that app's selected input with Windows' default communications microphone |
 | File search misses an item | Check scope, indexing toggle, skipped folders and 40,000-entry cap, then rebuild |
-| GPU/temperature/FPS unavailable | Read Hardware & studio status; check driver counters, running WMI provider or tracing permission as appropriate |
+| GPU/temperature/FPS unavailable | Read Hardware & audio and Integrations status; check driver counters, running WMI provider or tracing permission as appropriate |
 | OBS connection/recording fails | Check server enabled, v5 support, local port/password, and OBS recording folder/encoder status |
 | Lua error | Check field spelling, value ranges and closing braces; reload a fixed script or disable Lua UI |
 | Startup stopped after moving Nagi | Re-enable Start Nagi when I sign in from the new executable location |

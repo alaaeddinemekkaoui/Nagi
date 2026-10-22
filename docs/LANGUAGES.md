@@ -2,6 +2,8 @@
 
 Nagi v0.2 includes **40 language packs**, including Japanese, Simplified Chinese, Traditional Chinese, Korean, English, French, Spanish, German, Russian and Arabic. All interface language files are UTF-8 JSON in [`languages/`](../languages). The app reads this folder when it starts; adding a language does not require changing or recompiling application code.
 
+New settings-card and integration phrases are registered in every pack. The new category names are translated across all 40 packs; primary new controls also have French, Spanish, German, Russian, Arabic, Japanese and Chinese translations. Some new explanatory text still uses English values pending contributor review. Translate these values in the JSON file to improve coverage.
+
 Welcome starts with an animated, hand-drawn **Nagi / ナギ** greeting. Continue to the language page before entering your name. **System default** selects your Windows display language, with a regional fallback: French (France) and French (Canada) both use `fr.json`. The page shows the current language by its native name. Selecting English immediately changes the welcome controls to English. Unsupported system languages use English.
 
 After setup, use **Settings → Language**, then **Restart Nagi**. Your profiles, theme, shortcuts and other preferences are preserved. Arabic, Hebrew, Persian and Urdu use right-to-left layout; the dock stays attached to your chosen physical screen edge. Chinese system locales use culture/script parents: `zh-CN` resolves to `zh-Hans`, while `zh-TW` and `zh-HK` resolve to `zh-Hant`. Reduced motion and the Windows animation preference disable the handwriting animation.

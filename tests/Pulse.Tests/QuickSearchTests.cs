@@ -38,6 +38,34 @@ public sealed class QuickSearchTests : IDisposable
         Assert.Equal(SearchKind.Web, result.Kind); Assert.EndsWith("a%26b%20%23c", result.Target);
     }
     [Theory]
+    [InlineData("browser: cats & dogs", "www.google.com", "q=cats%20%26%20dogs")]
+    [InlineData("GOOGLE : cats & dogs", "www.google.com", "q=cats%20%26%20dogs")]
+    [InlineData("youtube: a&b #日本語", "www.youtube.com", "search_query=a%26b%20%23%E6%97%A5%E6%9C%AC%E8%AA%9E")]
+    [InlineData("yt: music", "www.youtube.com", "search_query=music")]
+    public void ProviderPrefixesCreateOneExplicitEscapedBrowserResult(string query, string host, string parameter)
+    {
+        var result = Assert.Single(QuickSearch.Find([App("cats")], query));
+        Assert.Equal(SearchKind.Web, result.Kind);
+        var uri = new Uri(result.Target); Assert.Equal(host, uri.Host); Assert.Equal("?" + parameter, uri.Query); Assert.Empty(uri.Fragment);
+    }
+    [Theory]
+    [InlineData(SearchProvider.Google, "www.google.com")]
+    [InlineData(SearchProvider.YouTube, "www.youtube.com")]
+    public void SelectedProviderSearchesTheWholeQueryAndEmptyQueryOpensItsHome(SearchProvider provider, string host)
+    {
+        Assert.Equal(host, new Uri(Assert.Single(QuickSearch.Find([], "", provider: provider)).Target).Host);
+        var result = Assert.Single(QuickSearch.Find([], "two words + a/b", provider: provider));
+        Assert.EndsWith("two%20words%20%2B%20a%2Fb", result.Target);
+        Assert.Empty(QuickSearch.Find([], new string('x', 257), provider: provider));
+    }
+    [Fact] public void PrefixesOverrideSelectedProvidersAndLocalFiltersStayLocal()
+    {
+        Assert.Equal(SearchProvider.YouTube, QuickSearch.ParseQuery("youtube: nagi", SearchProvider.Google).Provider);
+        Assert.Equal("nagi", QuickSearch.ParseQuery("youtube: nagi").Text);
+        Assert.Equal(SearchKind.Application, Assert.Single(QuickSearch.Find([App("Notes")], "app: notes", provider: SearchProvider.Google)).Kind);
+        Assert.Empty(QuickSearch.Find([], "notes", provider: (SearchProvider)999));
+    }
+    [Theory]
     [InlineData("2 + 3 * 4", "14")] [InlineData("(2+3)*4", "20")] [InlineData("24 * 7", "168")]
     [InlineData("-2 * -4", "8")] [InlineData("1.5 / .5", "3")] [InlineData("10 % 3", "1")]
     public void CalculatorUsesPrecedenceAndProducesCopyableValues(string input, string expected)

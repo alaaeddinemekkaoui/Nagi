@@ -28,14 +28,17 @@ public static class DockPresentation
         if (clipped) shortText = shortText[..characters[Math.Max(1, maxCharacters)]].TrimEnd();
         return clipped || words.Length > 3 ? shortText + "\u2026" : shortText;
     }
-    public static double RailExtent(ProfileWorkspace workspace, bool horizontal, bool showMedia, bool weatherEnabled, PowerSnapshot? power, bool timerActive = false, int timerCharacters = 5)
+    public static double RailExtent(ProfileWorkspace workspace, bool horizontal, bool showMedia, bool weatherEnabled, PowerSnapshot? power, bool timerActive = false, int timerCharacters = 5, bool showSearch = true, bool showFps = false)
     {
-        var extents = new List<double> { 32, 32 }; // Logo, search, then applications.
+        var extents = new List<double> { 32 }; // Logo, optional search, then applications.
+        if (showSearch) extents.Add(32);
         var appCount = ProfileWorkspaces.DockApps(workspace).Length;
         var apps = GroupApps(appCount) ? 1 : appCount;
         extents.AddRange(Enumerable.Repeat(horizontal ? 34d : 32d, apps));
         if (workspace.Shows("Performance")) { extents.Add(horizontal ? 48 : 38); extents.Add(horizontal ? 48 : 38); }
-        if (workspace.Shows("Media") && showMedia || workspace.Shows("Audio")) extents.Add(horizontal ? 200 : 50);
+        if (workspace.Shows("Performance") && showFps) extents.Add(horizontal ? 48 : 38);
+        if (workspace.ModeEnabled && ModePresets.For(workspace) != "Default") extents.Add(horizontal ? 56 : 18);
+        if (workspace.Shows("Media") && showMedia || workspace.Shows("Audio")) extents.Add(horizontal ? 168 : 50);
         if (ShowTimer(workspace, timerActive)) extents.Add(horizontal ? TimerRailWidth(timerCharacters) : 38);
         if (ProfileWorkspaces.ShowObs(workspace)) extents.Add(32);
         if (workspace.Shows("Microphone")) extents.Add(30);

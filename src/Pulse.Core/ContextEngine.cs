@@ -22,7 +22,8 @@ public sealed class ContextEngine : IContextEngine
         }
         // A Pulse window is deliberately ignored by the coordinator, preserving the user's context.
         var desired = settings.Rules.Where(r => r.Enabled && Matches(r.Identity, application))
-            .OrderByDescending(r => r.Priority).Select(r => (Profile?)r.Profile).FirstOrDefault() ?? settings.DefaultProfile;
+            .OrderByDescending(r => r.Priority).Select(r => (Profile?)r.Profile).FirstOrDefault()
+            ?? (settings.AutomaticGameDetection && application.IsGame ? Profile.Gaming : settings.DefaultProfile);
         if (desired == Current) { _candidate = null; return Current; }
         if (_candidate != desired) { _candidate = desired; _candidateSince = now; return Current; }
         if (now - _candidateSince >= Debounce) { Current = desired; _candidate = null; }

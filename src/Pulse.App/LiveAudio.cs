@@ -12,6 +12,7 @@ public sealed partial class MainWindow
     private int _audioFrameQueued;
     private long _audioSamples, _audioPeakSamples;
     private long _audioFrameCount;
+    private long _creatorSampleAt;
     private bool _volumeWriteInFlight;
     private readonly AudioEnvelope _audioEnvelope = new();
     private long _audioRenderedAt = Stopwatch.GetTimestamp();
@@ -24,6 +25,12 @@ public sealed partial class MainWindow
             var demand = Volatile.Read(ref _runtimeDemand);
             _audioSamples++; if (demand.AudioPeak) _audioPeakSamples++;
             Volatile.Write(ref _latestAudio, _audio.Sample(demand.AudioPeak));
+            if (demand.MicrophonePeak && Stopwatch.GetElapsedTime(_creatorSampleAt).TotalMilliseconds >= 100)
+            {
+                _creatorSampleAt = Stopwatch.GetTimestamp();
+                var microphone = _creatorMicrophone.Sample(includePeak: true);
+                DispatcherQueue.TryEnqueue(() => { if (!_closed && Volatile.Read(ref _runtimeDemand).MicrophonePeak) foreach (var meter in _creatorMeters) meter.Value = (microphone.Muted ? 0 : microphone.Peak ?? 0) * 100; });
+            }
             if (demand.Audio > 0 && Interlocked.Exchange(ref _audioFrameQueued, 1) == 0)
             {
                 if (!DispatcherQueue.TryEnqueue(() =>

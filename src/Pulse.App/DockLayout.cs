@@ -10,16 +10,16 @@ public sealed partial class MainWindow
     private bool? _horizontalRail;
     private double _railExtent;
     private double RequestedRailExtent => DockPresentation.RailExtent(ViewModel.Settings.Workspace(ViewModel.Profile),
-        ViewModel.Settings.Position.Orientation == "Horizontal", ViewModel.Settings.ShowMedia, ViewModel.Settings.WeatherEnabled, ViewModel.Metrics.Power, _timer.Active, TimerDisplayText.Length);
+        ViewModel.Settings.Position.Orientation == "Horizontal", ViewModel.Settings.ShowMedia, ViewModel.Settings.WeatherEnabled, ViewModel.Metrics.Power, _timer.Active, TimerDisplayText.Length, ViewModel.Settings.ShowDockSearch, ViewModel.Settings.FpsEnabled && ViewModel.Settings.Workspace(ViewModel.Profile).WantsFps());
     private void ConfigureRail(bool horizontal)
     {
         if (_horizontalRail == horizontal) return;
         _horizontalRail = horizontal;
         Compact.RowDefinitions.Clear(); Compact.ColumnDefinitions.Clear();
-        var buttons = new FrameworkElement[] { CompactBrand, RailSearchButton, ProfileDockPanel, CompactCpuButton, RailGpuButton,
+        var buttons = new FrameworkElement[] { CompactBrand, RailSearchButton, ProfileDockPanel, CompactCpuButton, RailGpuButton, RailFpsButton, RailModeButton,
             CompactMediaButton, CompactTimerButton, RailObsButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
-        var widths = new[] { 32d, 32, double.NaN, 48, 48, 200, 48, 32, 30, 44, 44 };
-        var heights = new[] { 32d, 32, double.NaN, 38, 38, 50, 38, 32, 30, 38, 38 };
+        var widths = new[] { 32d, 32, double.NaN, 48, 48, 48, 56, 168, 48, 32, 30, 44, 44 };
+        var heights = new[] { 32d, 32, double.NaN, 38, 38, 38, 18, 50, 38, 32, 30, 38, 38 };
         for (var i = 0; i < buttons.Length; i++)
         {
             Grid.SetRow(buttons[i], horizontal ? 0 : i); Grid.SetColumn(buttons[i], horizontal ? i : 0);
@@ -37,6 +37,8 @@ public sealed partial class MainWindow
             else Compact.RowDefinitions.Add(new() { Height = GridLength.Auto });
         }
         Compact.RowSpacing = Compact.ColumnSpacing = 0;
+        RailModeValue.Visibility = horizontal ? Visibility.Visible : Visibility.Collapsed;
+        RailModeButton.Padding = horizontal ? new(4) : new(0);
         CompactCpuButton.Padding = RailGpuButton.Padding = new(3, 0, 3, 0);
         if (!horizontal) RailObsButton.Padding = RailWeatherButton.Padding = CompactBatteryButton.Padding = new(0);
         RailWeatherValue.FontSize = horizontal ? 12 : 11;
@@ -110,13 +112,13 @@ public sealed partial class MainWindow
         {
             var top = position.Anchor == "Top edge";
             var terse = !resting && width < _railExtent - 1;
-            CompactMediaButton.Width = terse ? 72 : 200;
+            CompactMediaButton.Width = terse ? 72 : 168;
             CompactTimerButton.Width = DockPresentation.TimerRailWidth(TimerDisplayText.Length);
             CompactMediaButton.Padding = terse ? new(2, 0, 2, 0) : new(4);
             CompactMediaContents.ColumnSpacing = terse ? 2 : 6;
             CompactMediaStatus.Visibility = terse ? Visibility.Collapsed : Visibility.Visible;
             CompactTrackTitle.Visibility = Visibility.Visible;
-            Compact.Width = Math.Max(1, _railExtent - (terse ? 128 : 0)); Compact.Height = DockPresentation.HorizontalHeight;
+            Compact.Width = Math.Max(1, _railExtent - (terse ? 96 : 0)); Compact.Height = DockPresentation.HorizontalHeight;
             RailViewport.Width = width; RailViewport.Height = DockPresentation.HorizontalHeight;
             RailViewport.HorizontalAlignment = HorizontalAlignment.Center;
             RailViewport.VerticalAlignment = top ? VerticalAlignment.Top : VerticalAlignment.Bottom;

@@ -169,6 +169,7 @@ public sealed partial class MainWindow : Window
         _audioPolling = Task.Run(PollAudioAsync);
         _searchStarted = true; RebuildSearchIndex(); _indexTimer.Start();
         _integrationPolling = Task.Run(PollIntegrationsAsync);
+        _modePolling = Task.Run(PollModesAsync);
         _weatherPolling = Task.Run(PollWeatherAsync);
         InitializeUpdates();
     }
@@ -371,6 +372,22 @@ public sealed partial class MainWindow : Window
         UtilitiesTab.Background = ThemeBrush(_page == "Utilities" ? "SelectedTabBrush" : "InsetBrush");
         PreferencesTab.Background = ThemeBrush(_page == "Settings" ? "SelectedTabBrush" : "InsetBrush");
     }
+    private void Header_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var compact = e.NewSize.Width < 740;
+        HeaderClock.Visibility = e.NewSize.Width < 850 ? Visibility.Collapsed : Visibility.Visible;
+        BrandSubtitle.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        HeaderBrand.MaxWidth = compact ? 140 : 180;
+        foreach (var tab in new[] { OverviewTab, RulesTab, UtilitiesTab, PreferencesTab })
+        {
+            if (tab.Content is not StackPanel content) continue;
+            foreach (var label in content.Children.OfType<TextBlock>())
+            {
+                label.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+                ToolTipService.SetToolTip(tab, label.Text);
+            }
+        }
+    }
     private void RefreshContrast()
     {
         var contrast = _themeAccessibility.HighContrast;
@@ -388,6 +405,7 @@ public sealed partial class MainWindow : Window
             {
                 var metrics = _metrics.Sample();
                 var foreground = _foreground.Sample();
+                if ((config.AutomaticGameDetection || config.LockedProfile is { } locked && ModePresets.For(config.Workspace(locked)) == "Gaming") && foreground.ProcessId != Environment.ProcessId) foreground = _games.Classify(foreground);
                 MediaSnapshot media;
                 using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(token))
                 {
@@ -406,6 +424,8 @@ public sealed partial class MainWindow : Window
                     var local = _localMedia?.Snapshot;
                     _usingLocalMedia = config.ShowMedia && local?.Available == true;
                     ViewModel.Apply(metrics, foreground, _usingLocalMedia ? local! : media, audio);
+                    var gaming = foreground.IsGame || config.Rules.Any(r => r.Enabled && ModePresets.For(config.Workspace(r.Profile)) == "Gaming" && ContextEngine.Matches(r.Identity, foreground));
+                    _gameClock.Observe(foreground, gaming && foreground.ProcessId != Environment.ProcessId, DateTimeOffset.UtcNow);
                     Render();
                     var hide = _userHidden || (config.HideInFullscreen && foreground.ProcessId != Environment.ProcessId && foreground.IsFullscreen && !_revealFullscreen);
                     if (hide && PreviewVisible) { ResetPreview(); Layout(); }
@@ -426,6 +446,9 @@ public sealed partial class MainWindow : Window
 
     private async void Render()
     {
+        BuildModePanels();
+        RefreshSettingsCards();
+        RailFpsValue.Text = CurrentFps is { } currentFps ? L.F($"{currentFps:0}") : "—";
         ObserveTimerProfile(); UpdateTimerLabels();
         RefreshLiveActivity();
         UpdateRuntimeDemand();
@@ -515,6 +538,7 @@ public sealed partial class MainWindow : Window
         _ = ReloadLuaUiAsync();
         _updating = false;
         ViewModel.Evaluate(); ViewModel.Refresh();
+        BuildModePanels();
         ObserveTimerProfile(); UpdateTimerLabels();
         Layout(_motion.IsMoving); UpdateTray();
     }
@@ -693,6 +717,8 @@ public sealed partial class MainWindow : Window
         if (_audioPolling is not null) { try { await _audioPolling; } catch (OperationCanceledException) { } }
         _audio.Dispose();
         if (_integrationPolling is not null) { try { await _integrationPolling; } catch (OperationCanceledException) { } }
+        if (_modePolling is not null) { try { await _modePolling; } catch (OperationCanceledException) { } }
+        _creatorMicrophone.Dispose();
         _microphone.Dispose();
         _gpu.Dispose();
         if (_weatherPolling is not null) { try { await _weatherPolling; } catch (OperationCanceledException) { } }

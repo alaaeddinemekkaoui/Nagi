@@ -1,4 +1,4 @@
-param([switch]$NoRestore, [string]$ReleaseTag='v0.2.1')
+param([switch]$NoRestore, [string]$ReleaseTag='v0.2.2')
 $ErrorActionPreference='Stop'
 $nagiRoot=Split-Path $PSScriptRoot -Parent
 function Get-NagiSourceFingerprint {

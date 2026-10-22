@@ -5,13 +5,41 @@ namespace Pulse.Core;
 
 public enum SearchKind { Application, File, Folder, Command, Calculation, Web }
 public sealed record SearchEntry(string Id, string Title, string Detail, SearchKind Kind, string Target);
+public enum SearchProvider { Local, Google, YouTube }
+public readonly record struct SearchQuery(SearchProvider Provider, string Text, bool ExplicitProvider = false);
 
 public static class QuickSearch
 {
-    public static IReadOnlyList<SearchEntry> Find(IEnumerable<SearchEntry> entries, string? query, int limit = 40)
+    public static SearchQuery ParseQuery(string? query, SearchProvider provider = SearchProvider.Local)
+    {
+        var text = (query ?? "").Trim();
+        var colon = text.IndexOf(':');
+        if (colon >= 0)
+        {
+            var prefix = text[..colon].Trim().ToLowerInvariant();
+            if (prefix is "google" or "browser" or "web" or "youtube" or "yt")
+                return new(prefix is "youtube" or "yt" ? SearchProvider.YouTube : SearchProvider.Google, text[(colon + 1)..].Trim(), true);
+            if (prefix is "app" or "file" or "folder") return new(SearchProvider.Local, text, true);
+        }
+        if (text.StartsWith("web ", StringComparison.OrdinalIgnoreCase)) return new(SearchProvider.Google, text[4..].Trim(), true);
+        if (text.StartsWith('>')) return new(SearchProvider.Local, text, true);
+        return new(Enum.IsDefined(provider) ? provider : SearchProvider.Local, text);
+    }
+
+    public static IReadOnlyList<SearchEntry> Find(IEnumerable<SearchEntry> entries, string? query, int limit = 40, SearchProvider provider = SearchProvider.Local)
     {
         var text = (query ?? "").Trim();
         if (text.Length > 256) return [];
+        var request = ParseQuery(text, provider);
+        text = request.Text;
+        if (request.Provider != SearchProvider.Local)
+        {
+            var youtube = request.Provider == SearchProvider.YouTube;
+            var name = youtube ? "YouTube" : "Google";
+            var home = youtube ? "https://www.youtube.com/" : "https://www.google.com/";
+            var target = text.Length == 0 ? home : (youtube ? "https://www.youtube.com/results?search_query=" : "https://www.google.com/search?q=") + Uri.EscapeDataString(text);
+            return [new("web:" + name.ToLowerInvariant(), text.Length == 0 ? "Open " + name : "Search " + name + " for “" + text + "”", "Opens your browser on Enter", SearchKind.Web, target)];
+        }
         SearchKind? filter = null;
         foreach (var (prefix, kind) in new[] { ("app:", SearchKind.Application), ("file:", SearchKind.File), ("folder:", SearchKind.Folder), (">", SearchKind.Command) })
             if (text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) { filter = kind; text = text[prefix.Length..].Trim(); break; }
@@ -23,8 +51,6 @@ public static class QuickSearch
             .Take(Math.Clamp(limit, 1, 100)).Select(e => e.Entry).ToList();
         if (filter is null && Calculator.TryCalculate(text, out var number))
             results.Insert(0, new("calculation", number, "Calculator · Enter to copy result", SearchKind.Calculation, number));
-        if (filter is null && text.StartsWith("web ", StringComparison.OrdinalIgnoreCase) && text.Length > 4)
-            results.Insert(0, new("web", "Search the web for “" + text[4..] + "”", "Opens your browser on Enter", SearchKind.Web, "https://www.bing.com/search?q=" + Uri.EscapeDataString(text[4..])));
         return results.Take(Math.Clamp(limit, 1, 100)).ToArray();
     }
 

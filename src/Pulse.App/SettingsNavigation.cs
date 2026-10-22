@@ -23,6 +23,7 @@ public sealed partial class MainWindow
 
     private void BuildSettingsPage()
     {
+        _settingsCardUpdates.Clear();
         _visualizerSettingsPreview = null;
         SettingsPage.Children.Clear();
         SettingsNavigationHeader.Visibility = _page == "Settings" && _settingsCategory is not null ? Visibility.Visible : Visibility.Collapsed;
@@ -40,7 +41,8 @@ public sealed partial class MainWindow
                 ("Appearance & dock", "Glass, Akeno background, layout and display", "\uE790"),
                 ("Profiles & apps", "Workspaces, app docks and visible widgets", "\uE8A5"),
                 ("Weather", "City, units and current conditions", "\uE753"),
-                ("Hardware & studio", "GPU, microphone, FPS and OBS", "\uE7F4"),
+                ("Hardware & audio", "System health, speakers and microphone", "\uE7F4"),
+                ("Integrations", "Gaming, GitHub, Calendar and OBS Studio", "\uE774"),
                 ("Search & shortcuts", "App search, file indexing and search key", "\uE721"),
                 ("Lua UI studio", "Scripts, presets and custom styling", "\uE943"),
                 ("Music", "Preferred music service and now playing", "\uE8D6"),
@@ -85,7 +87,9 @@ public sealed partial class MainWindow
                 case "Appearance & dock": BuildAppearanceSettings(); break;
                 case "Profiles & apps": SettingsPage.Children.Add(_settingsProfilesContent); BuildRulesPage(); break;
                 case "Weather": BuildWeatherSettings(); break;
-                case "Hardware & studio": BuildIntegrationSettings(); break;
+                case "Hardware & audio": BuildHardwareAudioSettings(); break;
+                case "Hardware & studio": // Compatibility with older development links.
+                case "Integrations": BuildIntegrationSettings(); break;
                 case "Search & shortcuts": BuildSearchSettings(); break;
                 case "Lua UI studio": BuildLuaSettings(); break;
                 case "Music": BuildMusicSettings(); break;
@@ -99,5 +103,6 @@ public sealed partial class MainWindow
             }
         }
         ApplyLuaVisuals();
+        UpdateRuntimeDemand();
     }
 }

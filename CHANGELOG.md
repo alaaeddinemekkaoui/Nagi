@@ -1,5 +1,16 @@
 # Changelog
 
+## Nagi v0.2.2 — 2026-10-22
+
+- Add functional Gaming, Developer, Creator and Focus modes to existing and custom profiles, with a mode dock button, hover cards and an explicit Apply mode layout action. Keep profile apps and user choices intact until a layout is applied.
+- Gaming combines optional Steam/Epic/GOG executable detection, PresentMon FPS, supported temperature sensors, active game time and Discord desktop running status. Explicit executable rules and profile locks take priority. FPS permission help elevates only the helper after user action.
+- Developer adds read-only GitHub notifications, up to six pinned repositories and their latest Actions build status. Store personal tokens encrypted for the current Windows user; public build status needs no token.
+- Creator adds a real microphone peak meter alongside recording/streaming status, current media and existing OBS controls. Sample microphone peaks only while the meter is visible.
+- Focus adds a saved task and the next meeting from a local .ics file or HTTPS feed, with daily/weekly recurrence, exclusions and edited occurrences. Encrypt calendar sources, report unsupported entries, and suppress nonessential Nagi notices without changing other apps' notifications.
+- Rework About/Diagnostics and Hardware/audio into responsive cards, tuck technical details away, and put thanks at the bottom. Group Gaming, PresentMon, GitHub, Calendar and OBS under Integrations.
+- Keep the full dock unscrolled with a narrower media slot and compact side mode button. Pause normal FPS sampling on unrelated settings pages.
+- Ship the pending inline header navigation, provider-based browser/Google/YouTube search, separate mini-bar search visibility, website About me with an enhanced Musashi portrait, and shoutouts to u/alkidnn and u/will25u1.
+
 ## Nagi v0.2.1 — 2026-10-22
 
 - Fix brief, disappearing now-playing hover tips by using the full media preview instead of recreating a native tooltip on each refresh. Keep hover timers stable during transitions and respect scaled widget bounds.

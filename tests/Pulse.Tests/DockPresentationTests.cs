@@ -6,6 +6,35 @@ namespace Pulse.Tests;
 public sealed class DockPresentationTests
 {
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HiddenSearchRemovesItsSpaceInEitherOrientation(bool horizontal)
+    {
+        foreach (var profile in new[] { Profile.Default, Profile.Work, Profile.Focus })
+        {
+            var workspace = ProfileWorkspaces.Default(profile);
+            var visible = DockPresentation.RailExtent(workspace, horizontal, true, true, null);
+            var hidden = DockPresentation.RailExtent(workspace, horizontal, true, true, null, showSearch: false);
+            Assert.Equal(visible - 36, hidden);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SearchButtonVisibilityPersistsIndependentlyOfIndexing(bool indexFiles)
+    {
+        var defaults = System.Text.Json.JsonSerializer.Deserialize<PulseSettings>("{}")!.Normalize();
+        Assert.True(defaults.ShowDockSearch);
+        var settings = defaults with { ShowDockSearch = false, IndexFiles = indexFiles };
+        var saved = System.Text.Json.JsonSerializer.Serialize(settings);
+        var restored = System.Text.Json.JsonSerializer.Deserialize<PulseSettings>(saved)!.Normalize();
+        Assert.False(restored.ShowDockSearch);
+        Assert.Equal(indexFiles, restored.IndexFiles);
+        Assert.True((restored with { ShowDockSearch = true }).Normalize().ShowDockSearch);
+    }
+
+    [Theory]
     [InlineData("Widget", true)]
     [InlineData("App", true)]
     [InlineData("Hidden", false)]

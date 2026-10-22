@@ -40,6 +40,7 @@ public sealed partial class MainWindow
             row.Children.Add(new Border { Width = 42, Height = 42, CornerRadius = new(12), Background = ThemeBrush("AccentWashBrush"),
                 Child = new FontIcon { Glyph = ProfileGlyph(profile), FontSize = 19, Foreground = ThemeBrush("PulseAccentBrush") } });
             var copy = Stack(); copy.Spacing = 4; copy.VerticalAlignment = VerticalAlignment.Center;
+            copy.Children.Add(Note(L.T(ModePresets.For(workspace) + " mode")));
             copy.Children.Add(new TextBlock { Text = ProfileLabel(profile), FontSize = 16, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
             var rules = ViewModel.Settings.Rules.Count(r => r.Profile == profile && r.Enabled);
             copy.Children.Add(Note(L.F($"{workspace.Apps.Length} apps · {workspace.Widgets.Length} widgets · {rules} activation rules")));

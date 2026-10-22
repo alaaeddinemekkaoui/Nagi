@@ -8,3 +8,28 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}.js-animate .reveal{opacity:1;transform:none}}
 .notch-shape .shape-active{display:none}.demo-notch[data-notch=timer] .shape-idle,.demo-notch[data-notch=media] .shape-idle{display:none}.demo-notch[data-notch=timer] .shape-active,.demo-notch[data-notch=media] .shape-active{display:block}
 .feature-section>*{min-width:0}.timer-focus{width:min(300px,calc(100% - 30px))}@media(max-width:380px){.section-copy h2,.section-heading h2{font-size:37px}.media-stage{padding:22px}}
+.about-section{padding-block:80px 90px;border-top:1px solid var(--line);scroll-margin-top:100px}
+.about-intro{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:start}
+.about-intro h2{font-size:clamp(44px,5vw,72px);line-height:1.05;font-weight:500;letter-spacing:-.045em;margin:0}
+.about-intro h2 em{font-family:var(--serif);font-weight:400}
+.about-portrait{margin:28px 0 0;max-width:300px}
+.about-portrait img{display:block;width:100%;height:auto;border-radius:20px;background:#fff}
+.about-portrait figcaption{margin-top:12px;font:10px var(--mono);line-height:1.6;color:var(--muted)}
+.about-bio{padding-top:6px;min-width:0}
+.about-bio p+p{margin-top:16px}
+.about-role{font:10px var(--mono);text-transform:uppercase;color:var(--muted)}
+.about-bio h3{font-size:24px;line-height:1.3;font-weight:500;margin:14px 0}
+.about-bio p,.shoutouts>p{color:var(--muted);font-size:14px;line-height:1.85;max-width:520px}
+.about-bio .text-link{margin-top:20px}
+.shoutouts{margin-top:60px;padding-top:40px;border-top:1px solid var(--line)}
+.shoutouts>.eyebrow{margin-bottom:16px}.shoutouts>h3{font-size:26px;font-weight:500;margin:0 0 12px}
+.shoutout-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}
+.shoutout-card{display:flex;flex-direction:column;gap:14px;padding:25px;border:1px solid var(--line);border-radius:16px;background:#ffffff03;transition:background .15s ease-out}
+.shoutout-card:hover{background:#ffffff08}.shoutout-card:focus-visible{outline:2px solid var(--red);outline-offset:4px}
+.shoutout-name{display:flex;align-items:center;justify-content:space-between;font-size:18px;color:var(--text)}
+.shoutout-name .icon{width:17px;height:17px}.shoutout-card>span:nth-child(2){font-size:12px;line-height:1.8;color:var(--muted)}
+.shoutout-card small{font:8px var(--mono);color:var(--muted);margin-top:auto}
+@media(max-width:660px){.about-section{padding-block:45px 55px}.about-intro{grid-template-columns:1fr;gap:28px}.about-intro h2{font-size:43px}.about-bio h3{font-size:22px}.about-bio p,.shoutouts>p{font-size:12px}.shoutouts{margin-top:35px;padding-top:28px}.shoutouts>h3{font-size:22px}.shoutout-grid{grid-template-columns:1fr;gap:12px}.shoutout-card{padding:20px}.header-nav{gap:18px}.header-right .version-pill{padding-inline:8px}}
+.theme-window-head .theme-window-nav{margin:0 0 0 auto;gap:3px;min-width:0;font-size:8px}.theme-window-head .theme-window-nav span{padding:7px 6px;white-space:nowrap}.theme-window-head>.icon{margin-left:4px}.theme-window-head{gap:8px}
+@media(max-width:660px){.theme-window-head .theme-window-nav{font-size:6px;gap:0}.theme-window-head .theme-window-nav span{padding:6px 4px}.theme-window-head strong{font-size:16px}.theme-window-head>.icon{display:none}.theme-window-head img{width:20px;height:20px}.theme-window-head{gap:6px}}
+.modes-section{padding-block:70px 90px;scroll-margin-top:100px}.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:36px}.mode-card{border:1px solid var(--line);border-radius:20px;padding:28px;background:var(--surface);min-width:0}.mode-card>.icon{color:var(--red);width:25px;height:25px;margin-bottom:20px}.mode-card .eyebrow{font-size:8px;margin-bottom:12px}.mode-card h3{font-size:27px;letter-spacing:-.035em;margin-bottom:15px}.mode-card p{font-size:13px;line-height:1.8}.mode-card .plain-list{font-size:11px;margin-top:18px}.mode-footnote{font-size:11px;margin-top:24px;max-width:800px}@media(max-width:660px){.mode-grid{grid-template-columns:1fr}.mode-card{padding:22px}.modes-section{padding-block:45px 55px}}

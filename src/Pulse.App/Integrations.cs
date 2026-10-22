@@ -12,7 +12,8 @@ public sealed partial class MainWindow
     private readonly TemperatureService _temperatures = new();
     private readonly AudioControlService _microphone = new(capture: true);
     private readonly ObsService _obs = new();
-    private readonly FpsService _fps = new(Path.Combine(AppContext.BaseDirectory, "Assets", "Tools", "PresentMon.exe"));
+    private FpsService _fps = null!;
+    private readonly GameDetectionService _games = new();
     private ProtectedSecretStore? _obsSecret;
     private string _obsPassword = "";
     private Task? _integrationPolling;
@@ -24,6 +25,8 @@ public sealed partial class MainWindow
     private AudioSnapshot _microphoneSnapshot = new(null, false, "Checking microphone…");
     private void InitializeIntegrations()
     {
+        InitializeModes();
+        _fps = new(Path.Combine(AppContext.BaseDirectory, "Assets", "Tools", "PresentMon.exe"), Path.Combine(Path.GetDirectoryName(_settings.FilePath)!, "Telemetry", "foreground-presents.csv"));
         _obsSecret = new(Path.Combine(Path.GetDirectoryName(_settings.FilePath)!, "obs.credential"));
         _obsPassword = _obsSecret.Read();
     }
@@ -47,7 +50,10 @@ public sealed partial class MainWindow
                 if (demand.Sensors || demand.Fps || settings.ObsEnabled || _obsSnapshot.Connected) DispatcherQueue.TryEnqueue(() =>
                 {
                     if (_closed) return;
-                    _temperatureSnapshot = temperature.Result; _fpsSnapshot = fps.Result; _obsSnapshot = obs.Result;
+                    _temperatureSnapshot = temperature.Result;
+                    _fpsSnapshot = ViewModel.Settings.FpsEnabled && demand.Fps && fps.Result.ProcessId == ViewModel.Foreground.ProcessId
+                        ? fps.Result : new(null, ViewModel.Foreground.ProcessId, ViewModel.Settings.FpsEnabled ? "Waiting for the active application" : "FPS capture off");
+                    _obsSnapshot = obs.Result;
                     RenderIntegrations();
                 });
                 await _integrationWake.WaitAsync(1500, token);
@@ -62,6 +68,9 @@ public sealed partial class MainWindow
     }
     private void RenderIntegrations()
     {
+        RailFpsValue.Text = CurrentFps is { } currentFps ? L.F($"{currentFps:0}") : "—";
+        AutomationProperties.SetName(RailFpsButton, CurrentFps is { } rate ? L.F($"{rate:0} FPS") : L.T("FPS unavailable"));
+        RefreshSettingsCards();
         GpuMetric.Update("GPU", _gpuSnapshot.Usage is { } usage ? $"{usage:0}%" : "—", _gpuSnapshot.Name, _gpuSnapshot.Usage);
         RailGpuValue.Text = _gpuSnapshot.Usage is { } gpu ? L.F($"{gpu:0}%") : "—";
         ToolTipService.SetToolTip(RailGpuButton, _gpuSnapshot.Name + " · " + _gpuSnapshot.Status);
@@ -72,7 +81,7 @@ public sealed partial class MainWindow
         ToolTipService.SetToolTip(RailMicrophoneButton, _microphoneSnapshot.Device + (_microphoneSnapshot.Muted ? L.T(" · Muted") : L.T(" · On")));
         var gpuLine = _gpuSnapshot.Name + "  " + (_gpuSnapshot.Usage is { } v ? $"{v:0}%" : "—");
         var sensorLine = _temperatureSnapshot.Readings.Length > 0 ? string.Join(" · ", _temperatureSnapshot.Readings.Take(4).Select(x => $"{x.Name} {x.Celsius:0}°C")) : "Temperature · connect a sensor provider";
-        var fpsLine = _fpsSnapshot.Fps is { } f ? $"App FPS {f:0.0} · PID {_fpsSnapshot.ProcessId}" : _fpsSnapshot.Status;
+        var fpsLine = CurrentFps is { } f ? $"App FPS {f:0.0} · PID {_fpsSnapshot.ProcessId}" : ViewModel.Settings.FpsEnabled ? _fpsSnapshot.Status : L.T("FPS capture off");
         var micLine = "Microphone · " + (!_microphoneSnapshot.Volume.HasValue ? "Unavailable" : _microphoneSnapshot.Muted ? "Muted" : "On");
         MicrophoneDeviceText.Text = _microphoneSnapshot.Device;
         MicrophoneStatusText.Text = !_microphoneSnapshot.Volume.HasValue ? L.T("No microphone available") : _microphoneSnapshot.Muted ? L.T("Muted") : L.T("On");
@@ -89,6 +98,7 @@ public sealed partial class MainWindow
         ObsRecordButton.Content = PeekObsRecordButton.Content = _obsSnapshot.Recording ? L.T("Stop recording") : L.T("Start recording");
         ObsStreamButton.Content = PeekObsStreamButton.Content = _obsSnapshot.Streaming ? L.T("Stop streaming") : L.T("Start streaming");
         RenderObsScenes();
+        RefreshModeValues();
     }
     private async void Microphone_Click(object sender, RoutedEventArgs args)
     {
@@ -135,22 +145,16 @@ public sealed partial class MainWindow
                 Grid.SetColumn(button, i);
                 button.Content = new TextBlock { Text = (_obsSnapshot.CurrentScene == scene && scene is not null ? "* " : "") + (scene ?? L.T("Scene ") + (i + 1)), TextTrimming = TextTrimming.CharacterEllipsis, MaxLines = 1 };
                 AutomationProperties.SetName(button, L.T("Switch OBS scene ") + (i + 1) + ": " + (scene ?? L.T("Not configured")));
-                ToolTipService.SetToolTip(button, scene ?? L.T("Connect OBS and choose a scene in Hardware & studio settings."));
+                ToolTipService.SetToolTip(button, scene ?? L.T("Connect OBS and choose a scene in Integrations settings."));
                 panel.Children.Add(button);
             }
         }
     }
     private void BuildIntegrationSettings()
     {
-        var integrations = Stack(); integrations.Children.Add(Heading(L.T("Hardware & studio")));
-        integrations.Children.Add(Note(_gpuSnapshot.Name + "\n" + _gpuSnapshot.Status));
-        integrations.Children.Add(Note(L.T("Temperatures: ") + _temperatureSnapshot.Status + L.T(". Run Libre Hardware Monitor or Open Hardware Monitor with WMI enabled to expose supported CPU/GPU sensors. Nagi does not install a kernel driver.")));
-        integrations.Children.Add(Toggle(L.T("Capture foreground app FPS"), L.T("Uses bundled PresentMon 2.6.0. Some Windows configurations require tracing permission. No keyboard/mouse input is tracked."), ViewModel.Settings.FpsEnabled, (s, enabled) => s with { FpsEnabled = enabled }));
-        integrations.Children.Add(Note(_fpsSnapshot.Status + L.T("\nFPS means application presents per second, not monitor refresh rate. The provider uses a separate, short-lived trace for the foreground process. If Windows denies access, run Start-NagiFpsCapture.ps1 for your game from an Administrator PowerShell; Nagi itself can stay unprivileged.")));
-        integrations.Children.Add(Button(L.T("Toggle microphone mute"), Microphone_Click));
-        integrations.Children.Add(Note(L.T("Controls the default communications microphone. Nagi does not record audio. Device: ") + _microphoneSnapshot.Device));
-        SettingsPage.Children.Add(Card(integrations));
-        var obs = Stack(); obs.Children.Add(Heading(L.T("OBS Studio")));
+        BuildGamingIntegrationSettings();
+        BuildModeConnectionsSettings();
+        var obs = SettingsCardHeader("OBS Studio", "Recording, streaming and scene shortcuts in one place.", "\uE714");
         AddObsPresentationSettings(obs, ViewModel.Profile);
         obs.Children.Add(Note(L.T("Enable the OBS WebSocket server in OBS → Tools → WebSocket Server Settings. Nagi connects only to this computer. Recording, streaming and scene changes require a button click.")));
         obs.Children.Add(Toggle(L.T("Connect to OBS"), L.T("Read recording, stream and rendering status through OBS WebSocket v5."), ViewModel.Settings.ObsEnabled, (s, enabled) => s with { ObsEnabled = enabled }));
