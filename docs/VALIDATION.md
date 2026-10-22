@@ -6,6 +6,8 @@ The v0.3 milestone uses internal app version 0.3.0. All 345 core/infrastructure 
 
 Both final packages share source fingerprint `9926c8f225e7d4eaa2284542bc1ba410dbcc47c12186afbaba503f61c09e8571`. All 53 built-in Development UI checks pass, including notch notifications, diagnostic exports and Production exclusion of the developer tools. Evidence: `artifacts/validation/development-20261022-212300`. MakeAppx validates the optional unsigned MSIX.
 
+Published tag `v0.3` points to `fdf46d4e25f246d68d8f7b4a4d83af1fb6689a9c`; all 13 GitHub assets match local sizes and SHA256 digests. A real GitHub update from 0.2.2 to 0.3.0 passes automatic detection, changelog display, Later without exit, verified download, explicit installation, process restart, the installed-version UI and preserved preferences. Evidence: `artifacts/validation/live-update-20261022-214136/evidence.json`. The deployed website automatically resolves its version badge and Windows download to v0.3; no website deployment was needed.
+
 ## Automated checks
 
 The Windows Release build passes. The automated suite contains **345 core/infrastructure tests and 78 Windows integration tests (423 total)**. Changed transfer cases were rerun after progress throttling; all eleven language checks pass after the new strings. Coverage includes mode presets, per-profile FPS, paused game time, calendar recurrence, read-only GitHub requests, bounded ping, safe copies, cancellation cleanup and limited progress dispatch. Eight website checks pass.
