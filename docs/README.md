@@ -1,6 +1,6 @@
 # Nagi documentation
 
-Documentation for Nagi v0.1.3, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the new setup flow.
+Documentation for Nagi v0.2, the Windows 11 desktop companion. Start with [welcome, layouts, weather and speakers](WELCOME-AND-LAYOUT.md) for the setup flow. The floating navigation now includes **Utilities** for the circular timer and weather. [Interactive website](https://nagi-notch.vercel.app) · [Roadmap](https://nagi-notch.vercel.app/roadmap).
 
 Its dock rests as a small teardrop; hover it to reveal the dock. Profiles with more than two apps group their shortcuts into one folder that expands on hover.
 
@@ -17,6 +17,7 @@ Start with the [complete app guide](USER-GUIDE.md). For a first customization, c
 | [Commented Lua example](examples/simple-ui.lua) | Small, ready-to-paste red-accent customization |
 | [Hardware and studio](INTEGRATIONS.md) | GPU, temperature providers, FPS helper, microphone and OBS setup |
 | [Build and distribution](BUILD.md) | Development setup, release packaging, installation and signing |
+| [Developer tools](DEVELOPMENT.md) | Separate development executable, debug menu, notch fixtures, direct pages and automated UI reports |
 | [Architecture](ARCHITECTURE.md) | Projects, data flow, lifecycle, native APIs and persistence |
 | [UI design](UI-DESIGN.md) | Visual references, materials, motion and vertical layout |
 | [Settings example](settings.example.json) | Example JSON configuration; use the app settings for routine changes |

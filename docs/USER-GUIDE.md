@@ -11,6 +11,8 @@ This guide covers Nagi on Windows 11 x64, version 22H2 or newer. Start with the 
 - [Media, audio and microphone](#media-audio-and-microphone)
 - [Quick search](#quick-search)
 - [Profiles, rules and quick actions](#profiles-rules-and-quick-actions)
+- [Timer and resting activity](#timer-and-resting-activity)
+- [Utilities](#utilities)
 - [Appearance and settings](#appearance-and-settings)
 - [Lua customization](#lua-customization)
 - [Hardware and OBS setup](#hardware-and-obs-setup)
@@ -18,6 +20,16 @@ This guide covers Nagi on Windows 11 x64, version 22H2 or newer. Start with the 
 - [Troubleshooting](#troubleshooting)
 - [Quit and uninstall](#quit-and-uninstall)
 - [Development and reference](#development-and-reference)
+
+## Utilities
+
+The floating navigation contains **Overview, Profiles, Utilities and Settings**. Utilities brings the existing timer and city weather together. The timer's vector progress ring shows the saved duration for the active profile; use the large button to start, pause or resume, and Reset to cancel and restore the saved duration. **Show timer widget** adds or removes the active profile's dock timer. An active timer remains available until it is finished or canceled.
+
+Choose minutes and automatic start inside the profile editor. Hover an enabled dock timer to open the circular controls; click it to open Utilities. The resting notch fits the countdown and icon, then briefly shows a green check with **00:00** on completion. Live media uses artwork and a compact audio visualizer instead. The same material follows the app theme, with horizontal activity at the top/bottom and vertical activity on side edges.
+
+The weather card uses your existing selected city and units. Choose weather location opens the weather settings; no location is inferred from GPS or your IP address. Weather is optional and its external provider can be unavailable. Utility cards stack on narrower windows while navigation remains above the scrolling content.
+
+![Utilities with the timer and weather](images/nagi-utilities.png)
 
 ## Install, update and start
 
@@ -83,7 +95,7 @@ The waveform tray icon may be under Windows **Show Hidden Icons**. Use **Setting
 | Temperatures | Readings from a supported, running WMI sensor provider |
 | FPS | Optional PresentMon application-presentation rate for the foreground process |
 
-Sparklines show real samples retained in memory. A missing value or provider status means a reading is unavailable; it is not replaced with a simulated number. The main polling interval is configurable from 500 to 10,000 milliseconds. Output audio has a separate 50 ms refresh loop.
+Sparklines show real samples retained in memory. A missing value or provider status means a reading is unavailable; it is not replaced with a simulated number. The main polling interval is configurable from 500 to 10,000 milliseconds. Output audio samples peaks every 50 ms only while a meter is visible, refreshes volume every 500 ms in the dock and every two seconds at rest, and wakes immediately on reveal. GPU, microphone, sensors and FPS follow visible widgets or Hardware & studio settings. OBS connections and foreground profile detection continue independently.
 
 ## Media, audio and microphone
 
@@ -108,17 +120,17 @@ Press **Alt + Space**, click the rail search icon, or choose tray **Quick search
 
 **Ctrl + Enter** opens the selected file's containing folder. **Ctrl + C** copies its path/result when query text is not selected. File results also provide Open, Show in folder and Copy path controls.
 
-Configure indexing under **Settings → Quick search**. Standard roots are your Desktop, Documents and Downloads. Add/edit roots, restore standard folders, rebuild, or turn indexing off while keeping app search and commands. The index covers names and paths, with up to 16 roots and 40,000 entries. It refreshes at startup, after scope changes, on manual rebuild and every ten minutes. File contents, linked/system entries and common build folders are excluded. A newly created file may require a rebuild. See the [full search reference](QUICK-SEARCH.md) for syntax and bounds.
+Configure indexing under **Settings → Quick search**. Standard roots are your Desktop, Documents and Downloads. Add/edit roots, restore standard folders, rebuild, or turn indexing off while keeping app search and commands. The index covers names and paths, with up to 16 roots and 40,000 entries. It scans at startup, after scope changes and on manual rebuild. Filesystem events update created, renamed and deleted paths after a short debounce. Every ten minutes Nagi refreshes the application catalog and checks watcher health; unchanged file trees are not rescanned. Lost events or watcher errors trigger a recovery scan. File contents, linked/system entries and common build folders are excluded. Use a manual rebuild if the watcher cannot monitor a selected folder. See the [full search reference](QUICK-SEARCH.md) for syntax and bounds.
 
 ## Profiles, rules and quick actions
 
-Nagi provides **Default**, **Work**, **Gaming**, **Stream** and **Focus**. Default starts with search, CPU/GPU and now playing, with no apps. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus quiets the dock and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize app docks, visible widgets, context and shortcuts. They do not tune hardware or game settings.
+Nagi provides **Default**, **Work**, **Gaming**, **Stream** and **Focus**, plus up to 16 custom-named profiles. Welcome setup lets you select and customize each preset, create a profile by copying its widgets/apps, and choose a starting profile before finishing. In Profiles, use **+ Create profile**, select a template, then edit its apps, widgets and executable rules. Custom profiles can be renamed or deleted; presets remain available. Every profile card has an **Activate** button. Default starts with search, CPU/GPU and now playing, with no apps. Manual profile selection locks the choice until you select **Automatic** or unlock it. Focus quiets the dock and suppresses nonessential Nagi notices; Windows notification settings remain unchanged. Profiles organize app docks, visible widgets, context and shortcuts. They do not tune hardware or game settings.
 
 After first-time welcome, a dimmed introduction points out the edge drop. Hover it or choose Okay to dismiss; Escape also closes the introduction. Welcome and this introduction are skipped on ordinary later launches. Your saved choices persist.
 
-Click the rail logo once to open the large centered control center. Choose **Profiles → Customize Default/Work/Gaming/Stream/Focus** to edit a workspace. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. Up to two appear directly on the dock; profiles with more apps use one folder that expands on hover or click; Overview lists every app in rows of up to four single-line buttons. Missing suggestions show an actionable error rather than downloading or installing software.
+Click the rail logo once to open the large centered control center. Open **Profiles**, then select a profile card to edit its widgets, apps and executable activation rules. Work starts with suggested VS Code, Terminal and Browser apps; Gaming starts with Steam and Browser. Replace suggestions by selecting installed Windows apps, then **Add selected app**. Remove any app you do not need. Up to two appear directly on the dock; profiles with more apps use one folder that expands on hover or click; Overview lists every app in rows of up to four single-line buttons. Missing suggestions show an actionable error rather than downloading or installing software.
 
-Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery checkboxes. Widget choices also filter the rail. Microphone, Weather and Battery can each be turned off independently per profile. Stream includes OBS controls; hover its OBS rail button to open OBS, start/stop recording or streaming, and switch between three scenes. Choose the scene shortcuts under Hardware & studio; Automatic uses the first three OBS scenes. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
+Each workspace has independent Performance, Network, Media, Audio, Microphone, Weather, Studio, Battery and Timer checkboxes. Widget choices also filter the rail. Microphone, Weather and Battery can each be turned off independently per profile. Stream includes OBS controls; hover its OBS rail button to open OBS, start/stop recording or streaming, and switch between three scenes. Choose the scene shortcuts under Hardware & studio; Automatic uses the first three OBS scenes. **Open apps when I activate this profile** is off by default. When enabled, explicit activation from Profiles, the picker, tray or profile shortcuts opens that profile's configured apps. Startup and automatic foreground detection only update the dock and widgets. Apps launch through the current Windows application catalog, without shell arguments. Nagi does not close apps when switching away.
 
 
 To map an app to a profile:
@@ -134,7 +146,7 @@ Under **Quick actions**, use **+ Add quick action** to create an application, fo
 
 ## Appearance and settings
 
-Drag an edge or corner of the control center to resize it. Its size is retained while navigating settings; the compact dock keeps its own dimensions. In **Appearance & dock**, choose **Notch color**: Theme, System (Windows accent), or Custom, then pick a color. Glass is prepared before expansion so the revealed surface stays consistent. The dock fits one row without scrolling; on a narrow display, media reduces to artwork and volume. Long titles show their first words and expand to full details on hover. Battery controls appear only when Windows detects a physical battery; AC means the device is connected to power.
+Drag an edge or corner of the control center to resize it. Its size is retained while navigating settings; the compact dock keeps its own dimensions. The notch inherits the app theme and material. **Glass (system)** hides color overrides. In Dark or Light, enable **Tint background** and choose **System** or **Custom** under **Background & notch**; the window, dock and notch share the color. Glass is prepared before expansion so the revealed surface stays consistent. The dock fits one row without scrolling; on a narrow display, media reduces to artwork and volume. Long titles show their first words and expand to full details on hover. Battery controls appear only when Windows detects a physical battery; AC means the device is connected to power.
 
 Settings always opens the category menu. Select a category to open its own page, then use **Back to settings** to return to the menu. The back button stays visible while the page scrolls. **Profiles & apps** stays inside Settings, including profile customization; **All profiles** returns to that category and **Back to settings** returns to the menu. The default **Glass (system)** appearance follows Windows light/dark mode and respects transparency and high contrast preferences. Akeno can display the generated Samurai artwork, a Gradient, or None. Microphone status and mute controls sit directly below the media card and inside the media preview.
 
@@ -149,6 +161,8 @@ Settings always opens the category menu. Select a category to open its own page,
 | Integrations & diagnostics | Version, session/device/provider status and diagnostic refresh |
 
 **Akeno** uses ink-black glass, red accents and Japanese details. **System** follows the Windows light/dark theme. Windows high contrast remains authoritative. Glass can become opaque because of Windows transparency, power, remote-session or accessibility policy; diagnostics reports the material state. **Reduce motion** and Windows animation preferences disable motion effects while preserving the final layout.
+
+Under **Settings → Music → Audio visualizer** (also available in **Appearance & dock**), choose **System** to follow the Windows accent color or **Custom → Choose visualizer color** to select your own color. The rounded bars update across the resting notch and media panels without restarting. Windows high contrast keeps its system colors. Media artwork uses smooth rounded corners without an added border or tinted backing tile.
 
 With **Hide over fullscreen apps** enabled, Nagi hides over detected fullscreen applications. An explicit shortcut reveal can recover it. Turn **Dismiss when clicking outside** off if you want the detail panel to remain open while working elsewhere.
 
@@ -280,3 +294,12 @@ When Nagi detects a newer release, it shows the changelog with **Update now** an
 ### Interface language
 
 Nagi starts in your Windows display language and falls back to English if it is unsupported. Welcome first shows the drawn Nagi / ナギ greeting, then a language selector displaying the current language. You can switch immediately before continuing. After setup, use **Settings → Language → Restart Nagi**. English, French, Spanish, German, Russian and Arabic are included. To add a language or improve a translation, see [Languages and translations](LANGUAGES.md).
+
+
+## Timer and resting activity
+
+Open **Profiles → choose a profile → Timer** to set its duration of 1–1,440 whole minutes and choose **Start timer when this profile activates**. Click **Save duration** after editing the minutes. Every profile, including custom profiles, keeps its own timer choices; the welcome profile editor also includes these controls. Focus starts a 30-minute timer by default. Enable the Timer widget to show its start/restart, pause, resume and cancel controls in Overview. Switching profiles preserves an active countdown. **Settings → Timer & live activity** contains the global notch display options and running-timer controls. Existing timer choices are preserved when upgrading. Closing Nagi cancels the countdown.
+
+The dock shows the countdown in its own button beside media and volume, aligned on the same row. Hover it to open the timer widget: press Play to start or restart using the profile duration, Pause/Resume to control the countdown, or Cancel to return to the preset. When Timer is enabled in a profile, its dock button stays available before starting. Clicking it opens the full controls. Timer-only profiles can show the countdown without a media or volume widget. **Show timer before hovering** displays it in a compact, screen-connected notch; turn this off to retain the ordinary drop until completion. Completion briefly replaces the logo with a green check beside `00:00` and records an essential Nagi notice, then restores the normal resting view. **Show playing music before hovering** displays only artwork (or a music icon) and a five-bar measured audio visualizer. Timer activity takes priority over music. Both live displays are enabled by default, can be disabled independently and respect fullscreen/hide preferences. The resting music display works independently of the profile’s Media widget. While a timer or music is active, the notch fits the content with smooth curved shoulders and grows only for longer timer text; top and bottom notches show content horizontally; left and right notches stack upright content vertically. Artwork sits beside the audio visualizer on top/bottom edges, and above it on side edges. With no activity, it morphs back to the small logo teardrop.
+
+Under **Settings → Behavior → Animation mode**, **Display** follows the current monitor up to 240 Hz and **Efficiency** caps transitions at 60 Hz. Both stop ticking once settled and respect reduced motion.

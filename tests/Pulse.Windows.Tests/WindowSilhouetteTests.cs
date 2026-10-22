@@ -7,6 +7,74 @@ namespace Pulse.Windows.Tests;
 
 public sealed class WindowSilhouetteTests
 {
+    [Theory]
+    [InlineData("Top edge", false, false)][InlineData("Bottom edge", false, false)][InlineData("Left edge", false, false)][InlineData("Right edge", false, false)]
+    [InlineData("Top edge", true, false)][InlineData("Bottom edge", true, false)][InlineData("Left edge", true, false)][InlineData("Right edge", true, false)]
+    [InlineData("Top edge", true, true)][InlineData("Bottom edge", true, true)][InlineData("Left edge", true, true)][InlineData("Right edge", true, true)]
+    public void NativeTeardropKeepsItsLogoButHasNoShoulderStripOrCutoutHitArea(string edge, bool antialias, bool live)
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi notch region test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        var region = CreateRectRgn(0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd) { AntialiasNotch = antialias };
+            Assert.InRange(DisplayCadence.ForWindow(hwnd), 24, 1000);
+            var horizontal = edge is "Top edge" or "Bottom edge";
+            var frame = manager.PrepareLayout(false, false, new(Anchor: edge, Orientation: horizontal ? "Horizontal" : "Vertical"), 84, true, railLength: live ? 80 : 0, liveActivity: live);
+            if (live && horizontal) Assert.True(frame.Width > 80 * frame.Scale, "Live activity must fit independently of a profile's short rail.");
+            manager.ApplyFrame(frame);
+            Assert.NotEqual(0, GetWindowRgn(hwnd, region));
+            bool Inside(double along, double depth)
+            {
+                var x = horizontal ? frame.Width * along : frame.Width * depth;
+                var y = horizontal ? frame.Height * depth : frame.Height * along;
+                if (edge == "Right edge") x = frame.Width - 1 - x;
+                if (edge == "Bottom edge") y = frame.Height - 1 - y;
+                var nativeHit = PtInRegion(region, (int)x, (int)y);
+                Assert.Equal(nativeHit, manager.ContainsNotchPoint((int)x + .5, (int)y + .5));
+                return nativeHit;
+            }
+            if (live)
+            {
+                Assert.True(horizontal ? frame.Width > frame.Height : frame.Height > frame.Width); Assert.Equal(1, frame.NotchAmount);
+                Assert.True(Inside(.3, .5)); Assert.True(Inside(.7, .5));
+                Assert.False(Inside(.005, .99)); Assert.False(Inside(.995, .99));
+            }
+            else
+            {
+                Assert.False(Inside(.05, .2)); Assert.False(Inside(.95, .2));
+                Assert.False(Inside(.05, .02)); Assert.False(Inside(.95, .02));
+                Assert.True(Inside(.35, .2)); Assert.True(Inside(.65, .2));
+                Assert.False(Inside(.05, .7)); Assert.False(Inside(.95, .7));
+            }
+            Assert.True(Inside(.5, .65)); Assert.True(Inside(.5, .9));
+            Assert.Equal(0, GetWindowLongPtr(hwnd, -16).ToInt64() & 0x00C40000L);
+        }
+        finally { DeleteObject(region); DestroyWindow(hwnd); }
+    }
+
+    [Theory][InlineData("Top edge")][InlineData("Bottom edge")]
+    public void HoverPreviewFitsItsContentAndKeepsTheCompactStripAtTheSameEdge(string edge)
+    {
+        var hwnd = CreateWindowEx(0, "STATIC", "Nagi preview fit test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
+        try
+        {
+            using var manager = new HaloWindowManager(hwnd);
+            var position = new HaloPosition(Anchor: edge, Orientation: "Horizontal");
+            var compact = manager.PrepareLayout(false, false, position, 84, false, 580, 56);
+            var small = manager.PrepareLayout(false, false, position, 280, false, 580, 56);
+            var large = manager.PrepareLayout(false, false, position, 620, false, 580, 56);
+            var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+            Assert.True(GetMonitorInfo(MonitorFromWindow(hwnd, 2), ref info));
+            Assert.Equal(Math.Min(info.Work.Bottom - info.Work.Top - 16, Math.Round(280 * small.Scale)), small.Height);
+            Assert.Equal(Math.Min(info.Work.Bottom - info.Work.Top - 16, Math.Round(620 * large.Scale)), large.Height);
+            Assert.Equal(compact.X, large.X); Assert.Equal(compact.Width, large.Width);
+            Assert.Equal(edge == "Top edge" ? compact.Y : compact.Y + compact.Height,
+                edge == "Top edge" ? large.Y : large.Y + large.Height);
+        }
+        finally { DestroyWindow(hwnd); }
+    }
+
     [Fact] public void InterruptedMotionRetainsTheActualCornerRadius()
     {
         var hwnd = CreateWindowEx(0, "STATIC", "Nagi motion radius test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);

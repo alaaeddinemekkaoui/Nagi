@@ -1,5 +1,7 @@
 param([string]$ExecutablePath=(Join-Path (Split-Path $PSScriptRoot -Parent) 'Nagi-Portable.exe'))
 $ErrorActionPreference='Stop'
+$developmentPortable=[Diagnostics.FileVersionInfo]::GetVersionInfo([IO.Path]::GetFullPath($ExecutablePath)).FileDescription -eq 'Nagi Development Portable'
+$expectedWindowTitle=if($developmentPortable){'Nagi · Development *'}else{'Nagi'}
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type @'
@@ -46,10 +48,10 @@ try {
  }
  for($qaAttempt=0;$qaAttempt -lt 100;$qaAttempt++){
   $qaWindow=[Windows.Automation.AutomationElement]::RootElement.FindFirst([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,[int]$qaChild.ProcessId))
-  if($qaWindow -and $qaWindow.Current.Name -eq 'Nagi' -and $qaWindow.Current.NativeWindowHandle -ne 0){break}
+  if($qaWindow -and $qaWindow.Current.Name -like $expectedWindowTitle -and $qaWindow.Current.NativeWindowHandle -ne 0){break}
   Start-Sleep -Milliseconds 100
  }
- if(!$qaWindow -or $qaWindow.Current.Name -ne 'Nagi'){throw 'The extracted Nagi window did not open.'}
+ if(!$qaWindow -or $qaWindow.Current.Name -notlike $expectedWindowTitle){throw 'The extracted Nagi window did not open with its expected channel title.'}
  $qaReadyTime=(Get-Item -LiteralPath (Join-Path $qaCache '.nagi-ready')).LastWriteTimeUtc
  Open-TestPortable
  Start-Sleep -Milliseconds 700

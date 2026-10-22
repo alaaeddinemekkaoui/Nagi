@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$ExecutablePath,[string]$AudioPath='',[string]$VideoPath='', [ValidateSet('Horizontal','Vertical')][string]$Orientation='Horizontal')
+param([Parameter(Mandatory)][string]$ExecutablePath,[string]$AudioPath='',[string]$VideoPath='', [ValidateSet('Horizontal','Vertical')][string]$Orientation='Horizontal',[ValidateSet('Top edge','Bottom edge','Left edge','Right edge')][string]$Anchor='Bottom edge')
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -34,7 +34,7 @@ $qaDirectory=Join-Path (Split-Path $PSScriptRoot -Parent) ('artifacts/validation
 [IO.Directory]::CreateDirectory($qaDirectory)|Out-Null
 $qaFile=Join-Path $qaDirectory 'settings.json'
 @{Language='en';WelcomeCompleted=$true;Theme='Akeno';NotchColor='#3366AA';NotchColorMode='Theme';LockedProfile='Work';CloseOnDeactivate=$false;HideInFullscreen=$false;AutomaticUpdates=$false;IndexFiles=$false;FpsEnabled=$false;ObsEnabled=$false;WeatherEnabled=$false;ReducedMotion=$false;
- Position=@{Orientation=$Orientation;Anchor=$(if($Orientation -eq 'Horizontal'){'Bottom edge'}else{'Right edge'})};Hotkey=@{Modifiers=15;Key=131};HideHotkey=@{Modifiers=15;Key=132};SearchHotkey=@{Modifiers=15;Key=133}} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $qaFile -Encoding utf8
+ Position=@{Orientation=$Orientation;Anchor=$(if($PSBoundParameters.ContainsKey('Anchor')){$Anchor}elseif($Orientation -eq 'Horizontal'){'Bottom edge'}else{'Right edge'})};Hotkey=@{Modifiers=15;Key=131};HideHotkey=@{Modifiers=15;Key=132};SearchHotkey=@{Modifiers=15;Key=133}} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $qaFile -Encoding utf8
 $start=[Diagnostics.ProcessStartInfo]::new([IO.Path]::GetFullPath($ExecutablePath));$start.UseShellExecute=$false
 $start.ArgumentList.Add('--data-dir');$start.ArgumentList.Add($qaDirectory)
 $qaProcess=[Diagnostics.Process]::Start($start);$root=$null;$handle=[IntPtr]::Zero
@@ -45,7 +45,9 @@ function Find([string]$value,[switch]$Id,[switch]$Optional){
 }
 function Invoke([string]$value,[switch]$Id){(Find $value -Id:$Id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 400}
 function Select-Choice([string]$id,[string]$value){
- $box=Find $id -Id;$box.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Milliseconds 150
+ $box=Find $id -Id -Optional
+ if(!$box){$box=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.AndCondition]::new([Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$id),[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ComboBox)))}
+ if(!$box){throw "Missing combo $id"};$box.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Milliseconds 150
  $item=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.AndCondition]::new([Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$value),[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsSelectionItemPatternAvailableProperty,$true)))
  if(!$item){throw "Missing choice $value"};$item.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 400
 }
@@ -108,7 +110,12 @@ try{
  if(!$root){throw 'No test window'};$handle=[IntPtr]$root.Current.NativeWindowHandle
  [NagiPolishNative]::SetCursorPos(20,20)|Out-Null
  Invoke 'Reveal Nagi';Start-Sleep -Milliseconds 800
- $r=[NagiPolishNative+Rect]::new();[NagiPolishNative]::GetWindowRect($handle,[ref]$r)|Out-Null;$scale=[NagiPolishNative]::GetDpiForWindow($handle)/96d
+ $r=[NagiPolishNative+Rect]::new();$scale=[NagiPolishNative]::GetDpiForWindow($handle)/96d
+ for($retry=0;$retry -lt 30;$retry++){
+  [NagiPolishNative]::GetWindowRect($handle,[ref]$r)|Out-Null
+  $settled=if($Orientation -eq 'Horizontal'){[Math]::Abs(($r.Bottom-$r.Top)/$scale-56) -le 2}else{[Math]::Abs(($r.Right-$r.Left)/$scale-64) -le 2}
+  if($settled){break};Start-Sleep -Milliseconds 100
+ }
  if($Orientation -eq 'Horizontal'){if(($r.Right-$r.Left)/$scale -gt 700 -or [Math]::Abs(($r.Bottom-$r.Top)/$scale-56) -gt 2){throw 'Compact horizontal dimensions are wrong'}}else{if([Math]::Abs(($r.Right-$r.Left)/$scale-64) -gt 2){throw 'Compact vertical dimensions are wrong'}}
  $scroll=Find 'RailViewport' -Id
  $scrollPattern=$null
@@ -126,7 +133,9 @@ try{
  }
  Snapshot 'compact-no-scroll'
  Invoke 'Open Nagi control center';Invoke 'Settings';Invoke 'Appearance & dock settings'
- Select-Choice 'NotchColorMode' 'System';Select-Choice 'NotchColorMode' 'Custom'
+ Select-Choice 'Theme' 'Dark'
+ (Find 'Tint background').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 500
+ Select-Choice 'BackgroundColorMode' 'System';Select-Choice 'BackgroundColorMode' 'Custom'
  if((Get-Content -LiteralPath $qaFile -Raw|ConvertFrom-Json).NotchColorMode -ne 'Custom'){throw 'Notch color mode was not saved'}
  $before=[NagiPolishNative+Rect]::new();[NagiPolishNative]::GetWindowRect($handle,[ref]$before)|Out-Null
  [NagiPolishNative]::SetWindowPos($handle,[IntPtr]::Zero,$before.Left,$before.Top,($before.Right-$before.Left-120),($before.Bottom-$before.Top-80),0x14)|Out-Null
@@ -142,9 +151,26 @@ try{
   $status=$player.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty,'LocalPlaybackStatus'))
   if($status.Current.Name -notlike 'Paused*'){throw 'Dock did not pause local audio'}
   Invoke 'PlayButton' -Id
-  Invoke 'Collapse Nagi';Invoke 'Reveal Nagi';Start-Sleep -Milliseconds 500
-  $title=(Find 'CompactTrackTitle' -Id).Current.Name
-  if($title.Length -gt 25 -or $title -notlike '*…'){throw "Long title was not shortened: $title"}
+  Invoke 'Profiles';Invoke 'Customize Work'
+  (Find 'Work widget Media').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 500
+  $mediaWorkspace=(Get-Content -LiteralPath $qaFile -Raw|ConvertFrom-Json).Workspaces|Where-Object Profile -eq 'Work'
+  if($mediaWorkspace.Widgets -contains 'Media'){throw 'Could not disable the profile Media widget for the resting activity check'}
+  Invoke 'Overview'
+  Invoke 'Collapse Nagi';Start-Sleep -Milliseconds 1800
+  $mini=Find 'Live output audio visualizer'
+  if($mini.Current.IsOffscreen -or $mini.Current.BoundingRectangle.Width/$scale -gt 30){throw 'Resting media visualizer is missing or oversized'}
+  $visual=$mini.Current.BoundingRectangle
+  Snapshot 'resting-local-audio'
+  $activityBounds=[NagiPolishNative+Rect]::new();[NagiPolishNative]::GetWindowRect($handle,[ref]$activityBounds)|Out-Null
+  if($Orientation -eq 'Horizontal'){
+   if(($activityBounds.Right-$activityBounds.Left)/$scale -gt 140 -or ($activityBounds.Bottom-$activityBounds.Top)/$scale -gt 36){throw 'Resting music notch has excess empty space'}
+   if(($activityBounds.Right-$activityBounds.Left) -lt 3*($activityBounds.Bottom-$activityBounds.Top) -or $visual.Left -le ($activityBounds.Left+$activityBounds.Right)/2 -or [Math]::Abs(($visual.Top+$visual.Height/2)-($activityBounds.Top+$activityBounds.Bottom)/2) -gt 2*$scale){throw 'Resting media is not horizontal or vertically centered'}
+  }elseif(($activityBounds.Bottom-$activityBounds.Top) -le ($activityBounds.Right-$activityBounds.Left) -or ($activityBounds.Right-$activityBounds.Left)/$scale -gt 80 -or ($activityBounds.Bottom-$activityBounds.Top)/$scale -gt 140 -or $visual.Top -le ($activityBounds.Top+$activityBounds.Bottom)/2 -or [Math]::Abs(($visual.Left+$visual.Width/2)-($activityBounds.Left+$activityBounds.Right)/2) -gt 2*$scale){throw 'Side media is not vertically stacked, centered and compact'}
+  Invoke 'Reveal Nagi';Start-Sleep -Milliseconds 500
+  if($Orientation -eq 'Horizontal'){
+   $title=(Find 'CompactTrackTitle' -Id).Current.Name
+   if($title.Length -gt 25 -or $title -notlike '*…'){throw "Long title was not shortened: $title"}
+  }elseif(Find 'CompactTrackTitle' -Id -Optional){throw 'The narrow side rail should hide track text'}
   Snapshot 'compact-local-audio';Invoke 'Open Nagi control center'
  }
  if($VideoPath){$player=Open-LocalFile $VideoPath;Snapshot 'local-video' $player}

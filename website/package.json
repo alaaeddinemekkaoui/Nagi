@@ -1,0 +1,12 @@
+{
+  "name": "nagi-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check public/site.js && node --check api/release.js && node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

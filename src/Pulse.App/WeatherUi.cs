@@ -36,7 +36,7 @@ public sealed partial class MainWindow
         var settings = ViewModel.Settings;
         var enabled = settings.WeatherEnabled && settings.WeatherLocation is { IsValid: true };
         WeatherCard.Visibility = RailWeatherButton.Visibility = enabled && settings.Workspace(ViewModel.Profile).Shows("Weather") ? Visibility.Visible : Visibility.Collapsed;
-        if (!enabled) return;
+        if (!enabled) { UpdateUtilityWeather(); return; }
         var current = _weatherSnapshot.Location == settings.WeatherLocation && _weatherSnapshot.Unit == settings.WeatherUnit
             ? _weatherSnapshot : new(settings.WeatherLocation, null, null, null, null, true, null, settings.WeatherUnit, "Checking weather…");
         WeatherCityText.Text = settings.WeatherLocation!.Label;
@@ -47,8 +47,9 @@ public sealed partial class MainWindow
             + (current.ObservedAt is { } time ? L.F($"As of {time.ToLocalTime():HH:mm}") : L.T(current.Status));
         RailWeatherValue.Text = current.TemperatureText;
         ToolTipService.SetToolTip(RailWeatherButton, settings.WeatherLocation.Label + " · " + WeatherHeadline.Text + (current.Stale ? L.T(" · Last available") : ""));
+        UpdateUtilityWeather();
     }
-    private void Weather_Click(object sender, RoutedEventArgs args) { Reveal(); Navigate("Overview"); }
+    private void Weather_Click(object sender, RoutedEventArgs args) => OpenControlCenter("Utilities");
     private void BuildPersonalSettings()
     {
         var profile = Stack(); profile.Children.Add(Heading(L.T("Your space")));

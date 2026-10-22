@@ -211,7 +211,7 @@ public sealed class WindowsIntegrationTests
     [InlineData("Bottom edge", 0)]
     [InlineData("Top edge", -100000)]
     [InlineData("Bottom edge", 100000)]
-    public void HorizontalDockPreservesItsRailAnchorAndStaysWithinTheWorkArea(string anchor, double offset)
+    public void HorizontalDropAndRevealsStayAboveTheTaskbarWithClampedOffsets(string anchor, double offset)
     {
         var hwnd = CreateWindowEx(0, "STATIC", "Nagi horizontal layout test", 0x80000000, 0, 0, 20, 20, 0, 0, 0, 0);
         try

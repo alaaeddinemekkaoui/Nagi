@@ -6,7 +6,7 @@ namespace Pulse.App;
 
 public sealed partial class MainWindow
 {
-    private enum PreviewKind { None, System, Media, Obs, Apps }
+    private enum PreviewKind { None, System, Media, Obs, Apps, Timer }
     private PreviewKind _preview, _pendingPreview;
     private FrameworkElement? _pendingPreviewTarget;
     private bool _previewSuppressed;
@@ -21,6 +21,9 @@ public sealed partial class MainWindow
         _previewOpen.Tick += (_, _) =>
         {
             _previewOpen.Stop();
+#if NAGI_DEVELOPMENT
+            if (DevelopmentOwnsPreview) return;
+#endif
             if (_closed || _dock.Stage != DockStage.Compact || _userHidden || _dialogOpen || _quickMenuOpen || _tray?.IsMenuOpen == true || !_windowManager.IsVisible) return;
             if (_previewSuppressed) return;
             if (_pendingPreviewTarget is null || !PointerOver(_pendingPreviewTarget)) return;
@@ -28,6 +31,9 @@ public sealed partial class MainWindow
         };
         _previewClose.Tick += (_, _) =>
         {
+#if NAGI_DEVELOPMENT
+            if (DevelopmentOwnsPreview) { _previewClose.Stop(); return; }
+#endif
             if (_quickMenuOpen || _tray?.IsMenuOpen == true) { _previewClose.Stop(); return; }
             if (!PointerInsideHalo())
             {
@@ -39,6 +45,9 @@ public sealed partial class MainWindow
         // miss enter/exit notifications. No layout/paint occurs until the hover state changes.
         _previewWatch.Tick += (_, _) =>
         {
+#if NAGI_DEVELOPMENT
+            if (DevelopmentOwnsPreview) return;
+#endif
             if (_closed || _expanded || _userHidden || _dialogOpen || _quickMenuOpen || _tray?.IsMenuOpen == true || !_windowManager.IsVisible) return;
             if (ObserveDockPointer()) { _previewOpen.Stop(); return; }
             if (_previewSuppressed)
@@ -46,13 +55,14 @@ public sealed partial class MainWindow
                 if (_motion.IsMoving) return;
                 if (_windowManager.TryGetPointerScreenPosition(out var x, out var y)
                     && (Math.Abs(x - _dismissPointerX) > 4 || Math.Abs(y - _dismissPointerY) > 4)
-                    && !PointerOver(CompactCpuButton) && !PointerOver(RailGpuButton) && !PointerOver(CompactMediaButton) && !PointerOver(RailObsButton) && !PointerOver(AppFolderButton)) _previewSuppressed = false;
+                    && !PointerOver(CompactCpuButton) && !PointerOver(RailGpuButton) && !PointerOver(CompactMediaButton) && !PointerOver(CompactTimerButton) && !PointerOver(RailObsButton) && !PointerOver(AppFolderButton)) _previewSuppressed = false;
                 return;
             }
             if (PointerOver(CompactCpuButton)) QueuePreview(PreviewKind.System, CompactCpuButton);
             else if (PointerOver(RailGpuButton)) QueuePreview(PreviewKind.System, RailGpuButton);
             else if (PointerOver(CompactMediaButton)) QueuePreview(
                 PreviewKind.Media, CompactMediaButton);
+            else if (PointerOver(CompactTimerButton)) QueuePreview(PreviewKind.Timer, CompactTimerButton);
             else if (PointerOver(RailObsButton) && ViewModel.Settings.Workspace(ViewModel.Profile).ObsPresentation == "Widget") QueuePreview(PreviewKind.Obs, RailObsButton);
             else if (PointerOver(AppFolderButton)) QueuePreview(PreviewKind.Apps, AppFolderButton);
             else _previewOpen.Stop();
@@ -65,14 +75,15 @@ public sealed partial class MainWindow
     {
         var switching = PreviewVisible;
         _preview = kind;
-        PeekHeading.Text = L.T(kind switch { PreviewKind.Apps => "More apps", PreviewKind.Obs => "OBS Studio", PreviewKind.Media => "Media & audio", _ => "System at a glance" });
+        PeekHeading.Text = L.T(kind switch { PreviewKind.Timer => "Timer", PreviewKind.Apps => "More apps", PreviewKind.Obs => "OBS Studio", PreviewKind.Media => "Media & audio", _ => "System at a glance" });
         SystemPeek.Visibility = kind == PreviewKind.System ? Visibility.Visible : Visibility.Collapsed;
         MediaPeek.Visibility = kind == PreviewKind.Media ? Visibility.Visible : Visibility.Collapsed;
         ObsPeek.Visibility = kind == PreviewKind.Obs ? Visibility.Visible : Visibility.Collapsed;
         AppsPeek.Visibility = kind == PreviewKind.Apps ? Visibility.Visible : Visibility.Collapsed;
+        TimerPeek.Visibility = kind == PreviewKind.Timer ? Visibility.Visible : Visibility.Collapsed;
         PeekSpeakersButton.Visibility = kind == PreviewKind.Media ? Visibility.Visible : Visibility.Collapsed;
         Layout(true); // Hover preserves the dock's screen position without taking focus.
-        if (switching) _motion.Reveal(kind switch { PreviewKind.Apps => AppsPeek, PreviewKind.Obs => ObsPeek,
+        if (switching) _motion.Reveal(kind switch { PreviewKind.Timer => TimerPeek, PreviewKind.Apps => AppsPeek, PreviewKind.Obs => ObsPeek,
             PreviewKind.Media => MediaPeek, _ => SystemPeek }, 0, 160, 1);
     }
     private void AppFolder_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(PreviewKind.Apps, AppFolderButton);
@@ -99,6 +110,7 @@ public sealed partial class MainWindow
     private void CpuPreview_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(PreviewKind.System, sender as FrameworkElement ?? CompactCpuButton);
     private void MediaPreview_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(
         PreviewKind.Media, CompactMediaButton);
+    private void TimerPreview_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(PreviewKind.Timer, CompactTimerButton);
     private void ObsPreview_Entered(object sender, PointerRoutedEventArgs e) => QueuePreview(PreviewKind.Obs, RailObsButton);
     private void PreviewRoot_Entered(object sender, PointerRoutedEventArgs e) => _previewClose.Stop();
     private void PreviewRoot_Exited(object sender, PointerRoutedEventArgs e)
@@ -121,7 +133,7 @@ public sealed partial class MainWindow
     {
         // A resizing client area can report a stationary cursor outside its old XAML bounds.
         // Require a real pointer departure before allowing an explicitly dismissed preview back.
-        _previewSuppressed = !_closed && !_expanded && (PointerOver(CompactCpuButton) || PointerOver(RailGpuButton) || PointerOver(CompactMediaButton) || PointerOver(RailObsButton) || PointerOver(AppFolderButton))
+        _previewSuppressed = !_closed && !_expanded && (PointerOver(CompactCpuButton) || PointerOver(RailGpuButton) || PointerOver(CompactMediaButton) || PointerOver(CompactTimerButton) || PointerOver(RailObsButton) || PointerOver(AppFolderButton))
             && _windowManager.TryGetPointerScreenPosition(out _dismissPointerX, out _dismissPointerY);
         _previewOpen.Stop(); _previewClose.Stop();
         _preview = _pendingPreview = PreviewKind.None;
@@ -139,15 +151,18 @@ public sealed partial class MainWindow
     {
         if (!_windowManager.TryGetPointerPosition(out var x, out var y)) return false;
         var frame = _windowManager.CurrentFrame;
-        return x >= 0 && y >= 0 && x < frame.Width / frame.Scale && y < frame.Height / frame.Scale;
+        return x >= 0 && y >= 0 && x < frame.Width / frame.Scale && y < frame.Height / frame.Scale
+            && _windowManager.ContainsNotchPoint(x * frame.Scale, y * frame.Scale);
     }
     private void ClosePreview_Click(object sender, RoutedEventArgs e) => ClosePreview();
     private void PreviewMore_Click(object sender, RoutedEventArgs e)
     {
         var media = _preview == PreviewKind.Media;
         var apps = _preview == PreviewKind.Apps;
+        var timer = _preview == PreviewKind.Timer;
         OpenControlCenter("Overview");
         if (media) MediaCard.StartBringIntoView();
         if (apps) WorkspaceAppsCard.StartBringIntoView();
+        if (timer) TimerCard.StartBringIntoView();
     }
 }

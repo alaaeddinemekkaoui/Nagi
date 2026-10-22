@@ -38,7 +38,7 @@ public sealed class SettingsService : ISettingsService, IDisposable
                 var invalid = new List<string>();
                 var nullability = new System.Reflection.NullabilityInfoContext();
                 // Deserialize each known field separately so a broken field cannot erase valid siblings.
-                foreach (var property in typeof(PulseSettings).GetProperties().Where(p => p.Name != nameof(PulseSettings.Extra)))
+                foreach (var property in typeof(PulseSettings).GetProperties().Where(p => p.SetMethod is not null && p.Name != nameof(PulseSettings.Extra)))
                 {
                     var key = _original.Select(p => p.Key).FirstOrDefault(k => k.Equals(property.Name, StringComparison.OrdinalIgnoreCase));
                     if (key is null) continue;

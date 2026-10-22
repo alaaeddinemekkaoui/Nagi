@@ -19,6 +19,7 @@ public sealed class SystemTrayService : IDisposable
     private string _hideShortcut = "Ctrl + Alt + H";
     private uint _accessibleMenuCommand;
     public Func<string, string> Translate { get; set; } = text => text;
+    public (Profile Id, string Name)[] ProfileChoices { get; set; } = ProfileWorkspaces.Profiles.Select(p => (p, p.ToString())).ToArray();
     public bool IsRegistered { get; private set; }
     public bool IsMenuOpen { get; private set; }
     public event Action? ShowRequested;
@@ -126,8 +127,9 @@ public sealed class SystemTrayService : IDisposable
             AppendMenu(menu, 0, 3, Translate("Settings…"));
             AppendMenu(menu, 0x800, 0, null);
             AppendMenu(menu, _lockedProfile is null ? 8u : 0u, 10, Translate("Automatic profile"));
-            foreach (var profile in ProfileWorkspaces.Profiles)
-                AppendMenu(menu, _lockedProfile == profile ? 8u : 0u, (nuint)(11 + (int)profile), Translate(profile.ToString()));
+            for (var i = 0; i < ProfileChoices.Length; i++)
+                AppendMenu(menu, _lockedProfile == ProfileChoices[i].Id ? 8u : 0u,
+                    (nuint)(Enum.IsDefined(ProfileChoices[i].Id) ? 11 + (int)ProfileChoices[i].Id : 100 + i), ProfileChoices[i].Name);
             AppendMenu(menu, 0x800, 0, null);
             AppendMenu(menu, 0, 4, Translate("Quit Nagi"));
             if (x == -1 || y == -1) { GetCursorPos(out var point); x = point.X; y = point.Y; }
@@ -146,6 +148,7 @@ public sealed class SystemTrayService : IDisposable
             case 5: SearchRequested?.Invoke(); break;
             case 10: ProfileRequested?.Invoke(null); break;
             case >= 11 and <= 15: ProfileRequested?.Invoke((Profile)(selected - 11)); break;
+            case >= 100 and < 132 when selected - 100 < ProfileChoices.Length: ProfileRequested?.Invoke(ProfileChoices[selected - 100].Id); break;
             default: ShellNotifyIcon(3, ref _data); break;
         }
     }

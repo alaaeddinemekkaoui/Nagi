@@ -23,7 +23,7 @@ $review=Join-Path (Split-Path $PSScriptRoot -Parent) ('artifacts/validation/wind
 [IO.Directory]::CreateDirectory($review)|Out-Null
 $pointer=[NagiWindowWidgetNative+Point]::new();[NagiWindowWidgetNative]::GetCursorPos([ref]$pointer)|Out-Null
 $settingsFile=Join-Path $review 'settings.json'
-@{WelcomeCompleted=$true;Language='en';Theme='Light';LockedProfile='Stream';CloseOnDeactivate=$true;HideInFullscreen=$false;AutomaticUpdates=$false;IndexFiles=$false;ObsEnabled=$false;ReducedMotion=$false;
+@{WelcomeCompleted=$true;Language='en';Theme='Light';NotchColorMode='Custom';NotchColor='#2A86D8';LockedProfile='Stream';CloseOnDeactivate=$true;HideInFullscreen=$false;AutomaticUpdates=$false;IndexFiles=$false;ObsEnabled=$false;ReducedMotion=$false;
  WeatherEnabled=$true;WeatherLocation=@{Name='Paris';Country='France';Region='';Latitude=48.85;Longitude=2.35};
  Position=@{Orientation='Horizontal';Anchor='Bottom edge'};Hotkey=@{Modifiers=15;Key=131};HideHotkey=@{Modifiers=15;Key=132};SearchHotkey=@{Modifiers=15;Key=133}}|ConvertTo-Json -Depth 8|Set-Content $settingsFile
 $start=[Diagnostics.ProcessStartInfo]::new([IO.Path]::GetFullPath($ExecutablePath));$start.UseShellExecute=$false;$start.ArgumentList.Add('--data-dir');$start.ArgumentList.Add($review)
@@ -46,6 +46,17 @@ function Capture([string]$name){
  }finally{$g.Dispose();$b.Dispose()}
 }
 function Hover([string]$id){$b=(Find $id).Current.BoundingRectangle;[NagiWindowWidgetNative]::SetCursorPos([int]($b.Left+$b.Width/2),[int]($b.Top+$b.Height/2))|Out-Null;Start-Sleep -Milliseconds 1200}
+function Assert-MediaFits {
+ $bounds=$root.Current.BoundingRectangle
+ foreach($id in @('PeekVolumeSlider','PeekMuteButton','PeekMicrophoneButton','PreviewMoreButton')){
+  $element=Find $id;$box=$element.Current.BoundingRectangle
+  if($element.Current.IsOffscreen -or $box.Width -le 0 -or $box.Height -le 0 -or $box.Left -lt $bounds.Left -or $box.Right -gt $bounds.Right -or $box.Top -lt $bounds.Top -or $box.Bottom -gt $bounds.Bottom){throw "Clipped media control: $id"}
+ }
+ $scrolls=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsScrollPatternAvailableProperty,$true))
+ foreach($scroll in $scrolls){if(!$scroll.Current.IsOffscreen){$state=$scroll.GetCurrentPattern([Windows.Automation.ScrollPattern]::Pattern).Current;if($state.VerticallyScrollable -or $state.HorizontallyScrollable){throw 'Media hover requires scrolling'}}}
+ $playback=Find 'PeekPlaybackState' -Optional;$waveform=Find 'PeekMusicVisualizer' -Optional
+ if($playback -and $playback.Current.Name -ne 'Playing' -and $waveform -and !$waveform.Current.IsOffscreen){throw 'Inactive media still shows a waveform'}
+}
 function Choose-Obs([string]$label){
  $box=Find 'ObsDockPresentation';$box.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Milliseconds 150
  $choice=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.AndCondition]::new([Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$label),[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsSelectionItemPatternAvailableProperty,$true)))
@@ -68,6 +79,7 @@ try{
  $duplicate=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Dock app OBS Studio'))
  if($duplicate -and !$duplicate.Current.IsOffscreen){throw 'Duplicate OBS app in dock'}
  Capture 'stacked-widgets'
+ Hover 'CompactMediaButton';Assert-MediaFits;Capture 'media-no-scroll'
  Hover 'RailObsButton'
  if((Find 'Preview toggle OBS recording' -Name).Current.IsOffscreen){throw 'OBS hover controls did not open'}
  Capture 'obs-hover'
@@ -110,6 +122,18 @@ try{
   if($process.HasExited){throw "Theme $theme closed the app"}
  }
  Capture 'window-themes'
+ foreach($mode in @('System','Custom','Theme')){
+  $box=Find 'NotchColorMode';$box.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Milliseconds 120
+  $choice=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.AndCondition]::new([Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$mode),[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsSelectionItemPatternAvailableProperty,$true)))
+  if(!$choice){throw "Missing notch color mode $mode"};$choice.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 400
+  if((Get-Content $settingsFile -Raw|ConvertFrom-Json).NotchColorMode -ne $mode){throw "Notch color $mode was not saved"}
+  [NagiWindowWidgetNative]::SendMessage($handle,0x112,[IntPtr]0xF060,[IntPtr]::Zero)|Out-Null;Start-Sleep -Milliseconds 1200
+  Capture ('drop-'+$mode)
+  $events=Get-Content (Join-Path $review 'logs/pulse.jsonl') -Raw
+  if($events -notlike '*Glass=True; resting=True*'){throw 'Resting drop disconnected its glass material'}
+  Invoke 'EdgeDropButton';Hover 'CompactMediaButton';Assert-MediaFits;Capture ('media-'+$mode)
+  [NagiWindowWidgetNative]::SetCursorPos(10,10)|Out-Null;Invoke 'CompactBrand';Invoke 'PreferencesTab';Invoke 'SettingsCategoryAppearancedock'
+ }
  $errors=Join-Path $review 'logs/errors.jsonl';if((Get-Item $errors).Length -ne 0){throw 'Window/widget check logged errors'}
  @{ValuesAboveLabels=$true;NoDuplicateObs=$true;ObsAppWidgetHidden=$true;NativeWindowControls=$true;FocusKeepsSettingsOpen=$true;CaptionCloseReturnsToDock=$true}|ConvertTo-Json|Set-Content (Join-Path $review 'evidence.json')
  Write-Output "PASS: stacked values, OBS modes, native Settings window, focus, minimize/maximize and Close-to-dock. $review"

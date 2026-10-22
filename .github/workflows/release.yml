@@ -5,7 +5,7 @@ on:
       release_tag:
         description: Existing draft release tag
         required: true
-        default: v0.1.3
+        default: v0.2
         type: string
 permissions:
   contents: write
@@ -32,9 +32,11 @@ jobs:
           global-json-file: global.json
       - name: Validate early release version
         run: |
-          if ($env:NAGI_RELEASE_TAG -notmatch '^v0\.1\.\d+$') { throw 'Only early v0.1.x releases are enabled.' }
+          if ($env:NAGI_RELEASE_TAG -notmatch '^v0\.\d+(?:\.\d+)?$') { throw 'Only early v0.x releases are enabled; v1 requires explicit approval.' }
           [xml]$project = Get-Content src/Pulse.App/Pulse.App.csproj
-          if ('v' + [string]$project.Project.PropertyGroup.Version -ne $env:NAGI_RELEASE_TAG) { throw 'Tag and app version differ.' }
+          $appVersion = [version][string]$project.Project.PropertyGroup.Version
+          $tagVersion = [version]$env:NAGI_RELEASE_TAG.TrimStart('v')
+          if ($appVersion.Major -ne $tagVersion.Major -or $appVersion.Minor -ne $tagVersion.Minor -or [Math]::Max(0,$appVersion.Build) -ne [Math]::Max(0,$tagVersion.Build)) { throw 'Tag and app version differ.' }
       - name: Install NSIS
         run: |
           choco install nsis --yes --no-progress

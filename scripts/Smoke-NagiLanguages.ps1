@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$ExecutablePath)
+param([Parameter(Mandatory)][string]$ExecutablePath,[string[]]$Languages=@('en','fr','es','de','ru','ar'))
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -18,7 +18,7 @@ $testRoot = Join-Path (Split-Path $PSScriptRoot -Parent) ('artifacts/validation/
 [IO.Directory]::CreateDirectory($testRoot) | Out-Null
 $package = Split-Path ([IO.Path]::GetFullPath($ExecutablePath)) -Parent
 $results = [Collections.Generic.List[object]]::new()
-foreach ($code in @('en','fr','es','de','ru','ar')) {
+foreach ($code in $Languages) {
  $ownedProcess = $null
  try {
   $data = Join-Path $testRoot $code; [IO.Directory]::CreateDirectory($data) | Out-Null
@@ -62,6 +62,16 @@ foreach ($code in @('en','fr','es','de','ru','ar')) {
   $english = $window.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.AndCondition]::new(
     [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'English · English'),
     [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsSelectionItemPatternAvailableProperty,$true)))
+  if (!$english) {
+   $container=$null
+   if($combo.TryGetCurrentPattern([Windows.Automation.ItemContainerPattern]::Pattern,[ref]$container)){
+    $english=([Windows.Automation.ItemContainerPattern]$container).FindItemByProperty($null,[Windows.Automation.AutomationElement]::NameProperty,'English · English')
+    if($english){
+     $virtual=$null
+     if($english.TryGetCurrentPattern([Windows.Automation.VirtualizedItemPattern]::Pattern,[ref]$virtual)){([Windows.Automation.VirtualizedItemPattern]$virtual).Realize();Start-Sleep -Milliseconds 150}
+    }
+   }
+  }
   if (!$english) { throw "English language choice missing for $code" }
   $english.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select(); Start-Sleep -Milliseconds 500
   if ((Find-Control 'WelcomeNext').Current.Name -ne 'Continue') { throw "$code did not switch to English immediately" }

@@ -65,7 +65,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
         Root.DataContext = ViewModel;
         L.Options(ProfilePicker);
-        ProfilePicker.ItemsSource = new[] { "Automatic" }.Concat(ProfileWorkspaces.Profiles.Select(p => p.ToString())).ToArray();
+        ProfilePicker.ItemsSource = new[] { "Automatic" }.Concat(configuration.Profiles.Select(configuration.ProfileName)).ToArray();
         foreach (var railButton in Compact.Children.OfType<Button>()) railButton.Padding = new(4);
         var presenter = (OverlappedPresenter)AppWindow.Presenter;
         presenter.SetBorderAndTitleBar(false, false);
@@ -74,10 +74,18 @@ public sealed partial class MainWindow : Window
         AppWindow.IsShownInSwitchers = false;
         var handle = WindowNative.GetWindowHandle(this);
         _windowManager = new HaloWindowManager(handle);
+        _glass.ContourMaskChanged += () => DispatcherQueue.TryEnqueue(() =>
+        {
+            if (_closed) return;
+            _windowManager.AntialiasNotch = _glass.ContourMasked;
+            _log.Write("appearance", "Notch antialiasing=" + _glass.ContourMasked);
+            _windowManager.ApplyFrame(_windowManager.CurrentFrame);
+        });
         _windowManager.FrameApplied += frame =>
         {
             _hasPresentedFrame = true;
-            WindowSurface.SetShape(frame.DropAmount, ViewModel.Settings.Position.Anchor);
+            _glass.SetContour((float)Math.Max(16, Math.Round(frame.Width)), (float)Math.Max(16, Math.Round(frame.Height)), frame.DropAmount, ViewModel.Settings.Position.Anchor, frame.NotchAmount, (float)frame.Scale);
+            WindowSurface.SetShape(frame.DropAmount, ViewModel.Settings.Position.Anchor, frame.NotchAmount);
             var drop = frame.DropAmount > .001;
             if (_surfaceIsDrop == drop && _materialResting == SettledNotch) return;
             _surfaceIsDrop = drop;
@@ -89,7 +97,8 @@ public sealed partial class MainWindow : Window
             _motion?.Stop(); PlaceDockContent(false, frame.Width / frame.Scale, frame.Height / frame.Scale);
         };
         _notchSystemColors.ColorValuesChanged += NotchColorsChanged;
-        _motion = new HaloMotion(_windowManager, () => !ViewModel.Settings.ReducedMotion && _audioMotion.AnimationsEnabled);
+        _motion = new HaloMotion(_windowManager, () => !ViewModel.Settings.ReducedMotion && _audioMotion.AnimationsEnabled,
+            handle, () => ViewModel.Settings.AnimationMode == "Efficiency");
         BuildMusicLinks();
         _windowManager.ToggleRequested += () => { if (_expanded && !_userHidden) Collapse(); else Reveal(); };
         _windowManager.HideRequested += () => { if (_userHidden) Reveal(); else HideHalo(); };
@@ -111,6 +120,7 @@ public sealed partial class MainWindow : Window
         _hotkeyAvailable = Report(_windowManager.RegisterHotkey(configuration.Hotkey), successNotice: false);
         _hideHotkeyAvailable = Report(_windowManager.RegisterHideHotkey(configuration.HideHotkey), successNotice: false);
         InitializeQuickSearch();
+        InitializeTimer();
         InitializeIntegrations();
         try
         {
@@ -198,10 +208,19 @@ public sealed partial class MainWindow : Window
         var wasExpanded = Expanded.Visibility == Visibility.Visible;
         var wasPreview = PeekHost.Visibility == Visibility.Visible;
         var wasDrop = EdgeDrop.Visibility == Visibility.Visible;
+        RefreshLiveActivity(false);
         var resting = _dock.Stage == DockStage.Resting;
         ApplyGlass(); // Connect acrylic before the first expanding frame, not at the end of the morph.
         var frame = _controlCenter ? _windowManager.PrepareControlCenter(ViewModel.Settings.Position)
-            : _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting, RequestedRailExtent, ViewModel.Settings.Position.Orientation == "Horizontal" ? DockPresentation.HorizontalHeight : DockPresentation.VerticalWidth);
+            : _windowManager.PrepareLayout(_expanded, _dashboard, ViewModel.Settings.Position, PreviewVisible ? _preview == PreviewKind.Media ? 380 : 336 : 84, resting, RequestedRailExtent, ViewModel.Settings.Position.Orientation == "Horizontal" ? DockPresentation.HorizontalHeight : DockPresentation.VerticalWidth, HasRestingActivity, _restingWidth, _restingHeight);
+        if (PreviewVisible && !_controlCenter && !_expanded)
+        {
+            var horizontal = ViewModel.Settings.Position.Orientation == "Horizontal";
+            var previewWidth = frame.Width / frame.Scale - (horizontal ? 0 : DockPresentation.VerticalWidth);
+            var required = MeasurePreviewHeight(previewWidth) + (horizontal ? DockPresentation.HorizontalHeight : 0);
+            frame = _windowManager.PrepareLayout(false, false, ViewModel.Settings.Position, required, false, RequestedRailExtent,
+                horizontal ? DockPresentation.HorizontalHeight : DockPresentation.VerticalWidth);
+        }
         var logicalWidth = frame.Width / frame.Scale; var logicalHeight = frame.Height / frame.Scale;
         PlaceDockContent(resting, logicalWidth, logicalHeight);
         if (resting)
@@ -250,6 +269,7 @@ public sealed partial class MainWindow : Window
             if (_dock.Stage == DockStage.Resting) Compact.Visibility = Visibility.Collapsed;
         });
         if (_userHidden && !_hiding) _windowManager.SetVisible(false);
+        UpdateRuntimeDemand();
     }
     private void Animate(FrameworkElement? target = null)
     {
@@ -282,6 +302,7 @@ public sealed partial class MainWindow : Window
     }
     private void UpdateTray()
     {
+        if (_tray is not null) _tray.ProfileChoices = ViewModel.Settings.Profiles.Select(p => (p, ProfileLabel(p))).ToArray();
         _tray?.Update(ViewModel.Profile, ViewModel.Settings.LockedProfile ?? (ViewModel.Settings.AutomaticSwitching ? null : ViewModel.Profile), _userHidden, PulseViewModel.FormatHotkey(ViewModel.Settings.HideHotkey));
         ToolTipService.SetToolTip(HideHeaderButton, L.T("Hide Nagi · ") + (_hideHotkeyAvailable ? PulseViewModel.FormatHotkey(ViewModel.Settings.HideHotkey) : L.T("Shortcut unavailable")));
         TrayStatusText.Text = _tray?.IsRegistered == true ? L.T("In system tray") : L.T("Local & private");
@@ -318,8 +339,11 @@ public sealed partial class MainWindow : Window
         var previousResting = _materialResting;
         _glass.SetAkeno(ViewModel.Settings.Theme == "Akeno");
         _glass.SetLight(Shell.ActualTheme == ElementTheme.Light);
+        _glass.SetTint(AppAppearance.Tint(ViewModel.Settings));
         _materialResting = SettledNotch;
-        if (!_materialResting && ViewModel.Settings.GlassEnabled && HaloAcrylicBackdrop.IsSupported && !_themeAccessibility.HighContrast)
+        var useGlass = AppAppearance.UsesGlass(ViewModel.Settings);
+        _glass.SetSolidSurface(useGlass ? null : NotchColor);
+        if ((useGlass || _surfaceIsDrop) && HaloAcrylicBackdrop.IsSupported && !_themeAccessibility.HighContrast)
         { if (!ReferenceEquals(SystemBackdrop, _glass)) SystemBackdrop = _glass; Shell.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent); }
         else
         {
@@ -331,6 +355,7 @@ public sealed partial class MainWindow : Window
         if (_surfaceIsDrop) Shell.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         Root.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         UpdateSurfaceMaterial();
+        _localMedia?.ApplyAppearance(ViewModel.Settings);
         if (previousGlass != (SystemBackdrop is not null) || previousResting != _materialResting)
         {
             _windowManager.SuppressSystemCorners();
@@ -339,10 +364,11 @@ public sealed partial class MainWindow : Window
     }
     private void UpdateTabs()
     {
-        var clear = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-        OverviewTab.Background = _page == "Overview" ? ThemeBrush("SelectedTabBrush") : clear;
-        RulesTab.Background = _page == "Profiles" ? ThemeBrush("SelectedTabBrush") : clear;
-        PreferencesTab.Background = _page == "Settings" ? ThemeBrush("SelectedTabBrush") : clear;
+        OverviewTab.CornerRadius = RulesTab.CornerRadius = new(19);
+        OverviewTab.Background = ThemeBrush(_page == "Overview" ? "SelectedTabBrush" : "InsetBrush");
+        RulesTab.Background = ThemeBrush(_page == "Profiles" ? "SelectedTabBrush" : "InsetBrush");
+        UtilitiesTab.Background = ThemeBrush(_page == "Utilities" ? "SelectedTabBrush" : "InsetBrush");
+        PreferencesTab.Background = ThemeBrush(_page == "Settings" ? "SelectedTabBrush" : "InsetBrush");
     }
     private void RefreshContrast()
     {
@@ -383,6 +409,7 @@ public sealed partial class MainWindow : Window
                     var hide = _userHidden || (config.HideInFullscreen && foreground.ProcessId != Environment.ProcessId && foreground.IsFullscreen && !_revealFullscreen);
                     if (hide && PreviewVisible) { ResetPreview(); Layout(); }
                     if (!_hiding) _windowManager.SetVisible(!hide);
+                    UpdateRuntimeDemand();
                 });
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
@@ -398,9 +425,18 @@ public sealed partial class MainWindow : Window
 
     private async void Render()
     {
+        ObserveTimerProfile(); UpdateTimerLabels();
+        RefreshLiveActivity();
+        UpdateRuntimeDemand();
         RefreshContrast();
         RefreshThemeBrushes();
-        if (_renderedProfile != ViewModel.Profile) { _renderedProfile = ViewModel.Profile; BuildQuickActions(); BuildProfileDock(); ApplyWorkspaceVisibility(); Animate(); _ = ReloadLuaUiAsync(); }
+        RefreshProfileBadges();
+        if (_renderedProfile != ViewModel.Profile)
+        {
+            _renderedProfile = ViewModel.Profile; BuildQuickActions(); BuildProfileDock(); ApplyWorkspaceVisibility();
+            if (_page == "Utilities") BuildUtilitiesPage();
+            Animate(); _ = ReloadLuaUiAsync();
+        }
         var metrics = ViewModel.Metrics;
         UpdateTray();
         var power = metrics.Power ?? PowerSnapshot.Unknown;
@@ -453,9 +489,13 @@ public sealed partial class MainWindow : Window
         CompactArtworkHost.Visibility = Visibility.Visible;
         CompactSecondaryLabel.Visibility = Visibility.Collapsed;
         CompactTrackTitle.Text = DockPresentation.ShortTitle(ViewModel.MediaTitle);
+        UpdateCompactMediaPresentation();
         ToolTipService.SetToolTip(CompactMediaButton, ViewModel.MediaTitle + "\n" + ViewModel.MediaArtist);
+        ToolTipService.SetToolTip(PeekTrackTitle, ViewModel.MediaTitle);
         if (!_controlCenter && Math.Abs(RequestedRailExtent - _railExtent) > .5) Layout(_motion.IsMoving);
         ApplyWorkspaceVisibility();
+        RefreshMediaPreviewLayout();
+        RestingArtwork.Source = CompactAlbumArt.Source;
     }
 
     private void ApplyPreferences()
@@ -465,12 +505,14 @@ public sealed partial class MainWindow : Window
         _updating = true;
         Shell.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
         ApplyGlass(); UpdateTabs();
-        ProfilePicker.SelectedItem = settings.LockedProfile is { } locked ? locked.ToString() : settings.AutomaticSwitching ? "Automatic" : settings.DefaultProfile.ToString();
+        ProfilePicker.ItemsSource = new[] { "Automatic" }.Concat(settings.Profiles.Select(settings.ProfileName)).ToArray();
+        ProfilePicker.SelectedItem = settings.LockedProfile is { } locked ? settings.ProfileName(locked) : settings.AutomaticSwitching ? "Automatic" : settings.ProfileName(settings.DefaultProfile);
         LockIcon.Glyph = settings.LockedProfile.HasValue ? "\uE72E" : "\uE785";
         ApplyLuaVisuals();
         _ = ReloadLuaUiAsync();
         _updating = false;
         ViewModel.Evaluate(); ViewModel.Refresh();
+        ObserveTimerProfile(); UpdateTimerLabels();
         Layout(_motion.IsMoving); UpdateTray();
     }
     private async Task<bool> CommitAsync(Func<PulseSettings, PulseSettings> change)
@@ -508,19 +550,22 @@ public sealed partial class MainWindow : Window
         if (page == "Settings") _settingsCategory = null;
         SettingsNavigationHeader.Visibility = Visibility.Collapsed;
         _page = page; _expanded = true; _dashboard = page != "Overview";
-        ContextCard.Visibility = page == "Settings" ? Visibility.Collapsed : Visibility.Visible;
+        ContextCard.Visibility = page == "Overview" ? Visibility.Visible : Visibility.Collapsed;
         HomePage.Visibility = page == "Overview" ? Visibility.Visible : Visibility.Collapsed;
         RulesPage.Visibility = page == "Profiles" ? Visibility.Visible : Visibility.Collapsed;
+        UtilitiesPage.Visibility = page == "Utilities" ? Visibility.Visible : Visibility.Collapsed;
         SettingsPage.Visibility = page == "Settings" ? Visibility.Visible : Visibility.Collapsed;
         OverviewTab.Opacity = page == "Overview" ? 1 : .5;
         RulesTab.Opacity = page == "Profiles" ? 1 : .5;
+        UtilitiesTab.Opacity = page == "Utilities" ? 1 : .65;
         PreferencesTab.Opacity = page == "Settings" ? 1 : .5;
         UpdateTabs();
         if (page == "Profiles") BuildRulesPage();
+        if (page == "Utilities") BuildUtilitiesPage();
         if (page == "Settings") BuildSettingsPage();
         ContentScroll.ChangeView(null, 0, null, true);
         Layout(!_controlCenter);
-        _motion.Reveal(page == "Overview" ? HomePage : page == "Profiles" ? RulesPage : SettingsPage, 0, 160, 1);
+        _motion.Reveal(page == "Overview" ? HomePage : page == "Profiles" ? RulesPage : page == "Utilities" ? UtilitiesPage : SettingsPage, 0, 160, 1);
     }
 
     private void Expand_Click(object sender, RoutedEventArgs e) => Dock_Click(sender, e);
@@ -547,16 +592,26 @@ public sealed partial class MainWindow : Window
         var settings = new MenuFlyoutItem { Text = L.T("Settings"), Icon = new FontIcon { Glyph = "\uE713" } }; settings.Click += (_, _) => OpenControlCenter("Settings");
         var quit = new MenuFlyoutItem { Text = L.T("Quit Nagi"), Icon = new FontIcon { Glyph = "\uE8BB" } }; quit.Click += (_, _) => Close();
         menu.Items.Add(open); menu.Items.Add(hide); menu.Items.Add(settings); menu.Items.Add(new MenuFlyoutSeparator()); menu.Items.Add(quit);
+#if NAGI_DEVELOPMENT
+        var developer = new MenuFlyoutItem { Text = "Developer tools", Icon = new FontIcon { Glyph = "\uEBE8" } };
+        developer.Click += (_, _) => OpenDevelopmentPage("Developer tools"); menu.Items.Insert(3, developer);
+#endif
         var point = e.GetPosition(Root);
         if (_windowManager.TryGetPointerPosition(out var x, out var y)) point = new(x, y);
         menu.ShowAt(Root, point); e.Handled = true;
     }
-    private void Root_KeyDown(object sender, KeyRoutedEventArgs e) { if (e.Key == VirtualKey.Escape && !_dialogOpen) { Collapse(); e.Handled = true; } }
+    private void Root_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+#if NAGI_DEVELOPMENT
+        if (e.Key == VirtualKey.F12) { OpenDevelopmentPage("Developer tools"); e.Handled = true; return; }
+#endif
+        if (e.Key == VirtualKey.Escape && !_dialogOpen) { Collapse(); e.Handled = true; }
+    }
     private async void Profile_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (_updating || ProfilePicker.SelectedIndex < 0) return;
         var selected = ProfilePicker.SelectedItem as string;
-        await ActivateProfileAsync(Enum.TryParse<Profile>(selected, out var profile) ? profile : null);
+        await ActivateProfileAsync(selected is null or "Automatic" ? null : ParseProfile(selected));
     }
     private async void Lock_Click(object sender, RoutedEventArgs e) => await CommitAsync(s => s with { LockedProfile = s.LockedProfile.HasValue ? null : ViewModel.Profile });
     private async void Previous_Click(object sender, RoutedEventArgs e) => Report(await SendMediaAsync("previous"), false);
@@ -598,7 +653,7 @@ public sealed partial class MainWindow : Window
             {
                 if (action.Kind == ActionKind.Profile)
                 {
-                    if (Report(ActionValidator.Validate(action), false)) await ActivateProfileAsync(Enum.Parse<Profile>(action.Target));
+                    if (Report(ActionValidator.Validate(action, ViewModel.Settings), false)) await ActivateProfileAsync(Enum.Parse<Profile>(action.Target));
                 }
                 else if (action.Kind == ActionKind.ToggleHalo)
                 {
@@ -620,12 +675,13 @@ public sealed partial class MainWindow : Window
 
     private async Task ShutdownAsync()
     {
+        _timerTick.Stop();
         if (_closed) return;
         _closed = true;
         _notchSystemColors.ColorValuesChanged -= NotchColorsChanged;
         _localMedia?.ClosePlayer();
         DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _logoDragTimer?.Stop(); _shutdown.Cancel();
-        _indexTimer.Stop(); _searchCancellation?.Cancel(); _searchWindow?.DisposeWindow();
+        _indexTimer.Stop(); _fileWatcher?.Dispose(); _searchCancellation?.Cancel(); _searchWindow?.DisposeWindow();
         ResetPreview();
         _motion.Dispose(); _tray?.Dispose(); _windowManager.Dispose();
         _previewWatch.Stop();
@@ -634,8 +690,9 @@ public sealed partial class MainWindow : Window
             try { await _polling; } catch (OperationCanceledException) { }
         }
         if (_audioPolling is not null) { try { await _audioPolling; } catch (OperationCanceledException) { } }
-        _audio.Dispose(); _microphone.Dispose();
+        _audio.Dispose();
         if (_integrationPolling is not null) { try { await _integrationPolling; } catch (OperationCanceledException) { } }
+        _microphone.Dispose();
         _gpu.Dispose();
         if (_weatherPolling is not null) { try { await _weatherPolling; } catch (OperationCanceledException) { } }
         _weather.Dispose();

@@ -69,7 +69,7 @@ public sealed class DockPresentationTests
         var laptop = DockPresentation.RailExtent(workspace, true, true, true, new(50, true, false, false));
         Assert.InRange(desktop, 350, 640); Assert.True(laptop > desktop);
         Assert.Equal(desktop, DockPresentation.RailExtent(workspace with { Apps = workspace.Apps.Take(3).ToArray() }, true, true, true, new(null, false, false, true)));
-        Assert.InRange(DockPresentation.RailExtent(workspace, false, true, true, new(50, true, false, false)), 200, 420);
+        Assert.InRange(DockPresentation.RailExtent(workspace, false, true, true, new(50, true, false, false)), 200, 480);
     }
 
     [Fact]

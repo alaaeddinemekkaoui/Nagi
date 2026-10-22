@@ -50,82 +50,37 @@ public sealed partial class MainWindow
     private void BuildRulesPage()
     {
         WorkspacePage.Children.Clear();
-        if (_editingWorkspace is { } editing) { BuildWorkspaceEditor(editing); return; }
-        WorkspacePage.Children.Add(Heading(L.T("A desktop that follows your rhythm.")));
-        WorkspacePage.Children.Add(Note(L.T("Choose a profile anytime. Manual selections stay locked until you choose Automatic or unlock the profile.")));
-        var profileCards = Stack();
-        foreach (var (profile, description) in new[]
-        {
-            (Profile.Default, "Search, CPU, GPU and music. No apps by default."),
-            (Profile.Stream, "OBS recording, streaming and three scene shortcuts."),
-            (Profile.Work, "Your apps, projects and essential system information."),
-            (Profile.Gaming, "Performance at a glance, with media controls close by."),
-            (Profile.Focus, "A quieter Nagi. Nonessential notices stay out of your way.")
-        })
-        {
-            var row = new Grid { ColumnSpacing = 12 };
-            row.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
-            var copy = Stack(); copy.Spacing = 3; copy.Children.Add(Heading(L.T(profile.ToString()))); copy.Children.Add(Note(L.T(description)));
-            row.Children.Add(copy);
-            var controls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
-            controls.Children.Add(Button(L.F($"Activate {L.T(profile.ToString())}"), async (_, _) => await ActivateProfileAsync(profile)));
-            controls.Children.Add(Button(L.F($"Customize {L.T(profile.ToString())}"), (_, _) => { _editingWorkspace = profile; BuildRulesPage(); ContentScroll.ChangeView(null, 0, null); }));
-            Grid.SetColumn(controls, 1); row.Children.Add(controls);
-            profileCards.Children.Add(row);
-        }
-        WorkspacePage.Children.Add(Card(profileCards));
-        var automatic = Toggle(L.T("Automatic context switching"), L.T("Match the foreground application against your rules."), ViewModel.Settings.AutomaticSwitching,
-            (s, enabled) => s with { AutomaticSwitching = enabled, LockedProfile = enabled ? null : s.LockedProfile });
-        WorkspacePage.Children.Add(automatic);
-        var defaultProfile = Select(Enum.GetNames<Profile>(), ViewModel.Settings.DefaultProfile.ToString(), "Default profile");
-        defaultProfile.SelectionChanged += async (_, _) => { if (defaultProfile.SelectedItem is string selected) await CommitAsync(s => s with { DefaultProfile = Enum.Parse<Profile>(selected) }); };
-        WorkspacePage.Children.Add(Labeled(L.T("Fallback when no application rule matches"), defaultProfile));
-        WorkspacePage.Children.Add(Heading(L.T("Application rules")));
-        WorkspacePage.Children.Add(Note(L.T("Highest priority wins. Equal priorities keep list order. A match must stay stable for 1.8 seconds. Fullscreen windows are never classified as games automatically.")));
-        foreach (var rule in ViewModel.Settings.Rules)
-        {
-            var row = Stack();
-            row.Children.Add(Heading(rule.Profile + L.T(" · priority ") + rule.Priority + (rule.Enabled ? "" : L.T(" · disabled"))));
-            row.Children.Add(Note(rule.Identity));
-            var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            actions.Children.Add(Button(L.T("Edit"), async (_, _) => await EditRuleAsync(rule)));
-            actions.Children.Add(Button(rule.Enabled ? L.T("Disable") : L.T("Enable"), async (_, _) =>
-            { if (await CommitAsync(s => s with { Rules = s.Rules.Select(r => r == rule ? r with { Enabled = !r.Enabled } : r).ToArray() })) BuildRulesPage(); }));
-            actions.Children.Add(Button(L.T("Remove"), async (_, _) =>
-            { if (await CommitAsync(s => s with { Rules = s.Rules.Where(r => r != rule).ToArray() })) BuildRulesPage(); }));
-            row.Children.Add(actions); WorkspacePage.Children.Add(Card(row));
-        }
-        WorkspacePage.Children.Add(Button(L.T("+ Add application rule"), async (_, _) => await EditRuleAsync(null)));
-        WorkspacePage.Children.Add(Heading(L.T("Quick actions")));
-        WorkspacePage.Children.Add(Note(L.T("Shortcuts run only when you click them. Use local files and .exe paths without arguments, or http/https URLs.")));
-        foreach (var action in ViewModel.Settings.QuickActions)
-        {
-            var row = Stack(); row.Children.Add(Heading(action.Label));
-            row.Children.Add(Note((action.Kind == ActionKind.ToggleHalo ? L.T("Toggle Nagi") : action.Kind.ToString()) + L.T(" · ") + action.Target + (action.Profile.HasValue ? L.T(" · ") + action.Profile + L.T(" only") : L.T(" · All profiles"))));
-            var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            buttons.Children.Add(Button(L.T("Edit"), async (_, _) => await EditActionAsync(action)));
-            buttons.Children.Add(Button(L.T("Remove"), async (_, _) =>
-            { if (await CommitAsync(s => s with { QuickActions = s.QuickActions.Where(a => a != action).ToArray() })) BuildRulesPage(); }));
-            row.Children.Add(buttons); WorkspacePage.Children.Add(Card(row));
-        }
-        WorkspacePage.Children.Add(Button(L.T("+ Add quick action"), async (_, _) => await EditActionAsync(null)));
+        if (_editingWorkspace is { } editing) BuildWorkspaceEditor(editing);
+        else BuildProfileList();
     }
 
-    private async Task EditRuleAsync(AppRule? existing)
+    private async Task EditRuleAsync(AppRule? existing, Profile? owner = null)
     {
-        var identity = new TextBox { Header = L.T("Process name or full executable path"), Text = existing?.Identity ?? ViewModel.Foreground.ExecutablePath ?? (ViewModel.Foreground.Name + L.T(".exe")), PlaceholderText = L.T("Code.exe or C:\\Apps\\Editor.exe") };
-        var profile = Select(Enum.GetNames<Profile>(), (existing?.Profile ?? Profile.Work).ToString(), "Rule profile");
+        var identity = new TextBox { Header = L.T("Process name or full executable path"), Text = existing?.Identity ?? (owner.HasValue ? "" : ViewModel.Foreground.ExecutablePath ?? (ViewModel.Foreground.Name + L.T(".exe"))), PlaceholderText = L.T("Code.exe or C:\\Apps\\Editor.exe") };
+        var profile = Select(ViewModel.Settings.Profiles.Select(ViewModel.Settings.ProfileName), ViewModel.Settings.ProfileName(owner ?? existing?.Profile ?? Profile.Work), "Rule profile");
+        AutomationProperties.SetAutomationId(identity, "ProfileRuleExecutable");
         var priority = new NumberBox { Header = L.T("Priority (higher wins)"), Minimum = 0, Maximum = 10000, Value = existing?.Priority ?? 100, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact };
         var enabled = new ToggleSwitch { Header = L.T("Rule enabled"), IsOn = existing?.Enabled ?? true };
         var error = Note(""); var content = Stack();
-        content.Children.Add(identity); content.Children.Add(Labeled(L.T("Profile"), profile)); content.Children.Add(priority); content.Children.Add(enabled); content.Children.Add(error);
+        content.Children.Add(identity);
+        content.Children.Add(Button(L.T("Browse executable"), async (_, _) =>
+        {
+            try
+            {
+                var files = await LocalMediaFilePicker.PickExecutableAsync(WinRT.Interop.WindowNative.GetWindowHandle(this), L.T("Choose executable"));
+                if (files.Length > 0) identity.Text = files[0];
+            }
+            catch (Exception ex) { error.Text = L.T("Could not open file picker."); _log.Write("profiles", "Executable picker failed", ex); }
+        }));
+        if (owner is null) content.Children.Add(Labeled(L.T("Profile"), profile));
+        content.Children.Add(priority); content.Children.Add(enabled); content.Children.Add(error);
         var dialog = Dialog(existing is null ? L.T("Add application rule") : L.T("Edit application rule"), content);
         dialog.PrimaryButtonClick += async (_, args) =>
         {
             var value = identity.Text.Trim();
             if (value.Length == 0 || value.Length > 32768 || value.IndexOfAny(['*', '?', '"', '\0']) >= 0 || !double.IsFinite(priority.Value))
             { error.Text = L.T("Enter an exact executable name or path and a valid priority."); args.Cancel = true; return; }
-            var rule = new AppRule(value, Enum.Parse<Profile>((string)profile.SelectedItem), (int)priority.Value, enabled.IsOn);
+            var rule = new AppRule(value, ParseProfile((string)profile.SelectedItem), (int)priority.Value, enabled.IsOn);
             var deferral = args.GetDeferral();
             try
             {
@@ -144,7 +99,7 @@ public sealed partial class MainWindow
         static string KindLabel(ActionKind value) => value == ActionKind.ToggleHalo ? "Toggle Nagi" : value.ToString();
         var kind = Select(kinds.Select(KindLabel), KindLabel(existing?.Kind ?? ActionKind.Folder), "Action type");
         var target = new TextBox { Header = L.T("Target"), Text = existing?.Target ?? "", PlaceholderText = L.T("Absolute path, URL, or profile name") };
-        var filter = Select(new[] { "All profiles" }.Concat(ProfileWorkspaces.Profiles.Select(p => p.ToString())), existing?.Profile?.ToString() ?? "All profiles", "Visible in profile");
+        var filter = Select(new[] { "All profiles" }.Concat(ViewModel.Settings.Profiles.Select(ViewModel.Settings.ProfileName)), existing?.Profile is { } filterProfile ? ViewModel.Settings.ProfileName(filterProfile) : "All profiles", "Visible in profile");
         var error = Note(""); var content = Stack();
         content.Children.Add(label); content.Children.Add(Labeled(L.T("Action type"), kind)); content.Children.Add(target);
         content.Children.Add(Note(L.T("Application: local .exe, no arguments. Profile: Default, Work, Gaming, Stream or Focus. Toggle Nagi: leave target empty. Scripts and command hosts are blocked.")));
@@ -153,8 +108,10 @@ public sealed partial class MainWindow
         dialog.PrimaryButtonClick += async (_, args) =>
         {
             var action = new QuickAction(label.Text.Trim(), kinds[kind.SelectedIndex], target.Text.Trim(),
-                filter.SelectedIndex == 0 ? null : Enum.Parse<Profile>((string)filter.SelectedItem));
-            var validation = ActionValidator.Validate(action);
+                filter.SelectedIndex == 0 ? null : ParseProfile((string)filter.SelectedItem));
+            if (action.Kind == ActionKind.Profile && ViewModel.Settings.Profiles.Any(p => ViewModel.Settings.ProfileName(p).Equals(action.Target, StringComparison.OrdinalIgnoreCase)))
+                action = action with { Target = ((int)ViewModel.Settings.Profiles.First(p => ViewModel.Settings.ProfileName(p).Equals(action.Target, StringComparison.OrdinalIgnoreCase))).ToString() };
+            var validation = ActionValidator.Validate(action, ViewModel.Settings);
             if (!validation.Success) { error.Text = validation.Message; args.Cancel = true; return; }
             var deferral = args.GetDeferral();
             try
@@ -172,15 +129,29 @@ public sealed partial class MainWindow
         var appearance = Stack();
         appearance.Children.Add(Heading(L.T("Appearance & placement")));
         var theme = Select(new[] { "Glass (system)", "Akeno", "Dark", "Light" }, ViewModel.Settings.Theme == "System" ? "Glass (system)" : ViewModel.Settings.Theme, "Theme");
-        theme.SelectionChanged += async (_, _) => { if (theme.SelectedItem is string selected) await CommitAsync(s => s with { Theme = selected == "Glass (system)" ? "System" : selected }); };
+        theme.SelectionChanged += async (_, _) =>
+        {
+            if (theme.SelectedItem is string selected && await CommitAsync(s => s with
+                { Theme = selected == "Glass (system)" ? "System" : selected, GlassEnabled = selected == "Glass (system)" || s.GlassEnabled })) BuildSettingsPage();
+        };
         appearance.Children.Add(Labeled(L.T("Theme"), theme));
-        BuildNotchAppearance(appearance);
-        appearance.Children.Add(Toggle(L.T("Translucent glass"), L.T("Native acrylic follows Windows transparency and contrast preferences."), ViewModel.Settings.GlassEnabled, (s, v) => s with { GlassEnabled = v }));
+        var glass = Toggle(L.T("Translucent glass"), L.T("Native acrylic follows Windows transparency and contrast preferences."), Themes.AppAppearance.UsesGlass(ViewModel.Settings), (s, v) => s with { GlassEnabled = v });
+        if (ViewModel.Settings.Theme != "System") appearance.Children.Add(glass);
         appearance.Children.Add(Note(L.T("Glass follows Windows light and dark mode. Native transparency respects Windows accessibility preferences.")));
+        SettingsPage.Children.Add(Card(appearance));
+        BuildVisualizerSettings();
+        var color = Stack(); BuildBackgroundAppearance(color);
+        if (color.Children.Count > 0) SettingsPage.Children.Add(Card(color));
+        appearance = Stack();
+        if (ViewModel.Settings.Theme == "Akeno")
+        {
         var background = Select(new[] { "Samurai", "Gradient", "None" }, ViewModel.Settings.AkenoBackground, "Akeno background");
         background.SelectionChanged += async (_, _) => { if (background.SelectedItem is string selected) await CommitAsync(s => s with { AkenoBackground = selected }); };
         appearance.Children.Add(Labeled(L.T("Akeno background · choose None to hide"), background));
         appearance.Children.Add(Note(L.T("The generated samurai artwork appears behind expanded Akeno panels. Choose Gradient for a simple red wash.")));
+        SettingsPage.Children.Add(Card(appearance)); appearance = Stack();
+        }
+        appearance.Children.Add(Heading(L.T("Dock & display")));
         var orientation = Select(new[] { "Vertical", "Horizontal" }, ViewModel.Settings.Position.Orientation, "Dock layout");
         orientation.SelectionChanged += async (_, _) =>
         {
@@ -211,6 +182,10 @@ public sealed partial class MainWindow
     private void BuildBehaviorSettings()
     {
         var behavior = Stack(); behavior.Children.Add(Heading(L.T("Behavior")));
+        var cadence = Select(["Display", "Efficiency"], ViewModel.Settings.AnimationMode, "Animation mode");
+        cadence.SelectionChanged += async (_, _) => { if (cadence.SelectedItem is string mode) await CommitAsync(s => s with { AnimationMode = mode }); };
+        behavior.Children.Add(Labeled(L.T("Animation mode"), cadence));
+        behavior.Children.Add(Note(L.T("Display follows your monitor refresh rate, up to 240 Hz. Efficiency caps transitions at 60 Hz. Animations stop when settled.")));
         behavior.Children.Add(Toggle(L.T("Dismiss when clicking outside"), L.T("Keep the panel open by turning this off."), ViewModel.Settings.CloseOnDeactivate, (s, v) => s with { CloseOnDeactivate = v }));
         behavior.Children.Add(Toggle(L.T("Hide over fullscreen apps"), L.T("Applies to any fullscreen app; does not change profile rules."), ViewModel.Settings.HideInFullscreen, (s, v) => s with { HideInFullscreen = v }));
         behavior.Children.Add(Toggle(L.T("Open expanded on startup"), L.T("Default is a small water drop attached to the screen edge."), ViewModel.Settings.StartExpanded, (s, v) => s with { StartExpanded = v }));
@@ -266,7 +241,7 @@ public sealed partial class MainWindow
         diagnostics.Children.Add(Note(L.T("Settings: ") + _settings.FilePath + L.T("\nActivity log: ") + _log.FilePath + L.T("\nError log: ") + _log.ErrorFilePath));
         diagnostics.Children.Add(Button(L.T("Open activity log"), (_, _) => Report(ActionLauncher.Launch(new("Activity log", ActionKind.File, _log.FilePath)))));
         diagnostics.Children.Add(Button(L.T("Open error log"), (_, _) => Report(ActionLauncher.Launch(new("Error log", ActionKind.File, _log.ErrorFilePath)))));
-        diagnostics.Children.Add(Note(L.F($"Audio refresh: 50 ms · Signal meter: {(ViewModel.Audio.Peak.HasValue ? "available" : "unavailable")} · Frames: {_audioFrameCount}")));
+        diagnostics.Children.Add(Note(L.F($"Audio refresh: {Volatile.Read(ref _runtimeDemand).AudioIntervalMs} ms · Signal meter: {(ViewModel.Audio.Peak.HasValue ? "available" : "unavailable")} · Frames: {_audioFrameCount}")));
         diagnostics.Children.Add(Note(L.T("Media artwork: ") + (_artwork is { Length: > 0 } ? L.T("provided by media app") : L.T("not provided by the current session"))));
         diagnostics.Children.Add(Button(L.T("Open Nagi data folder"), (_, _) => Report(ActionLauncher.Launch(new("Nagi data", ActionKind.Folder, Path.GetDirectoryName(_settings.FilePath)!)))));
         diagnostics.Children.Add(Button(L.T("Refresh diagnostics"), (_, _) => BuildSettingsPage()));

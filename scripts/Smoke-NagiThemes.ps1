@@ -1,8 +1,10 @@
 param([Parameter(Mandatory)][string]$ExecutablePath,
  [ValidateSet('Horizontal','Vertical')][string]$Orientation='Horizontal',
  [ValidateSet('Top edge','Bottom edge','Left edge','Right edge')][string]$Anchor='Bottom edge',
- [ValidateRange(1,10)][int]$Cycles=3,[switch]$Animated)
+ [ValidateRange(1,10)][int]$Cycles=3,[switch]$Animated,[switch]$NotchReference,[switch]$AppCaptureOnly,[switch]$ReferenceOnly,[switch]$GlassTransmission)
 $ErrorActionPreference='Stop'
+if($ReferenceOnly -and !$NotchReference){throw '-ReferenceOnly requires -NotchReference'}
+if($GlassTransmission -and $AppCaptureOnly){throw '-GlassTransmission requires desktop capture; PrintWindow does not capture the background behind acrylic'}
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Drawing
@@ -38,8 +40,12 @@ function Find([string]$Value,[switch]$Id,[switch]$Optional){
 }
 function Invoke([string]$Name){(Find $Name).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 450}
 function Select-Workspace([string]$Id,[string]$Value){
- $combos=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ComboBox))
- $combo=$combos|Where-Object {$_.Current.AutomationId -eq $Id -or $_.Current.Name -eq $Id}|Select-Object -First 1
+ $combo=$null
+ for($attempt=0;$attempt -lt 30 -and !$combo;$attempt++){
+  $combos=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ComboBox))
+  $combo=$combos|Where-Object {$_.Current.AutomationId -eq $Id -or $_.Current.Name -eq $Id}|Select-Object -First 1
+  if(!$combo){Start-Sleep -Milliseconds 100}
+ }
  if(!$combo){throw ('Missing combo '+$Id)}
  $combo.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Milliseconds 150
  $choice=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.AndCondition]::new([Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$Value),[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsSelectionItemPatternAvailableProperty,$true)))
@@ -53,6 +59,7 @@ function Snapshot([string]$Name){
  $bitmap.Save((Join-Path $qaDirectory ($Name+'.png')));$g.Dispose();$bitmap.Dispose()
 }
 function Test-DropBackground([string]$Name){
+ if($AppCaptureOnly){Snapshot ($Name+'-window');Write-Output ('SKIP desktop composition: '+$Name+' (app-window capture mode)');return}
  $r=[WorkspaceSmokeNative+Rect]::new();[WorkspaceSmokeNative]::GetWindowRect($handle,[ref]$r)|Out-Null
  $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top
  $back=[Windows.Forms.Form]::new();$back.FormBorderStyle='None';$back.StartPosition='Manual';$back.ShowInTaskbar=$false;$back.TopMost=$true
@@ -78,6 +85,71 @@ function Test-DropBackground([string]$Name){
   }finally{$g.Dispose();$bitmap.Dispose()}
  }finally{[WorkspaceSmokeNative]::DeleteObject($region)|Out-Null;$back.Close();$back.Dispose()}
 }
+function Test-NotchReference {
+ if($Orientation -ne 'Horizontal'){throw 'The notch reference check requires a horizontal dock'}
+ $r=[WorkspaceSmokeNative+Rect]::new();[WorkspaceSmokeNative]::GetWindowRect($handle,[ref]$r)|Out-Null
+ $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top
+ $back=[Windows.Forms.Form]::new();$back.FormBorderStyle='None';$back.StartPosition='Manual';$back.ShowInTaskbar=$false;$back.TopMost=$true
+ $back.BackColor=[Drawing.Color]::FromArgb(8,8,9);$back.Bounds=[Drawing.Rectangle]::new($r.Left-16,$r.Top-16,$w+32,$h+32)
+ $region=[WorkspaceSmokeNative]::CreateRectRgn(0,0,0,0)
+ try{
+  $back.Show();[Windows.Forms.Application]::DoEvents();[WorkspaceSmokeNative]::SetWindowPos($handle,[IntPtr](-1),0,0,0,0,0x13)|Out-Null
+  Start-Sleep -Milliseconds 600
+  [WorkspaceSmokeNative]::GetWindowRgn($handle,$region)|Out-Null
+  $bitmap=[Drawing.Bitmap]::new($w,$h);$g=[Drawing.Graphics]::FromImage($bitmap)
+  try{
+   if($AppCaptureOnly){$dc=$g.GetHdc();try{[WorkspaceSmokeNative]::PrintWindow($handle,$dc,2)|Out-Null}finally{$g.ReleaseHdc($dc)}}
+   else{$g.CopyFromScreen($r.Left,$r.Top,0,0,[Drawing.Size]::new($w,$h))}
+   $bitmap.Save((Join-Path $qaDirectory 'reference-notch-dark.png'))
+   $logoLeft=$w;$logoRight=0;$logoTop=$h;$logoBottom=0;$red=0;$brightEdges=0;$samples=0
+   for($x=0;$x -lt $w;$x++){for($y=0;$y -lt $h;$y++){
+    $pixel=$bitmap.GetPixel($x,$y)
+    if($pixel.R -gt 150 -and $pixel.R -gt 2*$pixel.G -and $pixel.R -gt 2*$pixel.B){
+     $red++;$logoLeft=[Math]::Min($logoLeft,$x);$logoRight=[Math]::Max($logoRight,$x);$logoTop=[Math]::Min($logoTop,$y);$logoBottom=[Math]::Max($logoBottom,$y)
+    }
+   }}
+   for($x=6;$x -lt $w-6;$x+=3){
+    $edgeY=if($Anchor -eq 'Top edge'){$h-1}else{0};$step=if($Anchor -eq 'Top edge'){-1}else{1}
+    while($edgeY -ge 0 -and $edgeY -lt $h -and ![WorkspaceSmokeNative]::PtInRegion($region,$x,$edgeY)){$edgeY+=$step}
+    $innerY=$edgeY+4*$step
+    if($innerY -lt 0 -or $innerY -ge $h){continue}
+    $edge=$bitmap.GetPixel($x,$edgeY);$inner=$bitmap.GetPixel($x,$innerY)
+    $samples++;if(($edge.R+$edge.G+$edge.B-$inner.R-$inner.G-$inner.B)/3 -gt 14){$brightEdges++}
+   }
+   if($red -lt 8){throw 'The centered red notch logo is missing'}
+   if([Math]::Abs(($logoLeft+$logoRight)/2-$w/2) -gt 3){throw 'The notch logo is not horizontally centered'}
+   $expectedY=if($Anchor -eq 'Top edge'){.65*$h}else{.35*$h}
+   if([Math]::Abs(($logoTop+$logoBottom)/2-$expectedY) -gt 4){throw 'The notch logo is misplaced inside the dip'}
+   Write-Output ('Notch reference: '+$red+' red logo pixels; '+$brightEdges+' bright border samples / '+$samples)
+   if($samples -lt 20 -or $brightEdges -gt 0){throw 'A white or gray rim remains on the notch'}
+  }finally{$g.Dispose();$bitmap.Dispose()}
+ }finally{[WorkspaceSmokeNative]::DeleteObject($region)|Out-Null;$back.Close();$back.Dispose()}
+}
+function Test-GlassTransmission([string]$Name) {
+ $r=[WorkspaceSmokeNative+Rect]::new();[WorkspaceSmokeNative]::GetWindowRect($handle,[ref]$r)|Out-Null
+ $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top
+ $back=[Windows.Forms.Form]::new();$back.FormBorderStyle='None';$back.StartPosition='Manual';$back.ShowInTaskbar=$false;$back.TopMost=$true
+ $back.Bounds=[Drawing.Rectangle]::new($r.Left,$r.Top,$w,$h)
+ $signals=@()
+ try{
+  foreach($color in @([Drawing.Color]::FromArgb(240,40,60),[Drawing.Color]::FromArgb(30,70,235))){
+   $back.BackColor=$color;$back.Show();[Windows.Forms.Application]::DoEvents()
+   [WorkspaceSmokeNative]::SetWindowPos($handle,[IntPtr](-1),0,0,0,0,0x13)|Out-Null
+   Start-Sleep -Milliseconds 700
+   $bitmap=[Drawing.Bitmap]::new($w,$h);$g=[Drawing.Graphics]::FromImage($bitmap)
+   try{
+    $g.CopyFromScreen($r.Left,$r.Top,0,0,[Drawing.Size]::new($w,$h))
+    $bitmap.Save((Join-Path $qaDirectory ('glass-'+$Name+'-'+$signals.Count+'.png')))
+    $signal=0
+    for($x=[int]($w/2)-10;$x -lt [int]($w/2)+10;$x++){for($y=8;$y -lt 16;$y++){$pixel=$bitmap.GetPixel($x,$y);$signal+=$pixel.R-$pixel.B}}
+    $signals+=($signal/160)
+   }finally{$g.Dispose();$bitmap.Dispose()}
+  }
+  $difference=$signals[0]-$signals[1]
+  Write-Output ('Glass background response '+$Name+': '+[Math]::Round($difference,1))
+  if($difference -lt 8){throw ('Glass does not transmit the background, or composition capture is unavailable: '+$Name)}
+ }finally{$back.Close();$back.Dispose()}
+}
 function Test-LightSurface {
  $r=[WorkspaceSmokeNative+Rect]::new();[WorkspaceSmokeNative]::GetWindowRect($handle,[ref]$r)|Out-Null
  $w=$r.Right-$r.Left;$h=$r.Bottom-$r.Top
@@ -88,11 +160,13 @@ function Test-LightSurface {
   Start-Sleep -Milliseconds 500
   $bitmap=[Drawing.Bitmap]::new($w,$h);$g=[Drawing.Graphics]::FromImage($bitmap)
   try{
-   $g.CopyFromScreen($r.Left,$r.Top,0,0,[Drawing.Size]::new($w,$h));$bitmap.Save((Join-Path $qaDirectory 'light-desktop.png'))
+   if($AppCaptureOnly){$dc=$g.GetHdc();try{[WorkspaceSmokeNative]::PrintWindow($handle,$dc,2)|Out-Null}finally{$g.ReleaseHdc($dc)}}
+   else{$g.CopyFromScreen($r.Left,$r.Top,0,0,[Drawing.Size]::new($w,$h))}
+   $bitmap.Save((Join-Path $qaDirectory $(if($AppCaptureOnly){'light-window.png'}else{'light-desktop.png'})))
    $brightness=0
    for($x=[int]($w/2)-10;$x -lt [int]($w/2)+10;$x++){for($y=8;$y -lt 16;$y++){$pixel=$bitmap.GetPixel($x,$y);$brightness+=($pixel.R+$pixel.G+$pixel.B)/3}}
    $brightness/=160
-   Write-Output ('Light surface over a black background: '+[Math]::Round($brightness,1)+'/255')
+   Write-Output ('Light surface '+$(if($AppCaptureOnly){'in window capture'}else{'over a black background'})+': '+[Math]::Round($brightness,1)+'/255')
    if($brightness -lt 200){throw 'Light surface is too dark to support dark text'}
   }finally{$g.Dispose();$bitmap.Dispose()}
  }finally{$back.Close();$back.Dispose()}
@@ -105,6 +179,12 @@ try{
  Snapshot 'resting-before'
  Test-DropBackground 'resting-before'
  Invoke 'Reveal Nagi';Invoke 'Open Nagi control center';Invoke 'Settings';Invoke 'Appearance & dock settings'
+ if($NotchReference){
+  Select-Workspace 'Theme' 'Dark';Invoke 'Collapse Nagi';[WorkspaceSmokeNative]::SetCursorPos(10,10)|Out-Null;Start-Sleep -Milliseconds 1200
+  Test-NotchReference
+  if($ReferenceOnly){Write-Output ('PASS: notch reference. Profile: '+$qaDirectory);return}
+  Invoke 'Reveal Nagi';Invoke 'Open Nagi control center';Invoke 'Settings';Invoke 'Appearance & dock settings'
+ }
  $transitions=0
  foreach($cycle in 1..$Cycles){
   foreach($theme in @('Light','Dark','Light','Akeno','Light','Glass (system)','Dark','Akeno','Dark','Glass (system)')){
@@ -121,6 +201,7 @@ try{
   Select-Workspace 'Theme' $theme
   $transitions++
   Snapshot ('expanded-'+$theme)
+  if($GlassTransmission){Test-GlassTransmission $theme}
   if($theme -eq 'Light'){Test-LightSurface}
   Invoke 'Quick search'
   $search=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$qaProcess.Id))|Where-Object {$_.Current.Name -eq 'Nagi · Quick search'}|Select-Object -First 1
@@ -132,6 +213,7 @@ try{
   Test-DropBackground ('resting-'+$theme)
   Invoke 'Reveal Nagi';Invoke 'Open Nagi control center';Invoke 'Settings';Invoke 'Appearance & dock settings'
  }
+ Select-Workspace 'Theme' 'Dark'
  (Find 'Translucent glass').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 400
  foreach($theme in @('Light','Dark','Akeno','Light')){Select-Workspace 'Theme' $theme;$transitions++}
  Invoke 'Collapse Nagi';Start-Sleep -Milliseconds 1200;Test-DropBackground 'resting-glass-off'

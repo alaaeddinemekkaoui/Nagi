@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Pulse.Core;
 
 namespace Pulse.App;
@@ -9,16 +10,16 @@ public sealed partial class MainWindow
     private bool? _horizontalRail;
     private double _railExtent;
     private double RequestedRailExtent => DockPresentation.RailExtent(ViewModel.Settings.Workspace(ViewModel.Profile),
-        ViewModel.Settings.Position.Orientation == "Horizontal", ViewModel.Settings.ShowMedia, ViewModel.Settings.WeatherEnabled, ViewModel.Metrics.Power);
+        ViewModel.Settings.Position.Orientation == "Horizontal", ViewModel.Settings.ShowMedia, ViewModel.Settings.WeatherEnabled, ViewModel.Metrics.Power, _timer.Active, TimerDisplayText.Length);
     private void ConfigureRail(bool horizontal)
     {
         if (_horizontalRail == horizontal) return;
         _horizontalRail = horizontal;
         Compact.RowDefinitions.Clear(); Compact.ColumnDefinitions.Clear();
         var buttons = new FrameworkElement[] { CompactBrand, RailSearchButton, ProfileDockPanel, CompactCpuButton, RailGpuButton,
-            CompactMediaButton, RailObsButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
-        var widths = new[] { 32d, 32, double.NaN, 48, 48, 168, 32, 30, 44, 44 };
-        var heights = new[] { 32d, 32, double.NaN, 38, 38, 50, 32, 30, 38, 38 };
+            CompactMediaButton, CompactTimerButton, RailObsButton, RailMicrophoneButton, RailWeatherButton, CompactBatteryButton };
+        var widths = new[] { 32d, 32, double.NaN, 48, 48, 200, 48, 32, 30, 44, 44 };
+        var heights = new[] { 32d, 32, double.NaN, 38, 38, 50, 38, 32, 30, 38, 38 };
         for (var i = 0; i < buttons.Length; i++)
         {
             Grid.SetRow(buttons[i], horizontal ? 0 : i); Grid.SetColumn(buttons[i], horizontal ? i : 0);
@@ -38,7 +39,7 @@ public sealed partial class MainWindow
         Compact.RowSpacing = Compact.ColumnSpacing = 0;
         CompactCpuButton.Padding = RailGpuButton.Padding = new(3, 0, 3, 0);
         if (!horizontal) RailObsButton.Padding = RailWeatherButton.Padding = CompactBatteryButton.Padding = new(0);
-        RailWeatherValue.FontSize = horizontal ? 11 : 10;
+        RailWeatherValue.FontSize = horizontal ? 12 : 11;
         AppFolderButton.Height = horizontal ? 36 : 32; AppFolderButton.MinHeight = 0;
         ProfileDockPanel.Height = double.NaN; ProfileDockPanel.VerticalAlignment = VerticalAlignment.Center;
         ProfileDockPanel.Spacing = 4;
@@ -57,11 +58,21 @@ public sealed partial class MainWindow
         CompactMediaStatus.HorizontalAlignment = horizontal ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
         CompactMediaStatus.VerticalAlignment = VerticalAlignment.Center;
         CompactTrackTitle.HorizontalAlignment = CompactSecondaryValue.HorizontalAlignment = HorizontalAlignment.Left;
-        CompactTrackTitle.MaxWidth = 90;
-        CompactArtworkHost.Width = CompactArtworkHost.Height = 26;
+        CompactTrackTitle.MaxWidth = 110;
+        CompactArtworkHost.Width = CompactArtworkHost.Height = horizontal ? 34 : 30;
+        CompactMediaButton.CornerRadius = new(13);
         CompactMusicVisualizer.Visibility = CompactSecondaryLabel.Visibility = Visibility.Collapsed;
         CompactAudioValue.MinWidth = horizontal ? 34 : 0;
         CompactAudioValue.TextAlignment = TextAlignment.Center;
+        CompactAudioValue.FontSize = horizontal ? 12 : 10;
+        CompactTimerValue.FontSize = horizontal ? 12 : 11;
+        CompactTimerButton.Padding = horizontal ? new(4) : new(0);
+        CompactTimerContents.RowDefinitions.Clear(); CompactTimerContents.ColumnDefinitions.Clear();
+        CompactTimerContents.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        CompactTimerContents.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        CompactTimerContents.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        Grid.SetRow(CompactTimerIcon, 1); Grid.SetColumn(CompactTimerIcon, 0);
+        Grid.SetRow(CompactTimerValue, 0); Grid.SetColumn(CompactTimerValue, 0);
         RailViewport.HorizontalScrollBarVisibility = RailViewport.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
         RailViewport.HorizontalScrollMode = RailViewport.VerticalScrollMode = ScrollMode.Disabled;
         RailViewport.ZoomMode = ZoomMode.Disabled;
@@ -81,18 +92,31 @@ public sealed partial class MainWindow
         ConfigureRail(horizontal);
         _railExtent = RequestedRailExtent;
         RailViewport.Visibility = resting ? Visibility.Collapsed : Visibility.Visible;
-        EdgeDrop.Width = horizontal ? 132 : 18; EdgeDrop.Height = horizontal ? 18 : 132;
+        EdgeDrop.Width = Math.Min(width, HasRestingActivity ? _restingWidth : horizontal ? DockPresentation.HorizontalNotchWidth : 18);
+        EdgeDrop.Height = Math.Min(height, HasRestingActivity ? _restingHeight : horizontal ? DockPresentation.HorizontalNotchHeight : 132);
+        ConfigureRestingActivity(horizontal);
+        RestingContents.RenderTransform = new TranslateTransform
+        {
+            X = HasRestingActivity || horizontal ? 0 : (position.Anchor == "Left edge" ? 1 : -1) * EdgeDrop.Width * .15,
+            Y = !HasRestingActivity && horizontal ? (position.Anchor == "Top edge" ? 1 : -1) * EdgeDrop.Height * .12 : 0
+        };
+        NotchMark.Width = NotchMark.Height = horizontal ? 16 : 14;
+        NotchMark.RenderTransform = new TranslateTransform
+        {
+            X = 0, Y = 0
+        };
         Compact.MinWidth = Compact.MinHeight = 0;
         if (horizontal)
         {
             var top = position.Anchor == "Top edge";
             var terse = !resting && width < _railExtent - 1;
-            CompactMediaButton.Width = terse ? 72 : 168;
+            CompactMediaButton.Width = terse ? 72 : 200;
+            CompactTimerButton.Width = DockPresentation.TimerRailWidth(TimerDisplayText.Length);
             CompactMediaButton.Padding = terse ? new(2, 0, 2, 0) : new(4);
             CompactMediaContents.ColumnSpacing = terse ? 2 : 6;
             CompactMediaStatus.Visibility = terse ? Visibility.Collapsed : Visibility.Visible;
             CompactTrackTitle.Visibility = Visibility.Visible;
-            Compact.Width = Math.Max(1, _railExtent - (terse ? 96 : 0)); Compact.Height = DockPresentation.HorizontalHeight;
+            Compact.Width = Math.Max(1, _railExtent - (terse ? 128 : 0)); Compact.Height = DockPresentation.HorizontalHeight;
             RailViewport.Width = width; RailViewport.Height = DockPresentation.HorizontalHeight;
             RailViewport.HorizontalAlignment = HorizontalAlignment.Center;
             RailViewport.VerticalAlignment = top ? VerticalAlignment.Top : VerticalAlignment.Bottom;
@@ -105,6 +129,7 @@ public sealed partial class MainWindow
         }
         else
         {
+            CompactMediaButton.Height = 50;
             var left = position.Anchor == "Left edge";
             Compact.Width = DockPresentation.VerticalWidth; Compact.Height = _railExtent;
             CompactMediaButton.Padding = new(4, 2, 4, 2);
@@ -121,6 +146,17 @@ public sealed partial class MainWindow
         }
         EdgeDrop.IsHitTestVisible = resting; Compact.IsHitTestVisible = !resting;
         ApplyWorkspaceVisibility();
+        UpdateCompactMediaPresentation();
         DockPinIndicator.Visibility = _dock.Pinned ? Visibility.Visible : Visibility.Collapsed;
+    }
+    private void UpdateCompactMediaPresentation()
+    {
+        var horizontal = ViewModel.Settings.Position.Orientation == "Horizontal";
+        var playing = horizontal && ViewModel.Settings.ShowMedia && ViewModel.Media.Playing
+            && ViewModel.Settings.Workspace(ViewModel.Profile).Shows("Media") && CompactMediaStatus.Visibility == Visibility.Visible;
+        CompactMusicVisualizer.Width = 24; CompactMusicVisualizer.Height = 18;
+        CompactMusicVisualizer.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
+        CompactAudioValue.Visibility = playing ? Visibility.Collapsed : Visibility.Visible;
+        CompactMediaButton.Background = ThemeBrush(ViewModel.Media.Available ? "SurfaceBrush" : "InsetBrush");
     }
 }

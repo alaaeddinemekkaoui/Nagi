@@ -9,6 +9,7 @@ public sealed class ContextEngine : IContextEngine
 
     public Profile Evaluate(ForegroundApplication application, PulseSettings settings, DateTimeOffset now)
     {
+        if (!ProfileWorkspaces.IsKnown(Current, settings.CustomProfiles)) Current = settings.DefaultProfile;
         if (settings.LockedProfile is { } locked)
         {
             _candidate = null;

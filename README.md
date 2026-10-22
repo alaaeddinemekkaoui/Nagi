@@ -3,141 +3,157 @@
   <h1>Nagi</h1>
   <p><strong>A little space. More control.</strong></p>
   <p>A glass desktop companion for Windows 11. Your apps, music and useful information, tucked into the edge of your screen.</p>
-  <p><strong>v0.1.2 · Windows 11 x64</strong> · Portable EXE / ZIP · EXE installer · No account required</p>
-  <p><a href="#download">Download</a> · <a href="#make-yourself-at-home">First launch</a> · <a href="#your-desktop-your-rhythm">Features</a> · <a href="docs/USER-GUIDE.md">Full guide</a></p>
+  <p><a href="https://github.com/alaaeddinemekkaoui/Nagi/releases/latest"><strong>Latest release · Windows 11 x64</strong></a> · Portable EXE / ZIP · EXE installer · No account required</p>
+  <p><a href="https://nagi-notch.vercel.app">Interactive website</a> · <a href="#download">Download</a> · <a href="#see-what-nagi-can-do">Features</a> · <a href="https://nagi-notch.vercel.app/roadmap">Roadmap</a> · <a href="docs/USER-GUIDE.md">Full guide</a></p>
 </div>
 
 ---
 
-## Download
+## See what Nagi can do
 
-| Run it your way | Download | What to do |
+Nagi stays small until you need it. Hover the screen-edge drop for your dock, hover a widget for its controls, or click the logo for a resizable control center. The floating navigation brings **Overview, Profiles, Utilities and Settings** together.
+
+<p align="center"><img src="docs/images/nagi-utilities.png" width="960" alt="Nagi v0.2 Utilities window with floating navigation, a circular 25-minute timer and live city weather"></p>
+
+Explore the [interactive feature tour](https://nagi-notch.vercel.app). Try the timer, music, profiles and four themes in your browser, then download at the end. Website previews illustrate the controls; the native app screenshots below show Nagi itself.
+
+### 01 · The notch
+
+A tiny edge-connected drop at rest. A compact live notch when a timer is running or music is playing. Its rounded silhouette fits the content, follows the app theme and expands smoothly into the dock. Top and bottom activity is horizontal; left and right activity stays vertical.
+
+| At rest | Timer running | Timer finished |
 | --- | --- | --- |
-| **Portable EXE** | [Nagi-Portable.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Portable.exe) | Open directly. The bundled app files are prepared automatically; no installation is needed. |
-| **Portable ZIP** | [Nagi-win-x64.zip](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-win-x64.zip) | Extract the whole folder, then open **Nagi.exe**. Keep its files together. |
-| **Install** | [Nagi-Setup.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Setup.exe) | Run setup, then open Nagi from Start. Installs for your Windows user without administrator rights. |
+| <img src="docs/images/nagi-teardrop.png" width="156" alt="Tiny resting Nagi drop"> | <img src="docs/images/nagi-timer-running.png" width="156" alt="Native live timer notch counting down without hovering"> | <img src="docs/images/nagi-timer-complete.png" width="156" alt="Native timer notch displaying a green check and 00:00 after completion"> |
 
-[Open the Nagi v0.1.2 release](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest) for all downloads and SHA256 checksums. Windows 11 **22H2 or newer**, x64. The runtime is included. The app and installer are unsigned.
+Keep live activity visible without hovering, or disable it for a quieter desktop. A brief green check and **00:00** still appear when a hidden timer finishes.
 
-## Make yourself at home
+### 02 · Utilities and focus timer
 
-Welcome appears on your **first launch**:
+Open **Utilities** for a circular timer and city weather. Start, pause, resume or reset the same countdown that appears in your dock and notch. The progress ring is native vector geometry, with no continuous rendering loop.
 
-1. Enjoy the drawn **Nagi / ナギ** greeting, then continue to choose your language. Nagi starts in your Windows language; you can switch before setup.
-2. Choose the name Nagi greets you with. It stays on this PC.
-3. Pick a theme, **vertical or horizontal** layout, and your screen edge.
-4. Connect local OBS, or skip it.
-5. Choose a weather city and units, or skip weather.
+Set **minutes and automatic start inside each profile**. Focus has a 30-minute default. Utilities also offers **Show timer widget** for the active profile. Hover the enabled timer widget for its circular controls; clicking it opens Utilities. An active timer keeps running when you change profiles. Closing Nagi cancels it.
 
-Finish saves your choices. Nagi takes its place at the edge, dims the surrounding screen, and introduces your tiny desktop buddy. **Hover the uncovered drop** or press **Okay, tiny desk buddy!** to carry on. Please do not water it.
+Weather is optional. Choose a city and Celsius/Fahrenheit under Weather settings; Utilities shows its current conditions. Nagi uses Open-Meteo with GeoNames city search, without GPS or IP geolocation.
+
+### 03 · Music and audio
+
+See artwork and measured audio bars in the live notch. The dock keeps a rounded artwork/title/playback card, with a small visualizer while music plays. Long titles expand on hover. The bar count adapts to available space so audio graphics stay inside the widget.
+
+<p><img src="docs/images/nagi-media-notch.png" width="156" alt="Compact native music notch with a silent development visualizer preview"></p>
+
+- Control supported **Windows media sessions**, with available artwork, play/pause and previous/next commands.
+- Open **local music and video**, including multiple-file queues, under Settings → Music. Supported formats depend on Windows codecs.
+- Choose **Windows accent or custom color** for rounded audio bars in Music or Appearance settings.
+- When nothing is playing, open **Spotify, YouTube Music or Apple Music**. Pick a preferred service to show only that one.
+- Volume, output-device selection, mute and microphone controls stay close by. The dock timer has its own place, separate from volume.
+
+Media support depends on the source player. Audio meters do not save or transmit raw audio.
+
+### 04 · Dock and profiles
+
+A compact **single-row dock without scrolling**. CPU/GPU values sit above their names; weather, battery and timer use matching stacked values and icons. Microphone, weather and battery widgets are optional. Battery appears only when a physical battery is detected.
+
+<p><img src="docs/images/nagi-dock.png" width="760" alt="Nagi horizontal dock with aligned controls and separate stacked weather and timer widgets"></p>
+
+Up to **two app shortcuts** appear directly. More apps share a **folder that expands on hover or click**, with a maximum of four apps per row. Apps open when clicked; optional app launching is limited to explicit manual profile activation.
+
+<p><img src="docs/images/nagi-app-folder.png" width="625" alt="Nagi folder expands grouped app shortcuts above the dock"></p>
+
+Choose **Default, Work, Gaming, Stream, Focus**, or create your own named profiles. Open a profile card to choose apps, visible widgets, timer duration and **When to activate** executable rules. Automatic detection follows the foreground executable. Manual selections stay locked until you choose **Use automatic profiles**.
+
+<p><img src="docs/images/nagi-profiles.png" width="880" alt="Current Nagi Profiles page with editable workspace cards and activation controls"></p>
+
+Default starts without apps, with search, CPU/GPU and now playing. Work and Gaming suggest useful installed apps. Stream can show an OBS shortcut, **recording/streaming hover controls and three scene buttons**, or hide OBS entirely.
+
+### 05 · Themes and glass
+
+The dock, notch, hover panels and windows share one material. Choose **Glass, Dark, Light or Akeno**. Dark and Light offer a Windows-accent or custom background tint shared with the notch. Glass follows Windows light/dark preferences and hides separate notch color controls. Reduced motion, high contrast and Windows transparency preferences are respected.
+
+| Glass | Dark |
+| --- | --- |
+| <img src="docs/images/nagi-theme-glass.png" width="450" alt="Native Nagi system glass theme"> | <img src="docs/images/nagi-theme-dark.png" width="450" alt="Native Nagi Dark theme"> |
+| **Light** | **Akeno** |
+| <img src="docs/images/nagi-theme-light.png" width="450" alt="Native Nagi Light theme"> | <img src="docs/images/nagi-akeno.png" width="450" alt="Native Nagi Akeno theme with samurai artwork"> |
+
+Akeno offers **Samurai**, **Gradient** or **None** for the background. The full [samurai artwork](docs/images/nagi-samurai.png) is included in the repository and release assets.
 
 <details>
-<summary>Meet your tiny desk buddy</summary>
+<summary>View the Akeno samurai artwork</summary>
 
-<img src="docs/images/nagi-first-run.png" width="440" alt="Nagi first-run thank-you and dock position introduction">
+<img src="docs/images/nagi-samurai.png" width="820" alt="Nagi Akeno samurai artwork with a red moon and autumn leaves">
 
 </details>
 
-Later launches go straight to your dock. Change anything in Settings, or revisit welcome through **Settings → General → Run welcome setup**. Updates preserve your preferences and Lua scripts.
+Personalize colors, spacing, cards and labels through the native **Lua UI studio**. [Commented example](docs/examples/simple-ui.lua) · [Lua guide](docs/LUA-UI.md) · [Brand assets](docs/BRANDING.md).
 
-## Your desktop, your rhythm
+### 06 · Settings, languages and updates
 
-| | What Nagi brings |
-| --- | --- |
-| **A dock that belongs to the screen** | An edge-attached water drop, hover controls, inward-opening details and a large control center opened with one logo click. Vertical left/right or horizontal top/bottom. Native clipping removes opaque corner patches. |
-| **Workspaces that fit the moment** | Default, Work, Gaming, Stream and Focus profiles with editable app docks and independent widgets. Work suggests VS Code, Terminal and Browser; Gaming suggests Steam and Browser. Choose installed apps and optionally open them when you explicitly activate a profile. |
-| **Music and audio** | Windows media artwork and supported playback controls, a live measured output visualizer, synchronized volume/mute and speaker/headphone selection. Microphone status and mute sit below media. |
-| **Useful information** | CPU, memory, network, battery percentage and supported GPU readings. Optional city weather, temperature providers, PresentMon FPS and local OBS recording, streaming and scene controls. |
-| **Quick search** | **Alt+Space** for installed apps, indexed filenames/folders, calculations and Nagi commands. Filename indexing is optional and does not read file contents. |
-| **Glass or a little drama** | Glass follows Windows light/dark mode by default. Akeno adds Japanese black/red styling with a generated samurai background; choose **Samurai**, **Gradient** or **None**. Windows transparency, high contrast and reduced-motion preferences are respected. |
-| **Your language** | English, French, Spanish, German, Russian and Arabic, with system detection, right-to-left Arabic and editable [JSON translation files](docs/LANGUAGES.md). |
-| **Settings with a home for everything** | Category pages for general preferences, appearance, profiles, weather, hardware/studio, search, Lua, behavior and diagnostics. |
-| **A personal touch** | Lua colors, spacing, cards, labels and overview sections, with a native editor, presets, reload and validation. |
+A native **resizable Settings window**, with category cards and normal minimize/maximize/close controls. Closing it returns to the dock.
 
-<div align="center">
-  <img src="docs/images/nagi-settings.png" width="820" alt="Nagi settings organized into category cards">
-  <p><em>Pick a category. Make it yours.</em></p>
-</div>
+<p><img src="docs/images/nagi-settings.png" width="880" alt="Updated Nagi Settings categories beneath the floating Overview, Profiles, Utilities and Settings navigation"></p>
 
-### Build your workspace
+**40 offline language packs**, including Japanese, Simplified and Traditional Chinese, Korean, Arabic, English, French, Spanish, German and Russian. Welcome selects your Windows language, shows the current choice and lets you switch before continuing. Chinese regional locales resolve to the appropriate script; right-to-left languages use the proper layout direction.
 
-Open **Profiles → Customize Default / Work / Gaming / Stream / Focus**. Add or remove installed apps and choose visible widgets: Performance, Network, Media, Audio, Microphone, Weather, Studio and Battery. Up to two apps appear directly on the dock; profiles with more apps use one folder that expands on hover or click; Overview lists all configured apps in rows of up to four.
+Contributors add a **UTF-8 JSON file**, without rewriting or recompiling UI code. Packs cover the current English string keys, with English fallback for future or missing phrases. New packs begin as machine-translated drafts; native-speaker improvements are welcome. [Languages and contribution guide](docs/LANGUAGES.md).
 
-**Open apps when I activate this profile** is off by default. Turn it on for a workspace you want to launch deliberately. Startup and automatic foreground detection update the dock and widgets without opening apps. Switching away does not close your applications. Missing suggested apps can be replaced in the profile editor.
+**Settings → Updates** automatically checks and downloads verified GitHub releases. Read the latest changelog, choose now or later, then use **Install and restart** when ready. Updates preserve preferences. The website's version badge, changelog and Windows download also follow GitHub's latest published release automatically.
 
-### Dock, teardrop and app folder
+### A lighter footprint
 
-Nagi rests as a small teardrop at your screen edge. **Hover the teardrop to reveal the dock**, then hover a widget for its controls. Move away to tuck it back. Click the logo to open the control center.
+Display-aware animation cadence, an optional **60 Hz efficiency mode**, incremental file indexing and sampling tied to visible widgets. Fast audio peaks run only when a visible meter needs them. OBS connections and foreground profile detection stay independent. Hardware readings show unavailable states when a driver or provider cannot supply them.
 
-<p><strong>Resting teardrop</strong><br><img src="docs/images/nagi-teardrop.png" width="165" alt="Nagi's small resting teardrop attached to the bottom screen edge"></p>
-<p><strong>Dock revealed on hover</strong><br><img src="docs/images/nagi-dock.png" width="760" alt="Nagi dock with search, an app folder, CPU, GPU, music, microphone and battery"></p>
+## Make yourself at home
 
-The dock shows up to **two app shortcuts**. Profiles with more apps use one **folder tile** with a count. Hover or click the folder to expand all its apps, then click an app to open it. The folder stays open while you move into it.
+First launch draws **Nagi / ナギ**, then lets you choose a language, name, theme, layout and screen edge. OBS and weather are optional. Customize built-in profiles or create your own, then continue when your workspaces are ready. Later launches go straight to the dock.
 
-<p><img src="docs/images/nagi-app-folder.png" width="760" alt="Hovering Nagi's app folder expands the grouped app shortcuts above the dock"></p>
-
-### Give it some character
-
-Choose **Settings → Appearance & dock → Akeno** for the samurai artwork. Prefer something quieter? Choose **Gradient** or **None**. Glass remains available for a theme that follows Windows.
-
-<div align="center">
-  <img src="docs/images/nagi-akeno.png" width="820" alt="Akeno black and red appearance with optional samurai art">
-</div>
-
-Or try this in **Settings → Lua UI studio → Edit Lua UI**:
-
-```lua
--- A little red, a little breathing room.
-return {
-  name = "My Nagi",
-  accent = "#FF4B4B", -- Highlight color.
-  card_radius = 22,   -- Soft cards: 8–28.
-  spacing = 12       -- Space between sections: 6–20.
-}
-```
-
-[Commented example](docs/examples/simple-ui.lua) · [Complete Lua guide](docs/LUA-UI.md) · [Appearance and logo assets](docs/BRANDING.md)
+[Welcome and layouts](docs/WELCOME-AND-LAYOUT.md) · [Complete guide](docs/USER-GUIDE.md).
 
 ## A few useful moves
 
 | Control | Action |
 | --- | --- |
-| Hover the teardrop | Reveal your dock |
-| Hover the app folder | Expand extra apps |
-| Click the logo | Open the large control center and profiles |
+| Hover the drop | Reveal the dock |
+| Hover the timer, media or app folder | Open its controls |
+| Click the logo | Open the control center |
 | Drag the logo | Reposition the dock |
-| **Alt + Space** | Quick search |
+| **Alt + Space** | Search apps, indexed filenames, calculations and commands |
 | **Ctrl + Alt + Space** | Expand/collapse the panel |
 | **Ctrl + Alt + H** | Hide/show Nagi |
-| **Escape** | Dismiss search, the introduction, or the expanded panel |
+| **Escape** | Dismiss search or the expanded panel |
 | Tray → **Quit Nagi** | Exit completely |
 
-Try `app: chrome`, `file: report`, `folder: projects`, `> volume` or `24 * 7` in search.
+Try `app: chrome`, `file: report`, `folder: projects`, `> volume` or `24 * 7` in search. Filename indexing is optional and does not read file contents.
 
 ## Private by design
 
-No account, backend or activity telemetry. Settings, rules, scripts and protected OBS credentials live in `%LOCALAPPDATA%\Pulse`. Both the portable and installed app use this local Windows profile. Uninstalling preserves those files.
+No account or activity telemetry. App settings, scripts, logs and protected OBS credentials stay in your local Windows profile. Weather sends only the city search or selected coordinates needed for its feature. Update checks contact GitHub; selected web searches open in your browser. Nagi does not save or transmit raw audio. Updates preserve preferences and Lua scripts.
 
-Weather is optional: explicit city searches and selected coordinates go to Open-Meteo. Nagi does not request GPS or IP geolocation. Web searches open in your browser only when selected. Audio meters show measured levels; Nagi does not save or transmit raw audio. OBS connection during welcome never starts recording.
+GPU counters depend on the driver. Temperatures require a supported Libre Hardware Monitor/Open Hardware Monitor WMI provider; FPS requires PresentMon tracing permission; OBS requires its local WebSocket v5 server. [Integration setup](docs/INTEGRATIONS.md) · [Validation and remaining physical coverage](docs/VALIDATION.md).
 
-## Requirements and checks
+## Download
 
-GPU counters depend on the driver. Temperatures require a supported Libre Hardware Monitor/Open Hardware Monitor WMI provider; FPS requires PresentMon tracing permission; OBS requires its local WebSocket v5 server. Media artwork and transport depend on the player. Nagi shows unavailable states rather than invented readings.
+| Run it your way | Download | What to do |
+| --- | --- | --- |
+| **Portable EXE** | [Nagi-Portable.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Portable.exe) | Open directly. Bundled app files are prepared automatically; no installation needed. |
+| **Portable ZIP** | [Nagi-win-x64.zip](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-win-x64.zip) | Extract the whole folder, then open **Nagi.exe**. Keep its files together. |
+| **Install** | [Nagi-Setup.exe](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest/download/Nagi-Setup.exe) | Install for your Windows user without administrator rights. |
 
-The current validation record covers automated behavior and Windows integration tests, isolated welcome/workspace UI checks, native window clipping and installer preference retention. Broader physical monitor, player, sign-in, clean-machine and accessibility coverage remains documented in [Validation](docs/VALIDATION.md).
+Windows 11 **22H2 or newer**, x64. Runtime included. Current builds are unsigned. [Latest release, changelog and SHA256 checksums](https://github.com/alaaeddinemekkaoui/Nagi/releases/latest).
 
-## Explore further
+**macOS — Coming soon. Linux — Coming soon.** No builds or release dates are available yet. [Roadmap](https://nagi-notch.vercel.app/roadmap).
 
-[Complete app guide](docs/USER-GUIDE.md) · [Languages and translations](docs/LANGUAGES.md) · [Documentation index](docs/README.md) · [Welcome and layouts](docs/WELCOME-AND-LAYOUT.md) · [Hardware and OBS](docs/INTEGRATIONS.md) · [Build from source](docs/BUILD.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md)
+## Build and contribute
 
-Built with WinUI 3, Win2D and .NET.
+Built with **WinUI 3, Win2D and .NET**. [Build instructions](docs/BUILD.md) · [Architecture](docs/ARCHITECTURE.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md).
 
-In-app updates are under **Settings → Updates**. Automatic checks download verified releases; choose **Install and restart** to apply them while keeping your preferences. **Settings → Music** chooses the service offered when nothing is playing. The new Default profile starts without apps, showing search, CPU/GPU and now playing. Stream offers an OBS app shortcut or hover controls with three scene buttons; choose Hidden to remove OBS from that profile. Update notes show only the release changelog.
+```powershell
+./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.2
+```
 
-The compact dock fits one row without scrolling. Choose its notch color from the theme, your Windows accent or a custom color under Appearance & dock. Hover media for full titles, open local music/video under Settings → Music, and resize the Settings window by dragging an edge or corner. CPU/GPU values sit above their labels; weather and battery values sit above their icons. Settings has native window controls, stays open when focus changes and returns to the dock when closed. Battery controls appear only on devices with a detected battery.
+Every release produces a fresh **Nagi-Portable.exe in the project root** and a matching **Nagi-Dev-Portable.exe**. Development includes a debug menu, direct pages, notch/notification previews, diagnostics and automated UI checks, with separate preferences and logs. Production excludes developer tools. [Developer guide](docs/DEVELOPMENT.md).
 
-Change the app language under **Settings → Language**. The page shows the current language, a system-default option and a restart button. Language is also available under General.
+The dependency-free [website source](website/) includes the interactive tour, roadmap and live release feed. [Website development and deployment](website/README.md). The README and website keep corresponding sections for the notch, timer, media, dock, themes and settings.
 
 ## Thanks
 
-Thanks to [u/alkidnn](https://www.reddit.com/user/alkidnn/) on Reddit for the suggestions to improve Nagi.
+Thanks to [u/alkidnn](https://www.reddit.com/user/alkidnn/) on Reddit for suggestions to improve Nagi, and to everyone contributing translations, testing and ideas.

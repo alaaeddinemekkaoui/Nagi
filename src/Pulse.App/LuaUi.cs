@@ -23,7 +23,7 @@ public sealed partial class MainWindow
         if (_closed) return;
         var enabled = ViewModel.Settings.LuaUiEnabled;
         var theme = ViewModel.Settings.Theme == "Akeno" ? "Akeno" : Shell.ActualTheme == ElementTheme.Light ? "Light" : "Dark";
-        var profile = ViewModel.Profile.ToString();
+        var profile = ViewModel.Settings.ProfileName(ViewModel.Profile);
         var context = $"{enabled}/{theme}/{profile}";
         if (!force && context == _luaContext) return;
         _luaContext = context;
@@ -89,6 +89,8 @@ public sealed partial class MainWindow
         }
         // Leave the system's HighContrast palette intact.
         RefreshThemeBrushes();
+        ApplyVisualizerAppearance();
+        UpdateUtilityTimer();
         var ak = ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast;
         ApplyThemeBackground();
         AkenoSeal.Visibility = Visibility.Collapsed;
@@ -173,7 +175,7 @@ public sealed partial class MainWindow
             {
                 var text = editor.Text;
                 var theme = ViewModel.Settings.Theme == "Akeno" ? "Akeno" : Shell.ActualTheme == ElementTheme.Light ? "Light" : "Dark";
-                var profile = ViewModel.Profile.ToString();
+                var profile = ViewModel.Settings.ProfileName(ViewModel.Profile);
                 await Task.Run(() => LuaUiService.Evaluate(text, theme, profile), _shutdown.Token);
                 await Lua.SaveAsync(text, _shutdown.Token);
                 if (!await CommitAsync(s => s with { LuaUiEnabled = true })) { args.Cancel = true; error.Text = L.T("Could not enable Lua. Your script was saved; try again."); return; }

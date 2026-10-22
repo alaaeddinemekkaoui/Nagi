@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
+using Pulse.App.Themes;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 
@@ -13,28 +14,40 @@ public sealed partial class MainWindow
     private bool _hasPresentedFrame;
     private bool SettledNotch => _dock.Stage == Pulse.Core.DockStage.Resting && !_motion.IsMoving
         && (!_hasPresentedFrame || _windowManager.CurrentFrame.DropAmount >= .999);
-    private Color NotchColor => ViewModel.Settings.NotchColorMode switch
+    private Color NotchColor
     {
-        "System" => _notchSystemColors.GetColorValue(UIColorType.Accent),
-        "Custom" => Color.FromArgb(255, Convert.ToByte(ViewModel.Settings.NotchColor.Substring(1, 2), 16),
-            Convert.ToByte(ViewModel.Settings.NotchColor.Substring(3, 2), 16), Convert.ToByte(ViewModel.Settings.NotchColor.Substring(5, 2), 16)),
-        _ => Color.FromArgb(255, ((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color.R,
-            ((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color.G, ((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color.B)
-    };
-    private void NotchColorsChanged(UISettings sender, object args) => DispatcherQueue.TryEnqueue(() =>
-    { if (!_closed) UpdateSurfaceMaterial(); });
-    private void BuildNotchAppearance(StackPanel panel)
-    {
-        var mode = Select(new[] { "Theme", "System", "Custom" }, ViewModel.Settings.NotchColorMode, "Notch color");
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(mode, "NotchColorMode");
-        mode.SelectionChanged += async (_, _) =>
-        { if (mode.SelectedItem is string value) await CommitAsync(s => s with { NotchColorMode = value }); };
-        panel.Children.Add(Labeled(L.T("Notch background color"), mode));
-        panel.Children.Add(Note(L.T("Theme uses the current appearance. System follows your Windows accent. Custom uses your chosen color.")));
-        var choose = Button(L.T("Choose notch color"), async (_, _) =>
+        get
         {
-            var picker = new ColorPicker { Color = NotchColor, IsAlphaEnabled = false, IsHexInputVisible = true, MinWidth = 280 };
-            var dialog = Dialog(L.T("Notch background color"), picker);
+            var color = AppAppearance.Surface(ViewModel.Settings, Shell.ActualTheme == ElementTheme.Light, false);
+            if (ViewModel.Settings.LuaUiEnabled && _luaStyle.Surface is { } surface && AppAppearance.Tint(ViewModel.Settings) is null)
+            { color = ParseLuaColor(surface); color.A = 255; }
+            return color;
+        }
+    }
+    private void NotchColorsChanged(UISettings sender, object args) => DispatcherQueue.TryEnqueue(() =>
+    { if (!_closed) { ApplyGlass(); ApplyVisualizerAppearance(); } });
+
+    private void BuildBackgroundAppearance(StackPanel panel)
+    {
+        if (ViewModel.Settings.Theme is not ("Dark" or "Light")) return;
+        panel.Children.Add(Heading(L.T("Background & notch")));
+        panel.Children.Add(Note(L.T("One color and material across the window, dock and notch.")));
+        var enabled = new ToggleSwitch { Header = L.T("Tint background"), IsOn = ViewModel.Settings.NotchColorMode != "Theme", OnContent = L.T("On"), OffContent = L.T("Off") };
+        AutomationProperties.SetName(enabled, L.T("Tint background"));
+        enabled.Toggled += async (_, _) =>
+        { if (await CommitAsync(s => s with { NotchColorMode = enabled.IsOn ? "System" : "Theme" })) BuildSettingsPage(); };
+        panel.Children.Add(enabled);
+        if (ViewModel.Settings.NotchColorMode == "Theme") return;
+        var mode = Select(new[] { "System", "Custom" }, ViewModel.Settings.NotchColorMode, "Color source");
+        AutomationProperties.SetAutomationId(mode, "BackgroundColorMode");
+        mode.SelectionChanged += async (_, _) =>
+        { if (mode.SelectedItem is string value && await CommitAsync(s => s with { NotchColorMode = value })) BuildSettingsPage(); };
+        panel.Children.Add(Labeled(L.T("Color source"), mode));
+        if (ViewModel.Settings.NotchColorMode != "Custom") return;
+        var choose = Button(L.T("Choose background color"), async (_, _) =>
+        {
+            var picker = new ColorPicker { Color = AppAppearance.Tint(ViewModel.Settings) ?? NotchColor, IsAlphaEnabled = false, IsHexInputVisible = true, MinWidth = 280 };
+            var dialog = Dialog(L.T("Background color"), picker);
             dialog.PrimaryButtonClick += async (_, args) =>
             {
                 var defer = args.GetDeferral();
@@ -47,6 +60,6 @@ public sealed partial class MainWindow
             };
             await ShowDialogAsync(dialog); BuildSettingsPage();
         });
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(choose, "ChooseNotchColor"); panel.Children.Add(choose);
+        AutomationProperties.SetAutomationId(choose, "ChooseBackgroundColor"); panel.Children.Add(choose);
     }
 }

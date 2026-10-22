@@ -13,7 +13,7 @@ if(!$CompilerPath){
 }
 if(!$CompilerPath){throw 'Install NSIS from https://nsis.sourceforge.io/Download or pass -CompilerPath to its makensis.exe.'}
 [xml]$nagiProject=Get-Content -LiteralPath (Join-Path $nagiRoot 'src/Pulse.App/Pulse.App.csproj')
-$nagiVersion=[string]$nagiProject.Project.PropertyGroup.Version
+$nagiVersion=[string]$nagiProject.SelectSingleNode('/Project/PropertyGroup/Version').InnerText
 $nagiSetup=Join-Path $nagiRoot 'artifacts/Nagi-Setup.exe'
 $nagiList=Join-Path $nagiRoot 'artifacts/validation/nagi-owned-files.nsh'
 New-Item -ItemType Directory -Path (Split-Path $nagiList -Parent) -Force | Out-Null

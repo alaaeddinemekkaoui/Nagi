@@ -31,7 +31,7 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
                 : L.T("Battery percentage unavailable");
         }
     }
-    public string ProfileText => L.T(Profile.ToString());
+    public string ProfileText => Settings.CustomProfiles.Any(p => p.Id == Profile) ? Settings.ProfileName(Profile) : L.T(Profile.ToString());
     public string ContextText => Settings.LockedProfile.HasValue ? L.F($"{ProfileText} · Profile locked") : Settings.AutomaticSwitching ? L.F($"{ProfileText} · Automatic") : L.F($"{ProfileText} · Manual");
     public string ForegroundText => Foreground.Name;
     public string MediaTitle => Media.Available ? Media.Title : L.T("Nothing playing");
@@ -60,7 +60,7 @@ public sealed class PulseViewModel : INotifyPropertyChanged, INotificationServic
         _engine.Evaluate(Foreground, Settings, DateTimeOffset.UtcNow);
         if (previous != Profile)
         {
-            Publish(Profile + L.T(" profile activated"), true);
+            Publish(ProfileText + L.T(" profile activated"), true);
             if (Profile == Profile.Focus) FocusActivated?.Invoke();
         }
     }

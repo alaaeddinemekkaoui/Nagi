@@ -14,6 +14,8 @@ internal sealed class HaloMotion : IDisposable
 {
     private readonly HaloWindowManager _window;
     private readonly Func<bool> _enabled;
+    private readonly Func<bool> _efficiency;
+    private readonly nint _hwnd;
     private readonly DispatcherQueueTimer _timer;
     private readonly SpringValue[] _spring;
     private HaloFrame _destination;
@@ -22,19 +24,19 @@ internal sealed class HaloMotion : IDisposable
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<FrameworkElement, object> _wired = new();
     public bool IsMoving => _timer.IsRunning;
 
-    public HaloMotion(HaloWindowManager window, Func<bool> enabled)
+    public HaloMotion(HaloWindowManager window, Func<bool> enabled, nint hwnd, Func<bool> efficiency)
     {
-        _window = window; _enabled = enabled;
+        _window = window; _enabled = enabled; _hwnd = hwnd; _efficiency = efficiency;
         var frame = window.CurrentFrame;
-        _spring = [new(frame.X), new(frame.Y), new(frame.Width), new(frame.Height), new(frame.Radius), new(frame.DropAmount, .0005)];
+        _spring = [new(frame.X), new(frame.Y), new(frame.Width), new(frame.Height), new(frame.Radius), new(frame.DropAmount, .0005), new(frame.NotchAmount, .0005)];
         _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        _timer.Interval = TimeSpan.FromMilliseconds(1000d / 120);
+        _timer.Interval = TimeSpan.FromMilliseconds(1000d / 60);
         _timer.Tick += Tick;
     }
     public void Move(HaloFrame destination, bool animate, Action? completed = null)
     {
         _completed = completed; _destination = destination;
-        var goals = new[] { destination.X, destination.Y, destination.Width, destination.Height, destination.Radius, destination.DropAmount };
+        var goals = new[] { destination.X, destination.Y, destination.Width, destination.Height, destination.Radius, destination.DropAmount, destination.NotchAmount };
         if (!animate || !_enabled())
         {
             _timer.Stop();
@@ -44,8 +46,9 @@ internal sealed class HaloMotion : IDisposable
         }
         if (!_timer.IsRunning)
         {
+            _timer.Interval = TimeSpan.FromMilliseconds(1000d / Pulse.Core.AnimationCadence.Hertz(DisplayCadence.ForWindow(_hwnd), _efficiency()));
             var current = _window.CurrentFrame;
-            var positions = new[] { current.X, current.Y, current.Width, current.Height, current.Radius, current.DropAmount };
+            var positions = new[] { current.X, current.Y, current.Width, current.Height, current.Radius, current.DropAmount, current.NotchAmount };
             for (var i = 0; i < _spring.Length; i++) _spring[i].Snap(positions[i]);
         }
         for (var i = 0; i < _spring.Length; i++) _spring[i].Target = goals[i];
@@ -57,8 +60,8 @@ internal sealed class HaloMotion : IDisposable
         var now = Stopwatch.GetTimestamp();
         var seconds = Stopwatch.GetElapsedTime(_lastTick, now).TotalSeconds;
         _lastTick = now;
-        for (var i = 0; i < _spring.Length; i++) _spring[i].Advance(seconds, i == 5 ? 30 : 22);
-        _window.ApplyFrame(new(_spring[0].Value, _spring[1].Value, _spring[2].Value, _spring[3].Value, _spring[4].Value, _destination.Scale, _spring[5].Value));
+        for (var i = 0; i < _spring.Length; i++) _spring[i].Advance(seconds, i >= 5 ? 30 : 22);
+        _window.ApplyFrame(new(_spring[0].Value, _spring[1].Value, _spring[2].Value, _spring[3].Value, _spring[4].Value, _destination.Scale, _spring[5].Value, _spring[6].Value));
         if (_spring.All(s => s.IsSettled) || Stopwatch.GetElapsedTime(_started, now).TotalSeconds > 1)
         {
             _timer.Stop(); _window.ApplyFrame(_destination); Complete();

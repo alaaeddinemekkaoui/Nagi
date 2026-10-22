@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Pulse.Core;
 using Pulse.Infrastructure;
+using Pulse.App.Themes;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 using Windows.Storage;
@@ -20,6 +21,7 @@ public sealed class LocalMediaWindow : Window
     private readonly List<MediaSource> _sources = [];
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap, Margin = new(16, 8, 16, 12) };
     private readonly DiagnosticLog _log;
+    private readonly HaloAcrylicBackdrop _glass = new();
     private StorageFile[] _files = [];
     private byte[]? _artwork;
     private string _title = "", _artist = "";
@@ -33,13 +35,14 @@ public sealed class LocalMediaWindow : Window
         _log = log; Title = "Nagi · " + L.T("Local media");
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "Nagi.ico"));
         var view = new MediaPlayerElement { AreTransportControlsEnabled = true, HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch };
+            VerticalAlignment = VerticalAlignment.Stretch, Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent) };
         view.SetMediaPlayer(_player);
         AutomationProperties.SetAutomationId(view, "LocalMediaPlayer");
         AutomationProperties.SetAutomationId(_status, "LocalPlaybackStatus");
-        var root = new Grid { Background = new SolidColorBrush(Microsoft.UI.Colors.Black), RequestedTheme = ElementTheme.Dark };
+        var root = new Grid { RequestedTheme = ElementTheme.Dark };
         root.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) }); root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         root.Children.Add(view); Grid.SetRow(_status, 1); root.Children.Add(_status); Content = root;
+        ApplyAppearance(new PulseSettings());
         AppWindow.Resize(new global::Windows.Graphics.SizeInt32(760, 500));
         var presenter = (OverlappedPresenter)AppWindow.Presenter;
         presenter.IsResizable = presenter.IsMaximizable = true;
@@ -55,6 +58,20 @@ public sealed class LocalMediaWindow : Window
             Volatile.Write(ref _snapshot, MediaSnapshot.Empty);
         });
         Closed += (_, _) => ReleasePlayback();
+    }
+
+    public void ApplyAppearance(PulseSettings settings)
+    {
+        if (_closed || Content is not Grid root) return;
+        root.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
+        var contrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
+        var light = root.ActualTheme == ElementTheme.Light;
+        _glass.SetLight(light); _glass.SetAkeno(settings.Theme == "Akeno");
+        _glass.SetTint(AppAppearance.Tint(settings));
+        SystemBackdrop = AppAppearance.UsesGlass(settings) && !contrast && HaloAcrylicBackdrop.IsSupported ? _glass : null;
+        root.Background = new SolidColorBrush(contrast
+            ? new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Background)
+            : AppAppearance.Surface(settings, light, SystemBackdrop is not null));
     }
 
     private void ReleasePlayback()

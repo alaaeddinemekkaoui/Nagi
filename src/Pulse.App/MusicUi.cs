@@ -36,6 +36,7 @@ public sealed partial class MainWindow
         var available = ViewModel.Media.Available;
         MusicLinksPanel.Visibility = PeekMusicLinksPanel.Visibility = available ? Visibility.Collapsed : Visibility.Visible;
         MediaTransport.Visibility = PeekTransport.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+        PeekMusicVisualizer.Visibility = available && ViewModel.Media.Playing ? Visibility.Visible : Visibility.Collapsed;
     }
     private void BuildMusicSettings()
     {
@@ -50,5 +51,6 @@ public sealed partial class MainWindow
         content.Children.Add(OpenLocalMediaButton("Settings"));
         content.Children.Add(Note(L.T("Play local audio or video in Nagi. Queue multiple files; dock controls follow playback. Supported formats depend on the media codecs installed in Windows.")));
         SettingsPage.Children.Add(Card(content));
+        BuildVisualizerSettings();
     }
 }

@@ -20,7 +20,12 @@ public sealed record PulseSettings
     public string NotchColorMode { get; init; } = "Theme";
     public string NotchColor { get; init; } = "#D94952";
     public ProfileWorkspace[] Workspaces { get; init; } = ProfileWorkspaces.Normalize(null);
-    public ProfileWorkspace Workspace(Profile profile) => Workspaces.FirstOrDefault(w => w.Profile == profile) ?? ProfileWorkspaces.Default(profile);
+    public CustomProfile[] CustomProfiles { get; init; } = [];
+    [JsonIgnore] public Profile[] Profiles => ProfileWorkspaces.Profiles.Concat(CustomProfiles.Select(p => p.Id)).ToArray();
+    public string ProfileName(Profile profile) => CustomProfiles.FirstOrDefault(p => p.Id == profile)?.Name ?? profile.ToString();
+    public ProfileWorkspace Workspace(Profile profile) => Workspaces?.FirstOrDefault(w => w is not null && w.Profile == profile) ?? ProfileWorkspaces.Default(profile);
+    public ProfileTimer TimerFor(Profile profile) => Workspace(profile).Timer
+        ?? new(TimerAutoStart && profile == (ProfileWorkspaces.IsKnown(TimerProfile, CustomProfiles) ? TimerProfile : Profile.Focus), Math.Clamp(TimerMinutes, 1, 1440));
     public bool WelcomeCompleted { get; init; }
     public string UserName { get; init; } = "";
     public bool WeatherEnabled { get; init; }
@@ -37,6 +42,8 @@ public sealed record PulseSettings
     public int ObsPort { get; init; } = 4455;
     public string[] ObsScenes { get; init; } = ["", "", ""];
     public string PreferredMusicPlayer { get; init; } = "All";
+    public string VisualizerColorMode { get; init; } = "System";
+    public string VisualizerColor { get; init; } = "#D94952";
     public bool AutomaticUpdates { get; init; } = true;
     public string[] SearchFolders { get; init; } = [];
     public bool GlassEnabled { get; init; } = true;
@@ -50,6 +57,13 @@ public sealed record PulseSettings
     public bool Notifications { get; init; } = true;
     public bool ShowMedia { get; init; } = true;
     public bool ReducedMotion { get; init; }
+    public string AnimationMode { get; init; } = "Display";
+    public bool LiveTimer { get; init; } = true;
+    public bool LiveMedia { get; init; } = true;
+    // Read older settings once; each normalized workspace owns its timer afterward.
+    public int TimerMinutes { get; init; } = 30;
+    public bool TimerAutoStart { get; init; } = true;
+    public Profile TimerProfile { get; init; } = Profile.Focus;
     public bool StartWithWindows { get; init; }
     public AppRule[] Rules { get; init; } = [new("devenv.exe", Profile.Work), new("Code.exe", Profile.Work)];
     public QuickAction[] QuickActions { get; init; } = [new("Focus", ActionKind.Profile, "Focus"), new("Work", ActionKind.Profile, "Work")];
@@ -62,15 +76,23 @@ public sealed record PulseSettings
         AkenoBackground = AkenoBackground is "Samurai" or "Gradient" or "None" ? AkenoBackground : "Samurai",
         NotchColorMode = NotchColorMode is "System" or "Custom" ? NotchColorMode : "Theme",
         NotchColor = NotchColor is { Length: 7 } && NotchColor[0] == '#' && NotchColor.Skip(1).All(char.IsAsciiHexDigit) ? NotchColor.ToUpperInvariant() : "#D94952",
-        Workspaces = ProfileWorkspaces.Normalize(Workspaces),
+        CustomProfiles = ProfileWorkspaces.NormalizeCustom(CustomProfiles),
+        Workspaces = ProfileWorkspaces.Normalize(Workspaces, CustomProfiles)
+            .Select(w => w with { Timer = w.Timer ?? TimerFor(w.Profile) }).ToArray(),
         UserName = new string((UserName ?? "").Where(c => !char.IsControl(c)).Take(32).ToArray()).Trim(),
         WeatherEnabled = WeatherEnabled && WeatherLocation is { IsValid: true },
         WeatherLocation = WeatherLocation is { IsValid: true } city ? city : null,
         WeatherUnit = WeatherUnit == "Fahrenheit" ? "Fahrenheit" : "Celsius",
         PollingIntervalMs = Math.Clamp(PollingIntervalMs, 500, 10000),
+        AnimationMode = AnimationMode == "Efficiency" ? "Efficiency" : "Display",
+        TimerMinutes = Math.Clamp(TimerMinutes, 1, 1440),
+        TimerProfile = ProfileWorkspaces.IsKnown(TimerProfile, CustomProfiles) ? TimerProfile : Profile.Focus,
         ObsPort = Math.Clamp(ObsPort, 1024, 65535),
         ObsScenes = Enumerable.Range(0, 3).Select(i => i < (ObsScenes?.Length ?? 0) ? (ObsScenes![i] ?? "").Trim() : "").ToArray(),
         PreferredMusicPlayer = MusicPlayers.Names.Contains(PreferredMusicPlayer) ? PreferredMusicPlayer : "All",
+        VisualizerColorMode = VisualizerColorMode == "Custom" ? "Custom" : "System",
+        VisualizerColor = VisualizerColor is { Length: 7 } && VisualizerColor[0] == '#' && VisualizerColor.Skip(1).All(char.IsAsciiHexDigit)
+            ? VisualizerColor.ToUpperInvariant() : "#D94952",
         Position = Position is { } p ? p with
         {
             Monitor = p.Monitor ?? "",
@@ -85,9 +107,9 @@ public sealed record PulseSettings
         HideHotkey = HideHotkey is { Key: >= 0x20 and <= 0xFE, Modifiers: > 0 and <= 15 } ? HideHotkey : new(3, 0x48),
         SearchHotkey = SearchHotkey is { Key: >= 0x20 and <= 0xFE, Modifiers: > 0 and <= 15 } ? SearchHotkey : new(1, 0x20),
         SearchFolders = (SearchFolders ?? []).Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Take(16).ToArray(),
-        DefaultProfile = Enum.IsDefined(DefaultProfile) ? DefaultProfile : Profile.Default,
-        LockedProfile = LockedProfile.HasValue && Enum.IsDefined(LockedProfile.Value) ? LockedProfile : null,
-        Rules = (Rules ?? []).Where(r => r is not null && !string.IsNullOrWhiteSpace(r.Identity) && Enum.IsDefined(r.Profile))
+        DefaultProfile = ProfileWorkspaces.IsKnown(DefaultProfile, CustomProfiles) ? DefaultProfile : Profile.Default,
+        LockedProfile = LockedProfile.HasValue && ProfileWorkspaces.IsKnown(LockedProfile.Value, CustomProfiles) ? LockedProfile : null,
+        Rules = (Rules ?? []).Where(r => r is not null && !string.IsNullOrWhiteSpace(r.Identity) && ProfileWorkspaces.IsKnown(r.Profile, CustomProfiles))
             .Take(200).Select(r => r with { Identity = r.Identity.Trim(), Priority = Math.Clamp(r.Priority, 0, 10000) }).ToArray(),
         QuickActions = (QuickActions ?? []).Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Label) && Enum.IsDefined(a.Kind))
             .Take(24).Select(a => a with { Label = a.Label.Trim(), Target = a.Target ?? "" }).ToArray()

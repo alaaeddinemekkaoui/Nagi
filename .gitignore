@@ -6,6 +6,7 @@ TestResults/
 *.user
 *.log
 .codex/
+.playwright-mcp/
 graphify-out/
 .env
 .env.*
@@ -13,6 +14,8 @@ graphify-out/
 !.env.sample
 /Nagi-Portable.exe
 /Nagi-Portable.exe.sha256
+/Nagi-Dev-Portable.exe
+/Nagi-Dev-Portable.exe.sha256
 /AGENTS.md
 /AI_CONTEXT.md
 *.pfx

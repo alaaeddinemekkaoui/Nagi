@@ -16,6 +16,16 @@ public sealed class SettingsTests : IDisposable
         var settings = await _service.LoadAsync();
         Assert.Equal("System", settings.Theme); Assert.False(settings.StartWithWindows); Assert.False(settings.StartExpanded);
     }
+    [Fact] public async Task VisualizerColorIsIndependentAndSurvivesRestartAndInvalidInput()
+    {
+        await _service.SaveAsync(new PulseSettings { VisualizerColorMode = "Custom", VisualizerColor = "#39ccab", Theme = "Light" });
+        var loaded = await _service.LoadAsync();
+        Assert.Equal("Custom", loaded.VisualizerColorMode); Assert.Equal("#39CCAB", loaded.VisualizerColor);
+        Assert.Equal("Light", loaded.Theme); Assert.Equal("Theme", loaded.NotchColorMode);
+        var invalid = (loaded with { VisualizerColorMode = "unknown", VisualizerColor = "#xyz123" }).Normalize();
+        Assert.Equal("System", invalid.VisualizerColorMode); Assert.Equal("#D94952", invalid.VisualizerColor);
+        Assert.Equal("System", new PulseSettings().VisualizerColorMode);
+    }
     [Fact] public async Task RoundTripPersistsAllUserConfiguration()
     {
         var settings = new PulseSettings { Theme = "Light", LockedProfile = Profile.Gaming, PollingIntervalMs = 3000, HideHotkey = new(6, 0x48), GlassEnabled = false,

@@ -13,6 +13,7 @@ namespace Pulse.App;
 public sealed partial class MainWindow
 {
     private FileSearchIndex? _fileIndex;
+    private FileIndexWatcher? _fileWatcher;
     private ApplicationCatalog _appCatalog = new([]);
     private QuickSearchWindow? _searchWindow;
     private CancellationTokenSource? _searchCancellation;
@@ -27,7 +28,11 @@ public sealed partial class MainWindow
         _fileIndex = new(Path.Combine(Path.GetDirectoryName(_settings.FilePath)!, "Search"));
         _windowManager.SearchRequested += ToggleQuickSearch;
         _searchHotkeyAvailable = Report(_windowManager.RegisterSearchHotkey(ViewModel.Settings.SearchHotkey), false);
-        _indexTimer.Tick += (_, _) => RebuildSearchIndex();
+        _indexTimer.Tick += async (_, _) =>
+        {
+            _fileWatcher?.Reconcile();
+            await RefreshApplicationCatalogAsync();
+        };
     }
     private string[] SearchRoots() => ViewModel.Settings.IndexFiles
         ? FileSearchIndex.NormalizeRoots(ViewModel.Settings.SearchFolders.Length > 0 ? ViewModel.Settings.SearchFolders : SearchApplications.StandardFolders()) : [];
@@ -60,6 +65,10 @@ public sealed partial class MainWindow
         if (_closed || _fileIndex is null) return;
         var roots = SearchRoots(); var key = string.Join('\n', roots); var scopeChanged = key != _searchScope;
         _searchScope = key; _searchCancellation?.Cancel();
+        _fileWatcher?.Dispose();
+        _fileWatcher = new(_fileIndex, roots, _shutdown.Token);
+        _fileWatcher.Changed += () => DispatcherQueue.TryEnqueue(() => { if (!_closed) _searchWindow?.IndexChanged(); });
+        _fileWatcher.Failed += ex => _log.Write("search", "Incremental index update failed; reconciliation scheduled", ex);
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token); _searchCancellation = cancellation;
         var previous = _searchWork;
         if (scopeChanged) _fileIndex.Clear(roots);
@@ -93,12 +102,28 @@ public sealed partial class MainWindow
             }
         });
     }
+    private bool _catalogRefreshing;
+    private async Task RefreshApplicationCatalogAsync()
+    {
+        if (_closed || _indexBusy || _catalogRefreshing) return;
+        _catalogRefreshing = true;
+        try
+        {
+            var apps = await SearchApplications.ReadAsync(_shutdown.Token);
+            if (!_closed && !apps.Entries.SequenceEqual(_appCatalog.Entries)) { _appCatalog = apps; BuildProfileDock(); _searchWindow?.IndexChanged(); }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { _log.Write("search", "Application catalog refresh failed", ex); }
+        finally { _catalogRefreshing = false; }
+    }
     private SearchEntry[] SearchEntries()
     {
         var entries = new List<SearchEntry>(_appCatalog.Entries);
         var roots = SearchRoots();
         entries.AddRange(_fileIndex!.Snapshot.Entries.Where(e => roots.Any(r => FileSearchIndex.WithinRoot(e.Target, r))));
         foreach (var root in roots) entries.Add(new("root:" + root, Path.GetFileName(root), root, SearchKind.Folder, root));
+        foreach (var custom in ViewModel.Settings.CustomProfiles)
+            entries.Add(new("profile:" + (int)custom.Id, custom.Name, L.T("Activate profile"), SearchKind.Command, "profile:" + (int)custom.Id));
         foreach (var (id, title, detail) in new[] {
             ("settings", "Open Nagi settings", "Appearance, shortcuts and indexed folders"), ("halo", "Show Nagi", "Open the control center"),
             ("hide", "Hide Nagi", "Keep Nagi running in the tray"), ("work", "Switch to Work", "Lock the Work profile"),
@@ -113,6 +138,9 @@ public sealed partial class MainWindow
     private async Task<OperationResult> ExecuteSearchAsync(SearchEntry entry, string action)
     {
         if (_closed) return OperationResult.Fail("Nagi is closing.");
+        if (entry.Kind == SearchKind.Command && entry.Target.StartsWith("profile:") && int.TryParse(entry.Target.AsSpan(8), out var customId)
+            && ViewModel.Settings.CustomProfiles.Any(p => (int)p.Id == customId))
+        { await ActivateProfileAsync((Profile)customId); return OperationResult.Ok(L.T("Profile activated")); }
         if (action == "copy" || entry.Kind == SearchKind.Calculation)
         {
             if (entry.Kind is not (SearchKind.File or SearchKind.Folder or SearchKind.Calculation)) return OperationResult.Fail("This item has no file path.");

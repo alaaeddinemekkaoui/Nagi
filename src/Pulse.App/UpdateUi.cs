@@ -7,21 +7,26 @@ namespace Pulse.App;
 
 public sealed partial class MainWindow
 {
+    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(6) };
+    private string _updateStatus = L.T("Check for a new release.");
+    private static Version CurrentVersion => typeof(MainWindow).Assembly.GetName().Version ?? new(0, 1, 2, 0);
+#if !NAGI_DEVELOPMENT
     private static readonly HttpClient UpdateClient = new() { Timeout = TimeSpan.FromMinutes(15) };
     private readonly AppUpdateService _updates = new(UpdateClient);
-    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(6) };
     private AppRelease? _availableUpdate;
     private PreparedUpdate? _preparedUpdate;
     private bool _updateBusy;
     private Version? _offeredUpdateVersion;
-    private string _updateStatus = L.T("Check for a new release.");
     private TextBlock? _updateStatusText;
     private TextBlock? _updateNotesText;
     private Button? _checkUpdateButton, _installUpdateButton;
-    private static Version CurrentVersion => typeof(MainWindow).Assembly.GetName().Version ?? new(0, 1, 2, 0);
     private string UpdateResultPath => Path.Combine(Path.GetDirectoryName(_settings.FilePath)!, "update-result.json");
+#endif
     private void InitializeUpdates()
     {
+#if NAGI_DEVELOPMENT
+        _updateStatus = "Development build: use a new development executable to update. Production updates are disabled.";
+#else
         try
         {
             if (File.Exists(UpdateResultPath))
@@ -37,9 +42,16 @@ public sealed partial class MainWindow
         _updateTimer.Tick += async (_, _) => { if (ViewModel.Settings.AutomaticUpdates) await CheckUpdatesAsync(true); };
         _updateTimer.Start();
         if (ViewModel.Settings.AutomaticUpdates) _ = CheckUpdatesAsync(true);
+#endif
     }
     private void BuildUpdateSettings()
     {
+#if NAGI_DEVELOPMENT
+        var development = Stack(); development.Children.Add(Heading("Development updates"));
+        development.Children.Add(Note(_updateStatus));
+        development.Children.Add(Button("Preview update changelog", async (_, _) => await PreviewDevelopmentUpdateAsync()));
+        SettingsPage.Children.Add(Card(development));
+#else
         var content = Stack(); content.Children.Add(Heading(L.T("App updates")));
         content.Children.Add(Note(L.T("Installed version ") + CurrentVersion.ToString(3) + L.T(". Updates come from Nagi's GitHub releases. Your profiles, preferences and scripts are preserved.")));
         content.Children.Add(Toggle(L.T("Download updates automatically"), L.T("Check at startup and every six hours, then download verified updates. Choose Install and restart when ready."), ViewModel.Settings.AutomaticUpdates, (s, enabled) => s with { AutomaticUpdates = enabled }));
@@ -53,7 +65,9 @@ public sealed partial class MainWindow
         content.Children.Add(_updateNotesText);
         content.Children.Add(new HyperlinkButton { Content = L.T("View releases"), NavigateUri = new("https://github.com/" + AppUpdateService.Repository + "/releases") });
         SettingsPage.Children.Add(Card(content)); RefreshUpdateUi();
+#endif
     }
+#if !NAGI_DEVELOPMENT
     private void RefreshUpdateUi()
     {
         if (_updateStatusText is not null) _updateStatusText.Text = _updateStatus;
@@ -157,4 +171,5 @@ public sealed partial class MainWindow
         { if (!_closed) { _updateStatus = "Update could not be installed. " + ex.Message; _log.Write("updates", "Update failed", ex); } }
         finally { _updateBusy = false; if (!_closed) RefreshUpdateUi(); }
     }
+#endif
 }

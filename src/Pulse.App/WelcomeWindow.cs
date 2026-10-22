@@ -18,6 +18,7 @@ namespace Pulse.App;
 public sealed class WelcomeWindow : Window
 {
     private readonly SettingsService _settings;
+    private readonly HaloAcrylicBackdrop _glass = new();
     private PulseSettings _draft;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly WeatherService _weather = new();
@@ -99,7 +100,7 @@ public sealed class WelcomeWindow : Window
         _skip.Click += async (_, _) =>
         {
             if (_step == 4) { _obsGeneration++; _connected = false; _passwordToSave = null; _draft = _draft with { ObsEnabled = false }; _step = 5; RenderStep(); }
-            else if (_step == 5) { _draft = _draft with { WeatherEnabled = false }; await FinishAsync(); }
+            else if (_step == 5) { _draft = _draft with { WeatherEnabled = false }; _step = 6; RenderStep(); }
         };
         _theme.SelectionChanged += (_, _) => ApplyTheme();
         _orientation.SelectionChanged += (_, _) => UpdateEdges(null);
@@ -161,11 +162,11 @@ public sealed class WelcomeWindow : Window
     }
     private void RenderStep()
     {
-        _greeting.Stop(); _body.Children.Clear(); _error.Text = ""; _stepLabel.Text = _step < 2 ? "" : L.F($"{_step - 1} / 4");
+        _greeting.Stop(); _body.Children.Clear(); _error.Text = ""; _stepLabel.Text = _step < 2 ? "" : L.F($"{_step - 1} / 5");
         _back.Visibility = _step > 0 ? Visibility.Visible : Visibility.Collapsed;
-        _skip.Visibility = _step >= 4 ? Visibility.Visible : Visibility.Collapsed;
+        _skip.Visibility = _step is 4 or 5 ? Visibility.Visible : Visibility.Collapsed;
         _skip.Content = _step == 4 ? L.T("Skip OBS") : L.T("Skip weather");
-        _next.Content = _step == 5 ? L.T("Start Nagi") : L.T("Continue");
+        _next.Content = _step == 6 ? L.T("Start Nagi") : L.T("Continue");
         _next.IsEnabled = _step == 4 ? _connected : _step != 5 || _city.SelectedLocation is { IsValid: true };
         switch (_step)
         {
@@ -194,6 +195,10 @@ public sealed class WelcomeWindow : Window
             case 5:
                 _title.Text = L.T("A small window on the weather."); _description.Text = L.T("Choose a city for current conditions, or skip and keep Nagi offline.");
                 _body.Children.Add(_city); break;
+            case 6:
+                _title.Text = L.T("Make your profiles.");
+                _description.Text = L.T("Customize Default and the presets, or create profiles with your own names. Choose widgets and apps for each, then start Nagi when you are ready.");
+                _body.Children.Add(new ProfileSetupEditor(_draft, next => _draft = next, _lifetime.Token)); break;
         }
         ApplyTheme();
         if (!_draft.ReducedMotion && new global::Windows.UI.ViewManagement.UISettings().AnimationsEnabled)
@@ -208,15 +213,25 @@ public sealed class WelcomeWindow : Window
         var theme = _theme.SelectedItem as string ?? "Dark";
         _root.RequestedTheme = theme == "Light" ? ElementTheme.Light : theme == "System" ? ElementTheme.Default : ElementTheme.Dark;
         var contrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
-        if (contrast) { _root.ClearValue(Panel.BackgroundProperty); _next.ClearValue(Control.BackgroundProperty); return; }
+        if (contrast)
+        {
+            SystemBackdrop = null;
+            _root.Background = new SolidColorBrush(new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Background));
+            _next.ClearValue(Control.BackgroundProperty); _next.ClearValue(Control.ForegroundProperty); return;
+        }
         var light = theme == "Light" || theme == "System" && _root.ActualTheme == ElementTheme.Light;
-        _root.Background = new SolidColorBrush(light ? Color.FromArgb(255, 246, 246, 249) : theme == "Akeno" ? Color.FromArgb(255, 28, 17, 19) : Color.FromArgb(255, 24, 25, 31));
+        _glass.SetLight(light); _glass.SetAkeno(theme == "Akeno");
+        var appearance = _draft with { Theme = theme };
+        _glass.SetTint(AppAppearance.Tint(appearance));
+        SystemBackdrop = AppAppearance.UsesGlass(_draft) && HaloAcrylicBackdrop.IsSupported ? _glass : null;
+        _root.Background = new SolidColorBrush(AppAppearance.Surface(appearance, light, SystemBackdrop is not null));
         _next.Background = new SolidColorBrush(Color.FromArgb(255, 207, 58, 62)); _next.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
         var dark = light ? 0 : 1; DwmSetWindowAttribute(WindowNative.GetWindowHandle(this), 20, ref dark, 4);
     }
     private async Task NextAsync()
     {
         if (_saving) return;
+        if (_step == 6) { await FinishAsync(); return; }
         if (_step == 2)
         {
             var name = _name.Text.Trim();
@@ -230,7 +245,7 @@ public sealed class WelcomeWindow : Window
         {
             if (_city.SelectedLocation is not { IsValid: true } city) { _city.Validation(L.T("Choose a city, or select Skip weather.")); return; }
             _draft = _draft with { WeatherEnabled = true, WeatherLocation = city, WeatherUnit = _city.SelectedUnit };
-            await FinishAsync(); return;
+            _step = 6; RenderStep(); return;
         }
         _step++; RenderStep();
     }

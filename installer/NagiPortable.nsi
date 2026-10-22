@@ -3,6 +3,9 @@ Unicode true
 !include "FileFunc.nsh"
 !include "x64.nsh"
 Name "Nagi"
+!ifndef BuildChannel
+ !define BuildChannel "Production"
+!endif
 OutFile "${PortableOutput}"
 RequestExecutionLevel user
 SilentInstall silent
@@ -13,7 +16,7 @@ CRCCheck on
 Icon "${SourceDir}\Assets\Nagi.ico"
 VIProductVersion "${AppVersion}.0"
 VIAddVersionKey /LANG=1033 "ProductName" "Nagi"
-VIAddVersionKey /LANG=1033 "FileDescription" "Nagi Portable"
+VIAddVersionKey /LANG=1033 "FileDescription" "Nagi ${BuildChannel} Portable"
 VIAddVersionKey /LANG=1033 "FileVersion" "${AppVersion}"
 VIAddVersionKey /LANG=1033 "ProductVersion" "${AppVersion}"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "Nagi contributors"

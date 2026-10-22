@@ -70,7 +70,8 @@ public sealed class AudioControlService(bool capture = false) : IAudioControlSer
             catch { ReleaseEndpoint(); throw; }
         }
     }
-    public AudioSnapshot Sample()
+    public AudioSnapshot Sample() => Sample(true);
+    public AudioSnapshot Sample(bool includePeak)
     {
         try
         {
@@ -79,7 +80,7 @@ public sealed class AudioControlService(bool capture = false) : IAudioControlSer
                 Marshal.ThrowExceptionForHR(volume.GetMasterVolumeLevelScalar(out var level));
                 Marshal.ThrowExceptionForHR(volume.GetMute(out var mute));
                 double? peak = null;
-                if (_meter is not null && _meter.GetPeakValue(out var measured) >= 0 && float.IsFinite(measured)) peak = Math.Clamp(measured, 0, 1);
+                if (includePeak && _meter is not null && _meter.GetPeakValue(out var measured) >= 0 && float.IsFinite(measured)) peak = Math.Clamp(measured, 0, 1);
                 return new(level * 100, mute, _name, Peak: peak);
             });
         }

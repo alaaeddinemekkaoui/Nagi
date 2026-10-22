@@ -12,7 +12,7 @@ public sealed partial class MainWindow
         Layout(); _windowManager.SetVisible(true);
         try
         {
-            _introduction = new(_windowManager.CurrentFrame, ViewModel.Settings.Position.Anchor, Shell.ActualTheme, () => _introduction = null);
+            _introduction = new(_windowManager.CurrentFrame, ViewModel.Settings.Position.Anchor, Shell.ActualTheme, () => _introduction = null, ViewModel.Settings);
             _introduction.ShowIntroduction();
         }
         catch (Exception ex) { DismissDockIntroduction(); _log.Write("introduction", "Could not show dock introduction", ex); }

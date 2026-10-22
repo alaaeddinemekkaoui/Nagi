@@ -6,7 +6,12 @@ namespace Pulse.Windows;
 public static class LocalMediaFilePicker
 {
     // A native desktop dialog avoids dependence on the packaged Windows picker broker.
-    public static Task<string[]> PickAsync(nint owner, string title)
+    public static Task<string[]> PickAsync(nint owner, string title) => PickAsync(owner, title,
+        "Media files\0*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.wma;*.mp4;*.mkv;*.avi;*.mov;*.webm;*.wmv\0All files\0*.*\0\0", true);
+
+    public static Task<string[]> PickExecutableAsync(nint owner, string title) => PickAsync(owner, title, "Applications\0*.exe\0\0", false);
+
+    private static Task<string[]> PickAsync(nint owner, string title, string filter, bool multiple)
     {
         var completion = new TaskCompletionSource<string[]>(TaskCreationOptions.RunContinuationsAsynchronously);
         var thread = new Thread(() =>
@@ -19,9 +24,9 @@ public static class LocalMediaFilePicker
                 var dialog = new OpenFileName
                 {
                     Size = Marshal.SizeOf<OpenFileName>(), Owner = owner,
-                    Filter = "Media files\0*.mp3;*.wav;*.flac;*.m4a;*.aac;*.ogg;*.wma;*.mp4;*.mkv;*.avi;*.mov;*.webm;*.wmv\0All files\0*.*\0\0",
+                    Filter = filter,
                     FilterIndex = 1, File = buffer, MaxFile = capacity, Title = title,
-                    Flags = 0x00080000 | 0x00000200 | 0x00001000 | 0x00000800 | 0x00000008 | 0x00000004 | 0x02000000
+                    Flags = 0x00080000 | (multiple ? 0x00000200u : 0u) | 0x00001000 | 0x00000800 | 0x00000008 | 0x00000004 | 0x02000000
                 };
                 if (!GetOpenFileNameW(ref dialog))
                 {

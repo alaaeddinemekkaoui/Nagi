@@ -94,7 +94,7 @@ public sealed class LanguageTests : IDisposable
         Assert.Empty(failures);
         foreach (var code in new[] { "ar", "de", "en", "es", "fr", "ru" })
             Assert.Contains(languages.Languages, language => language.Code == code);
-        foreach (var code in new[] { "ar", "de", "es", "fr", "ru" })
+        foreach (var code in languages.Languages.Where(language => language.Code != "en").Select(language => language.Code))
         {
             languages.Select(code); Assert.NotEqual("Choose your language.", languages.Text("Choose your language."));
             Assert.DoesNotContain("{0}", languages.Format("Current language: {0}", "Nagi"));
@@ -103,6 +103,17 @@ public sealed class LanguageTests : IDisposable
         }
         languages.Select("ar-EG"); Assert.True(languages.Selected.RightToLeft);
         languages.Select("ru-RU"); Assert.False(languages.Selected.RightToLeft);
+    }
+
+    [Fact]
+    public void ChineseSystemRegionsResolveToTheirScriptPacks()
+    {
+        Pack("zh-Hans", "{\"Settings\":\"设置\"}");
+        Pack("zh-Hant", "{\"Settings\":\"設定\"}");
+        var languages = new LanguageCatalog(_directory);
+        languages.Select("System", "zh-CN"); Assert.Equal("zh-Hans", languages.Selected.Code);
+        languages.Select("System", "zh-TW"); Assert.Equal("zh-Hant", languages.Selected.Code);
+        languages.Select("System", "zh-HK"); Assert.Equal("zh-Hant", languages.Selected.Code);
     }
 
     public void Dispose() => Directory.Delete(_directory, true);

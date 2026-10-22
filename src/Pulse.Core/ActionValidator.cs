@@ -6,13 +6,13 @@ public static class ActionValidator
         { ".cmd", ".bat", ".ps1", ".vbs", ".js", ".jse", ".wsf", ".hta", ".lnk", ".url", ".msi", ".reg", ".com", ".scr" };
     private static readonly HashSet<string> CommandHosts = new(StringComparer.OrdinalIgnoreCase)
         { "cmd.exe", "powershell.exe", "pwsh.exe", "wscript.exe", "cscript.exe", "mshta.exe", "rundll32.exe", "regsvr32.exe" };
-    public static OperationResult Validate(QuickAction action)
+    public static OperationResult Validate(QuickAction action, PulseSettings? settings = null)
     {
         if (!Enum.IsDefined(action.Kind)) return OperationResult.Fail("Unknown action type.");
         if (string.IsNullOrWhiteSpace(action.Label)) return OperationResult.Fail("Give the action a name.");
         if (action.Kind == ActionKind.ToggleHalo) return OperationResult.Ok("Toggle Nagi");
         if (action.Kind == ActionKind.Profile)
-            return Enum.TryParse<Profile>(action.Target, out var profile) && Enum.IsDefined(profile)
+            return Enum.TryParse<Profile>(action.Target, out var profile) && ProfileWorkspaces.IsKnown(profile, settings?.CustomProfiles)
                 ? OperationResult.Ok("Switch profile") : OperationResult.Fail("Choose Work, Gaming or Focus.");
         if (action.Kind == ActionKind.Url)
             return Uri.TryCreate(action.Target, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http"

@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory)][string]$ExecutablePath)
+param([Parameter(Mandatory)][string]$ExecutablePath)
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -28,6 +28,10 @@ function Find([string]$Value,[switch]$Id,[switch]$Optional){
  for($i=0;$i -lt 30;$i++){$item=$script:root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new($property,$Value));if($item){return $item};if($Optional){return $null};Start-Sleep -Milliseconds 100};throw ('Missing '+$Value)
 }
 function Invoke([string]$Name){(Find $Name).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 450}
+function Activate-Workspace([string]$Name){
+ if(Find '← All profiles' -Optional){Invoke '← All profiles'}
+ Invoke ('Customize '+$Name);Invoke ('Activate '+$Name);Invoke '← All profiles'
+}
 function Select-Workspace([string]$Id,[string]$Value){
  $combos=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ComboBox))
  $combo=$combos|Where-Object {$_.Current.AutomationId -eq $Id -or $_.Current.Name -eq $Id}|Select-Object -First 1
@@ -48,7 +52,7 @@ try{
  if(!$root){throw 'No QA window'};$handle=[IntPtr]$root.Current.NativeWindowHandle
  Invoke 'Reveal Nagi';Invoke 'Open Nagi control center';$handle=[IntPtr]$root.Current.NativeWindowHandle
  Find 'Customize Default'|Out-Null;Find 'Customize Stream'|Out-Null
- Invoke 'Activate Default';Invoke 'Overview'
+ Activate-Workspace 'Default';Invoke 'Overview'
  if(Find 'Workspace app VS Code' -Optional){throw 'Default profile contains apps'}
  Find 'GpuMetric' -Id|Out-Null;Snapshot 'default-profile'
  Invoke 'Settings';Invoke 'Music settings'
@@ -70,7 +74,7 @@ try{
  if(!$chosen){throw 'Installed app picker has no choices'};$chosenName=$chosen.Current.Name
  $chosen.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 200
  Invoke 'Add selected app'
- Invoke 'Activate Work';Invoke 'Overview'
+ Activate-Workspace 'Work';Invoke 'Overview'
  $appButtons=@('Workspace app VS Code','Workspace app Terminal','Workspace app Browser',('Workspace app '+$chosenName))|ForEach-Object {Find $_}
  $tops=@($appButtons|ForEach-Object {$_.Current.BoundingRectangle.Top}|Select-Object -Unique)
  Snapshot 'four-app-row'
@@ -80,13 +84,14 @@ try{
  if((Get-Content $qaFile -Raw|ConvertFrom-Json).Workspaces.Where({$_.Profile -eq "Work"})[0].Apps.Count -ne 4){throw 'Selected app was not added'}
  Invoke ('Remove '+$chosenName)
  if((Get-Content $qaFile -Raw|ConvertFrom-Json).Workspaces.Where({$_.Profile -eq "Work"})[0].Apps.Count -ne 3){throw 'App removal was not saved'}
+ (Find 'On manual activation').GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Milliseconds 200
  $auto=Find 'Open apps when I activate this profile';$pattern=$auto.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern)
  if($pattern.Current.ToggleState -ne [Windows.Automation.ToggleState]::Off){throw 'Auto-open was not opt-in'}
  $pattern.Toggle();Start-Sleep -Milliseconds 500
  if(!(Get-Content $qaFile -Raw|ConvertFrom-Json).Workspaces.Where({$_.Profile -eq "Work"})[0].AutoOpenApps){throw 'Auto-open was not saved'}
  $pattern.Toggle();Start-Sleep -Milliseconds 500
  $performance=Find 'Work widget Performance';$performance.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 500
- Invoke 'Activate Work';Invoke 'Overview'
+ Activate-Workspace 'Work';Invoke 'Overview'
  Find 'MicrophoneDeviceText' -Id|Out-Null;Find 'Media microphone mute'|Out-Null
  $settings=Get-Content $qaFile -Raw|ConvertFrom-Json
  if($settings.Workspaces.Where({$_.Profile -eq "Work"})[0].Widgets -contains 'Performance' -or $settings.Workspaces.Where({$_.Profile -eq "Work"})[0].AutoOpenApps){throw 'Workspace choices did not persist'}
@@ -120,7 +125,7 @@ try{
  Invoke 'Profiles';if(Find '← All profiles' -Optional){Invoke '← All profiles'}
  Invoke 'Customize Stream'
  foreach($widget in @('Performance','Media','Audio','Microphone','Weather','Battery')){(Find ('Stream widget '+$widget)).GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 150}
- Invoke 'Activate Stream';Invoke 'Overview'
+ Activate-Workspace 'Stream';Invoke 'Overview'
  if((Find 'Toggle OBS recording').Current.IsEnabled -or (Find 'Toggle OBS streaming').Current.IsEnabled){throw 'Disconnected OBS controls are enabled'}
  foreach($slot in 1..3){Find ('Switch OBS scene '+$slot+': Not configured')|Out-Null}
  Snapshot 'stream-profile'
@@ -133,7 +138,7 @@ try{
  if(!($peekSceneButtons|Where-Object {!$_.Current.IsOffscreen})){throw 'Third OBS scene button is outside the hover viewport'}
  Snapshot 'obs-hover'
  [WorkspaceSmokeNative]::SetCursorPos($qaPointer.X,$qaPointer.Y)|Out-Null
- Invoke 'Open Nagi control center';if(Find '← All profiles' -Optional){Invoke '← All profiles'};Invoke 'Activate Gaming';Invoke 'Overview'
+ Invoke 'Open Nagi control center';if(Find '← All profiles' -Optional){Invoke '← All profiles'};Activate-Workspace 'Gaming';Invoke 'Overview'
  Find 'Workspace app Steam'|Out-Null
  Invoke 'Collapse Nagi';Invoke 'Reveal Nagi';Find 'Dock app Steam'|Out-Null
  Snapshot 'gaming-dock'

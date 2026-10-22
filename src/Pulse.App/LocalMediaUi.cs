@@ -29,6 +29,7 @@ public sealed partial class MainWindow
                 var window = new LocalMediaWindow(_log); _localMedia = window;
                 window.Closed += (_, _) => { if (ReferenceEquals(_localMedia, window)) _localMedia = null; };
             }
+            _localMedia.ApplyAppearance(ViewModel.Settings);
             _localMedia.Open(files);
         }
         catch (Exception ex)

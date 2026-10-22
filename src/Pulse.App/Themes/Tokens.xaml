@@ -2,7 +2,7 @@
   <ResourceDictionary.ThemeDictionaries>
     <ResourceDictionary x:Key="Dark">
       <SolidColorBrush x:Key="CanvasBrush" Color="#18141823"/>
-      <SolidColorBrush x:Key="SurfaceBrush" Color="#48313646"/>
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#30313646"/>
       <SolidColorBrush x:Key="InsetBrush" Color="#30101420"/>
       <SolidColorBrush x:Key="EdgeBrush" Color="#1FFFFFFF"/>
       <SolidColorBrush x:Key="InkBrush" Color="#FFF5F6FA"/>
@@ -15,21 +15,21 @@
     </ResourceDictionary>
     <ResourceDictionary x:Key="Light">
       <SolidColorBrush x:Key="CanvasBrush" Color="#12F5F7FF"/>
-      <SolidColorBrush x:Key="SurfaceBrush" Color="#76FFFFFF"/>
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#40FFFFFF"/>
       <SolidColorBrush x:Key="InsetBrush" Color="#10526186"/>
       <SolidColorBrush x:Key="EdgeBrush" Color="#1C182A4C"/>
       <SolidColorBrush x:Key="InkBrush" Color="#FF20263A"/>
       <SolidColorBrush x:Key="MutedBrush" Color="#FF525F78"/>
       <SolidColorBrush x:Key="AccentWashBrush" Color="#18BC2855"/>
-      <SolidColorBrush x:Key="SelectedTabBrush" Color="#B0FFFFFF"/>
+      <SolidColorBrush x:Key="SelectedTabBrush" Color="#60FFFFFF"/>
       <SolidColorBrush x:Key="PulseAccentBrush" Color="#FFAC244C"/>
       <LinearGradientBrush x:Key="GlassRimBrush" StartPoint="0,0" EndPoint=".7,1"><GradientStop Color="#F0FFFFFF"/><GradientStop Color="#641C2946" Offset="1"/></LinearGradientBrush>
       <LinearGradientBrush x:Key="HeaderGlowBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#12E895AE"/><GradientStop Color="#009BB4F9" Offset="1"/></LinearGradientBrush>
     </ResourceDictionary>
     <ResourceDictionary x:Key="Akeno">
-      <SolidColorBrush x:Key="CanvasBrush" Color="#70100609"/>
-      <SolidColorBrush x:Key="SurfaceBrush" Color="#BA211416"/>
-      <SolidColorBrush x:Key="InsetBrush" Color="#7011080B"/>
+      <SolidColorBrush x:Key="CanvasBrush" Color="#18100609"/>
+      <SolidColorBrush x:Key="SurfaceBrush" Color="#40211416"/>
+      <SolidColorBrush x:Key="InsetBrush" Color="#2411080B"/>
       <SolidColorBrush x:Key="EdgeBrush" Color="#39ED554B"/>
       <SolidColorBrush x:Key="InkBrush" Color="#FFFFEDE7"/>
       <SolidColorBrush x:Key="MutedBrush" Color="#FFC6AFAD"/>

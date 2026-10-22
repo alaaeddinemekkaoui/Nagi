@@ -46,7 +46,7 @@ public sealed partial class MainWindow
         {
             if (box.SelectedIndex >= 0) await SetObsPresentationAsync(profile, modes[box.SelectedIndex]);
         };
-        parent.Children.Add(Labeled(L.T("OBS dock presentation") + " · " + L.T(profile.ToString()), box));
+        parent.Children.Add(Labeled(L.T("OBS dock presentation") + " · " + ProfileLabel(profile), box));
         parent.Children.Add(Note(L.T("Choose an app shortcut, hover controls, or hide OBS for this profile.")));
     }
 

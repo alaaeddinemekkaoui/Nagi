@@ -5,7 +5,7 @@ using Pulse.Core;
 namespace Pulse.Windows;
 
 public sealed record DisplayMonitor(string Device, string Label);
-public readonly record struct HaloFrame(double X, double Y, double Width, double Height, double Radius, double Scale = 1, double DropAmount = 0);
+public readonly record struct HaloFrame(double X, double Y, double Width, double Height, double Radius, double Scale = 1, double DropAmount = 0, double NotchAmount = 0);
 public sealed class HaloWindowManager : IWindowManager
 {
     private readonly nint _hwnd;
@@ -14,9 +14,11 @@ public sealed class HaloWindowManager : IWindowManager
     private bool _expanded, _dashboard, _disposed, _layout, _dragging;
     private int _hotkeyId, _hideHotkeyId, _searchHotkeyId;
     private bool? _visible;
-    private double _dropAmount, _radius;
+    private double _dropAmount, _radius, _notchAmount;
     private bool _hasFrame;
     private bool _controlCenter;
+    private Native.Point[]? _notchPoints;
+    public bool AntialiasNotch { get; set; }
     public event Action<HaloFrame>? FrameApplied;
     public event Action<HaloFrame>? ControlCenterResized;
     public bool PreviewAbove { get; private set; }
@@ -43,6 +45,7 @@ public sealed class HaloWindowManager : IWindowManager
         var corners = 1; Native.DwmSetWindowAttribute(hwnd, 33, ref corners, sizeof(int));
         var dark = 1; Native.DwmSetWindowAttribute(hwnd, 20, ref dark, sizeof(int));
         var noSystemBorder = -2; Native.DwmSetWindowAttribute(hwnd, 34, ref noSystemBorder, sizeof(int));
+        var hostBackdrop = 1; Native.DwmSetWindowAttribute(hwnd, 17, ref hostBackdrop, sizeof(int));
     }
     private static List<(nint Handle, Native.MonitorInfo Info)> Monitors()
     {
@@ -80,7 +83,7 @@ public sealed class HaloWindowManager : IWindowManager
         {
             Native.GetWindowRect(_hwnd, out var rect);
             var scale = Math.Max(96, Native.GetDpiForWindow(_hwnd)) / 96d;
-            return new(rect.Left, rect.Top, rect.Width, rect.Height, _hasFrame ? _radius : 26 * scale, scale, _dropAmount);
+            return new(rect.Left, rect.Top, rect.Width, rect.Height, _hasFrame ? _radius : 26 * scale, scale, _dropAmount, _notchAmount);
         }
     }
     public bool OwnsForeground
@@ -102,7 +105,20 @@ public sealed class HaloWindowManager : IWindowManager
         x = point.X / scale; y = point.Y / scale;
         return true;
     }
-    public HaloFrame PrepareLayout(bool expanded, bool dashboard, HaloPosition position, double compactHeight = 54, bool edgeResting = false, double railLength = 0, double railThickness = 0)
+    // Client pixels, matching the polygon given to SetWindowRgn. Keep the removed
+    // areas click-through and prevent the hover watcher from opening over a cutout.
+    public bool ContainsNotchPoint(double x, double y)
+    {
+        if (_notchPoints is not { Length: > 2 } points) return true;
+        var inside = false;
+        for (int i = 0, j = points.Length - 1; i < points.Length; j = i++)
+        {
+            var a = points[i]; var b = points[j];
+            if ((a.Y > y) != (b.Y > y) && x < (b.X - a.X) * (y - a.Y) / (b.Y - a.Y) + a.X) inside = !inside;
+        }
+        return inside;
+    }
+    public HaloFrame PrepareLayout(bool expanded, bool dashboard, HaloPosition position, double compactHeight = 54, bool edgeResting = false, double railLength = 0, double railThickness = 0, bool liveActivity = false, double liveWidth = 0, double liveHeight = 0)
     {
             SetControlCenterMode(false);
             _expanded = expanded; _dashboard = dashboard; _position = position;
@@ -118,28 +134,33 @@ public sealed class HaloWindowManager : IWindowManager
             {
                 var preview = !expanded && !edgeResting && compactHeight > 84;
                 var railWidth = Math.Min(work.Width - 16, Math.Round((expanded ? 760 : railLength > 0 ? railLength : 760) * scale));
-                var widthH = edgeResting && !expanded ? Math.Min(railWidth, Math.Round(132 * scale)) : railWidth;
-                var heightH = Math.Min(work.Height - 16, Math.Round((expanded ? dashboard ? 800 : 780 : edgeResting ? 18 : preview ? 400 : railThickness > 0 ? railThickness : 76) * scale));
+                var widthH = edgeResting && !expanded
+                    ? liveActivity ? Math.Min(work.Width - 16, Math.Round((liveWidth > 0 ? liveWidth : DockPresentation.LiveNotchWidth) * scale))
+                        : Math.Min(railWidth, Math.Round(DockPresentation.HorizontalNotchWidth * scale)) : railWidth;
+                var heightH = Math.Min(work.Height - 16, Math.Round((expanded ? dashboard ? 800 : 780 : edgeResting ? liveActivity ? liveHeight > 0 ? liveHeight : DockPresentation.LiveNotchHeight : DockPresentation.HorizontalNotchHeight : preview ? compactHeight : railThickness > 0 ? railThickness : 76) * scale));
+                var attachmentWidth = Math.Max(railWidth, widthH);
                 var centerX = Math.Clamp(work.Left + work.Width / 2d + position.OffsetX * scale,
-                    work.Left + railWidth / 2 + 8, Math.Max(work.Left + railWidth / 2 + 8, work.Right - railWidth / 2 - 8));
+                    work.Left + attachmentWidth / 2 + 8, Math.Max(work.Left + attachmentWidth / 2 + 8, work.Right - attachmentWidth / 2 - 8));
                 var top = position.Anchor is "Top edge" or "Top center";
+                // The work area ends above the taskbar, so the drop and every reveal
+                // stay together without covering taskbar icons.
                 PreviewAbove = !top;
                 return new(Math.Round(centerX - widthH / 2), top ? work.Top : work.Bottom - heightH,
-                    widthH, heightH, 22 * scale, scale, edgeResting && !expanded ? 1 : 0);
+                    widthH, heightH, 22 * scale, scale, edgeResting && !expanded ? 1 : 0, liveActivity ? 1 : 0);
             }
             var edge = position.Anchor is "Left edge" or "Right edge";
             if (edge)
             {
                 var screen = selected.Info.Monitor;
                 var preview = !expanded && !edgeResting && compactHeight > 84;
-                var edgeWidth = Math.Min(work.Width - 16, (int)Math.Round((expanded ? dashboard ? 720 : 580 : edgeResting ? 18 : preview ? 430 : railThickness > 0 ? railThickness : 80) * scale));
+                var edgeWidth = Math.Min(work.Width - 16, (int)Math.Round((expanded ? dashboard ? 720 : 580 : edgeResting ? liveActivity ? liveWidth > 0 ? liveWidth : DockPresentation.LiveSideNotchWidth : 18 : preview ? 430 : railThickness > 0 ? railThickness : 80) * scale));
                 var railHeight = Math.Min((railLength > 0 ? railLength : 560) * scale, work.Height - 16);
                 var center = Math.Clamp(work.Top + work.Height / 2d + position.OffsetY * scale, work.Top + railHeight / 2 + 8, Math.Max(work.Top + railHeight / 2 + 8, work.Bottom - railHeight / 2 - 8));
-                var edgeHeight = Math.Min(work.Height - 16, (int)Math.Round(expanded ? (dashboard ? 800 : 780) * scale : edgeResting ? 132 * scale : preview ? Math.Max(railHeight, compactHeight * scale) : railHeight));
+                var edgeHeight = Math.Min(work.Height - 16, (int)Math.Round(expanded ? (dashboard ? 800 : 780) * scale : edgeResting ? (liveActivity ? liveHeight > 0 ? liveHeight : DockPresentation.LiveSideNotchHeight : 132) * scale : preview ? Math.Max(railHeight, compactHeight * scale) : railHeight));
                 PreviewAbove = false;
                 var edgeY = Math.Clamp(center - edgeHeight / 2d, work.Top + 8, Math.Max(work.Top + 8, work.Bottom - edgeHeight - 8));
                 return new(position.Anchor == "Left edge" ? screen.Left : screen.Right - edgeWidth, Math.Round(edgeY), edgeWidth, edgeHeight,
-                    22 * scale, scale, edgeResting && !expanded ? 1 : 0);
+                    22 * scale, scale, edgeResting && !expanded ? 1 : 0, liveActivity ? 1 : 0);
             }
             var width = Math.Min(work.Width - 16, (int)Math.Round((expanded ? (dashboard ? 680 : 500) : 326) * scale));
             var height = Math.Min(work.Height - 16, (int)Math.Round((expanded ? (dashboard ? 760 : 740) : Math.Clamp(compactHeight, 54, 306)) * scale));
@@ -164,12 +185,23 @@ public sealed class HaloWindowManager : IWindowManager
             if (!_hasFrame || !Native.GetWindowRect(_hwnd, out var current) || current.Left != x || current.Top != y || current.Width != width || current.Height != height)
                 Native.SetWindowPos(_hwnd, _controlCenter ? -2 : -1, x, y, width, height, 0x0010);
             _dropAmount = Math.Clamp(frame.DropAmount, 0, 1);
+            _notchAmount = Math.Clamp(frame.NotchAmount, 0, 1);
             _radius = frame.Radius;
+            _notchPoints = null;
             if (_controlCenter) Native.SetWindowRgn(_hwnd, 0, true);
             else if (_dropAmount > .001)
             {
-                var contour = Pulse.Core.Motion.EdgeDropContour.Create(width, height, _position.Anchor, _dropAmount);
+                var contour = Pulse.Core.Motion.RestingContour.Create(width, height, _position.Anchor, _dropAmount, _notchAmount, (float)frame.Scale);
+                // Keep one device pixel around the free edge for fractional coverage
+                // from the backdrop mask. The mask leaves the shoulders transparent.
+                if (AntialiasNotch)
+                {
+                    for (var i = 3; i < contour.Length - 4; i++)
+                        contour[i] += _position.Anchor switch
+                        { "Top edge" => new System.Numerics.Vector2(0, 1), "Bottom edge" => new(0, -1), "Left edge" => new(1, 0), _ => new(-1, 0) };
+                }
                 var points = contour.Select(p => new Native.Point { X = (int)Math.Round(p.X), Y = (int)Math.Round(p.Y) }).ToArray();
+                _notchPoints = points;
                 var region = Native.CreatePolygonRgn(points, points.Length, 1);
                 if (region != 0 && Native.SetWindowRgn(_hwnd, region, true) == 0) Native.DeleteObject(region);
             }

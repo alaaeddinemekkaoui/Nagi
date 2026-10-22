@@ -23,6 +23,7 @@ public sealed partial class MainWindow
 
     private void BuildSettingsPage()
     {
+        _visualizerSettingsPreview = null;
         SettingsPage.Children.Clear();
         SettingsNavigationHeader.Visibility = _page == "Settings" && _settingsCategory is not null ? Visibility.Visible : Visibility.Collapsed;
         SettingsNavigationHeader.FlowDirection = L.Direction;
@@ -43,10 +44,14 @@ public sealed partial class MainWindow
                 ("Search & shortcuts", "App search, file indexing and search key", "\uE721"),
                 ("Lua UI studio", "Scripts, presets and custom styling", "\uE943"),
                 ("Music", "Preferred music service and now playing", "\uE8D6"),
+                ("Timer & live activity", "Countdown and resting media display", "\uE916"),
                 ("Updates", "Check, download and install new releases", "\uE895"),
                 ("Behavior", "Shortcuts, startup, media and notifications", "\uE713"),
                 ("About & diagnostics", "Providers, recent activity and reset", "\uE946")
             };
+#if NAGI_DEVELOPMENT
+            categories = [.. categories, ("Developer tools", "Preview, inspect and test this development build", "\uEBE8")];
+#endif
             var grid = new Grid { ColumnSpacing = 10, RowSpacing = 10 };
             grid.ColumnDefinitions.Add(new()); grid.ColumnDefinitions.Add(new());
             for (var i = 0; i < categories.Length; i++)
@@ -84,9 +89,13 @@ public sealed partial class MainWindow
                 case "Search & shortcuts": BuildSearchSettings(); break;
                 case "Lua UI studio": BuildLuaSettings(); break;
                 case "Music": BuildMusicSettings(); break;
+                case "Timer & live activity": BuildTimerSettings(); break;
                 case "Updates": BuildUpdateSettings(); break;
                 case "Behavior": BuildBehaviorSettings(); break;
                 case "About & diagnostics": BuildDiagnosticsSettings(); break;
+#if NAGI_DEVELOPMENT
+                case "Developer tools": BuildDevelopmentSettings(); break;
+#endif
             }
         }
         ApplyLuaVisuals();

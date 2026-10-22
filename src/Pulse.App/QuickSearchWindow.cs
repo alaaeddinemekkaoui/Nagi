@@ -97,11 +97,13 @@ public sealed class QuickSearchWindow : Window
         // Setting only the child Grid can leave light controls over a dark backdrop.
         if (Content is FrameworkElement themedSurface)
             themedSurface.RequestedTheme = settings.Theme switch { "Light" => ElementTheme.Light, "System" => ElementTheme.Default, _ => ElementTheme.Dark };
-        _root.Background = _brush("CanvasBrush");
+        _root.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         var highContrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
         _glass.SetLight(_root.ActualTheme == ElementTheme.Light); _glass.SetAkeno(settings.Theme == "Akeno");
-        SystemBackdrop = settings.GlassEnabled && !highContrast && HaloAcrylicBackdrop.IsSupported ? _glass : null;
-        if (Content is Border surface) surface.Background = _brush("SurfaceBrush");
+        _glass.SetTint(AppAppearance.Tint(settings));
+        SystemBackdrop = AppAppearance.UsesGlass(settings) && !highContrast && HaloAcrylicBackdrop.IsSupported ? _glass : null;
+        if (Content is Border surface) surface.Background = highContrast ? _brush("CanvasBrush")
+            : new SolidColorBrush(AppAppearance.Surface(settings, _root.ActualTheme == ElementTheme.Light, SystemBackdrop is not null));
         _query.Foreground = _brush("InkBrush"); _query.Background = _brush("InsetBrush"); _status.Foreground = _detail.Foreground = _brush("MutedBrush");
         _open.Background = _brush("AccentWashBrush");
         _query.Resources["TextControlBorderBrushFocused"] = _brush("PulseAccentBrush");

@@ -73,7 +73,7 @@ public sealed partial class MainWindow
         ProfileDockPanel.Children.Clear(); WorkspaceAppsPanel.Children.Clear(); WorkspaceAppsPanel.RowDefinitions.Clear(); WorkspaceAppsPanel.ColumnDefinitions.Clear();
         for (var column = 0; column < 4; column++) WorkspaceAppsPanel.ColumnDefinitions.Add(new());
         var horizontal = ViewModel.Settings.Position.Orientation == "Horizontal";
-        var folderColumns = horizontal ? 4 : 2;
+        var folderColumns = Math.Min(horizontal ? 4 : 2, Math.Max(1, dockApps.Length));
         AppFolderGrid.ColumnDefinitions.Clear();
         for (var column = 0; column < folderColumns; column++) AppFolderGrid.ColumnDefinitions.Add(new());
         ProfileDockPanel.Orientation = horizontal ? Orientation.Horizontal : Orientation.Vertical;
@@ -83,15 +83,25 @@ public sealed partial class MainWindow
         {
             Button AppButton(bool rail, bool folder = false)
             {
-                var copy = new Grid { ColumnSpacing = 6, VerticalAlignment = VerticalAlignment.Center };
-                copy.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); copy.ColumnDefinitions.Add(new());
+                var copy = new Grid { ColumnSpacing = 8, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
+                copy.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); copy.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
                 var resolved = ProfileWorkspaces.Resolve(app, _appCatalog.Entries);
-                copy.Children.Add(new Controls.AppIcon(app.Name, resolved?.Target ?? (app.Target == "terminal" ? "terminal" : null), ThemeBrush("InkBrush"), rail ? 18 : 20));
+                copy.Children.Add(new Controls.AppIcon(app.Name, resolved?.Target ?? (app.Target == "terminal" ? "terminal" : null), ThemeBrush("InkBrush"), 22));
                 copy.Children.Add(new TextBlock { Text = app.Name, FontSize = rail ? 8 : 12, MaxWidth = rail ? 56 : 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center });
                 Grid.SetColumn((FrameworkElement)copy.Children[1], 1);
                 var button = new Button { Content = copy, CornerRadius = new(10), Padding = new(rail ? 4 : 12), MinHeight = rail ? 36 : 44, HorizontalAlignment = HorizontalAlignment.Stretch };
                 if (rail) { button.Style = (Style)Application.Current.Resources["QuietButton"]; button.MinWidth = button.MinHeight = 0; button.Width = 34; button.Height = horizontal ? 36 : 32; copy.Children.RemoveAt(1); copy.ColumnDefinitions.Clear(); copy.ColumnDefinitions.Add(new()); }
-                button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                button.HorizontalContentAlignment = HorizontalAlignment.Center;
+                button.VerticalContentAlignment = VerticalAlignment.Center;
+                if (!rail)
+                {
+                    var label = (TextBlock)copy.Children[1];
+                    button.SizeChanged += (_, _) =>
+                    {
+                        var room = Math.Max(0, button.ActualWidth - button.Padding.Left - button.Padding.Right - 30);
+                        if (Math.Abs(label.MaxWidth - room) > .5) label.MaxWidth = room;
+                    };
+                }
                 AutomationProperties.SetName(button, (folder ? L.T("Folder app ") : rail ? L.T("Dock app ") : L.T("Workspace app ")) + app.Name);
                 ToolTipService.SetToolTip(button, app.Name + " · " + ViewModel.Profile);
                 button.Click += async (_, _) =>
@@ -151,6 +161,7 @@ public sealed partial class MainWindow
         WeatherCard.Visibility = RailWeatherButton.Visibility = Show(workspace.Shows("Weather") && ViewModel.Settings.WeatherEnabled);
         CompactCpuButton.Visibility = RailGpuButton.Visibility = Show(workspace.Shows("Performance"));
         CompactMediaButton.Visibility = Show(workspace.Shows("Media") && ViewModel.Settings.ShowMedia || workspace.Shows("Audio"));
+        CompactTimerButton.Visibility = Show(HasDockTimer);
         RailMicrophoneButton.Visibility = Show(workspace.Shows("Microphone"));
         CompactBatteryButton.Visibility = Show(DockPresentation.ShowBattery(workspace, ViewModel.Metrics.Power));
     }
@@ -159,20 +170,24 @@ public sealed partial class MainWindow
     {
         var workspace = ViewModel.Settings.Workspace(profile);
         WorkspacePage.Children.Add(Button(L.T("← All profiles"), (_, _) => { _editingWorkspace = null; BuildRulesPage(); }));
-        WorkspacePage.Children.Add(Heading(L.F($"{L.T(profile.ToString())} workspace")));
-        WorkspacePage.Children.Add(Note(L.T("Choose the dock apps and widgets shown whenever this profile is active.")));
-        WorkspacePage.Children.Add(Button(L.T("Activate ") + profile, async (_, _) => await ActivateProfileAsync(profile)));
-        WorkspacePage.Children.Add(Toggle(L.T("Open apps when I activate this profile"), L.T("Runs on manual activation from Profiles, the profile picker, shortcuts or tray. Automatic context switching only changes widgets and the dock."), workspace.AutoOpenApps,
-            (s, value) => s with { Workspaces = s.Workspaces.Select(w => w.Profile == profile ? w with { AutoOpenApps = value } : w).ToArray() }));
-        WorkspacePage.Children.Add(Note(L.T("Automatic context switching updates the dock and widgets without opening apps. Startup does not open profile apps.")));
+        var header = new Grid { ColumnSpacing = 12 };
+        header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        header.Children.Add(Heading(ProfileLabel(profile)));
+        var activate = Button(L.T("Activate ") + ProfileLabel(profile), async (_, _) => { await ActivateProfileAsync(profile); BuildRulesPage(); });
+        Grid.SetColumn(activate, 1); header.Children.Add(activate); WorkspacePage.Children.Add(header);
+        WorkspacePage.Children.Add(Note(L.T("Customize this profile's widgets, apps and activation.")));
         var apps = Stack(); apps.Children.Add(Heading(L.T("App dock")));
         apps.Children.Add(Note(L.T("Up to two apps appear directly on the dock. More than two apps share one folder that expands on hover or click. Overview shows all apps, up to four per row.")));
         foreach (var app in workspace.Apps)
         {
-            var row = new Grid { ColumnSpacing = 8 }; row.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
-            row.Children.Add(new TextBlock { Text = app.Name + (app.Kind == "Suggested" ? L.T(" · suggested") : ""), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis });
+            var row = new Grid { ColumnSpacing = 10 }; row.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new()); row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            row.Children.Add(new Controls.AppIcon(app.Name, ProfileWorkspaces.Resolve(app, _appCatalog.Entries)?.Target, ThemeBrush("InkBrush"), 20));
+            var label = new TextBlock { Text = app.Name + (app.Kind == "Suggested" ? L.T(" · suggested") : ""), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+            Grid.SetColumn(label, 1); row.Children.Add(label);
             var remove = Button(L.T("Remove ") + app.Name, async (_, _) => { var current = ViewModel.Settings.Workspace(profile); if (await SaveWorkspaceAsync(current with { Apps = current.Apps.Where(a => a != app).ToArray() })) BuildRulesPage(); });
-            Grid.SetColumn(remove, 1); row.Children.Add(remove); apps.Children.Add(row);
+            AutomationProperties.SetName(remove, L.T("Remove ") + app.Name); ToolTipService.SetToolTip(remove, L.T("Remove ") + app.Name);
+            remove.Content = new FontIcon { Glyph = "\uE711", FontSize = 11 }; remove.Style = (Style)Application.Current.Resources["QuietButton"];
+            Grid.SetColumn(remove, 2); row.Children.Add(remove); apps.Children.Add(row);
         }
         var picker = new ComboBox { ItemsSource = _appCatalog.Entries.OrderBy(e => e.Title).ToArray(), DisplayMemberPath = "Title", IsEditable = true, IsTextSearchEnabled = true, PlaceholderText = L.T("Choose an installed app"), HorizontalAlignment = HorizontalAlignment.Stretch };
         AutomationProperties.SetName(picker, L.T("Workspace app picker")); apps.Children.Add(picker);
@@ -184,10 +199,17 @@ public sealed partial class MainWindow
             if (await SaveWorkspaceAsync(current with { Apps = [.. current.Apps, new(app.Title, app.Target)] })) BuildRulesPage();
         }));
         apps.Children.Add(Button(L.T("Refresh installed apps"), async (_, _) => { _appCatalog = await SearchApplications.ReadAsync(_shutdown.Token); if (!_closed) BuildRulesPage(); }));
+        apps.Children.Add(new Expander { Header = L.T("On manual activation"), HorizontalAlignment = HorizontalAlignment.Stretch,
+            Content = Toggle(L.T("Open apps when I activate this profile"), L.T("Automatic context switching only changes the dock and widgets."), workspace.AutoOpenApps,
+                (s, value) => s with { Workspaces = s.Workspaces.Select(w => w.Profile == profile ? w with { AutoOpenApps = value } : w).ToArray() }) });
         WorkspacePage.Children.Add(Card(apps));
         var widgets = Stack(); widgets.Children.Add(Heading(L.T("Visible widgets")));
-        foreach (var widget in ProfileWorkspaces.WidgetNames)
+        var widgetGrid = new Grid { ColumnSpacing = 12, RowSpacing = 8 };
+        widgetGrid.ColumnDefinitions.Add(new()); widgetGrid.ColumnDefinitions.Add(new());
+        for (var index = 0; index < ProfileWorkspaces.WidgetNames.Length; index++)
         {
+            var widget = ProfileWorkspaces.WidgetNames[index];
+            if (index % 2 == 0) widgetGrid.RowDefinitions.Add(new() { Height = GridLength.Auto });
             var toggle = new CheckBox { Content = L.T(widget), IsChecked = workspace.Shows(widget) };
             AutomationProperties.SetName(toggle, profile + L.T(" widget ") + widget);
             toggle.Click += async (_, _) =>
@@ -195,10 +217,13 @@ public sealed partial class MainWindow
                 var current = ViewModel.Settings.Workspace(profile);
                 var updated = toggle.IsChecked == true ? current.Widgets.Append(widget).Distinct().ToArray() : current.Widgets.Where(w => w != widget).ToArray();
                 if (!await SaveWorkspaceAsync(current with { Widgets = updated })) toggle.IsChecked = current.Shows(widget);
+                else if (widget == "Studio") BuildRulesPage();
             };
-            widgets.Children.Add(toggle);
+            Grid.SetRow(toggle, index / 2); Grid.SetColumn(toggle, index % 2); widgetGrid.Children.Add(toggle);
         }
-        WorkspacePage.Children.Add(Card(widgets));
-        AddObsPresentationSettings(WorkspacePage, profile);
+        widgets.Children.Add(widgetGrid);
+        if (workspace.Shows("Studio") || profile == Profile.Stream) AddObsPresentationSettings(widgets, profile);
+        WorkspacePage.Children.Insert(3, Card(widgets));
+        BuildProfileTimer(profile); BuildProfileActivation(profile); BuildCustomProfileOptions(profile);
     }
 }

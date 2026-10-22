@@ -10,6 +10,7 @@ public sealed partial class MainWindow
     private readonly global::Windows.UI.ViewManagement.UISettings _audioMotion = new();
     private AudioSnapshot _latestAudio = new(null, false, "Checking audio…");
     private int _audioFrameQueued;
+    private long _audioSamples, _audioPeakSamples;
     private long _audioFrameCount;
     private bool _volumeWriteInFlight;
     private readonly AudioEnvelope _audioEnvelope = new();
@@ -20,8 +21,10 @@ public sealed partial class MainWindow
         var token = _shutdown.Token;
         while (!token.IsCancellationRequested)
         {
-            Volatile.Write(ref _latestAudio, _audio.Sample());
-            if (Interlocked.Exchange(ref _audioFrameQueued, 1) == 0)
+            var demand = Volatile.Read(ref _runtimeDemand);
+            _audioSamples++; if (demand.AudioPeak) _audioPeakSamples++;
+            Volatile.Write(ref _latestAudio, _audio.Sample(demand.AudioPeak));
+            if (demand.Audio > 0 && Interlocked.Exchange(ref _audioFrameQueued, 1) == 0)
             {
                 if (!DispatcherQueue.TryEnqueue(() =>
                 {
@@ -31,8 +34,9 @@ public sealed partial class MainWindow
                     ViewModel.ApplyAudio(current); RenderAudio(current);
                 })) Interlocked.Exchange(ref _audioFrameQueued, 0);
             }
-            try { await Task.Delay(50, token); } catch (OperationCanceledException) { break; }
+            try { await _audioWake.WaitAsync(demand.AudioIntervalMs, token); } catch (OperationCanceledException) { break; }
         }
+        _log.Write("sampling", $"Audio stopped: samples={_audioSamples}; peak samples={_audioPeakSamples}; UI frames={_audioFrameCount}");
     }
 
     private void RenderAudio(AudioSnapshot audio)
@@ -40,6 +44,7 @@ public sealed partial class MainWindow
         if (_closed) return;
         _audioFrameCount++;
         _lastAudio = audio;
+        RenderRestingAudio(audio);
         if (_userHidden || _dock.Stage == DockStage.Resting) return;
         var previous = _updating; _updating = true;
         foreach (var slider in new[] { VolumeSlider, PeekVolumeSlider })
@@ -56,15 +61,15 @@ public sealed partial class MainWindow
         var now = Stopwatch.GetTimestamp();
         var level = _audioEnvelope.Update(audio.Muted ? 0 : audio.Peak, Stopwatch.GetElapsedTime(_audioRenderedAt, now).TotalSeconds);
         _audioRenderedAt = now;
-        var accent = ThemeBrush("PulseAccentBrush");
-        var overview = Expanded.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _page == "Overview";
+        var accent = VisualizerBrush;
+        var overview = Expanded.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _page == "Overview" && AudioCard.Visibility == Microsoft.UI.Xaml.Visibility.Visible;
         var mediaPeek = PeekHost.Visibility == Microsoft.UI.Xaml.Visibility.Visible && _preview == PreviewKind.Media;
         if (overview) OutputAudioMeter.Update(level, audio.Peak.HasValue, accent);
-        if (mediaPeek) PeekAudioMeter.Update(level, audio.Peak.HasValue, accent);
         var animate = !ViewModel.Settings.ReducedMotion && _audioMotion.AnimationsEnabled;
         if (!_userHidden)
         {
-            if (mediaPeek) PeekMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+            if (!_controlCenter && CompactMusicVisualizer.Visibility == Microsoft.UI.Xaml.Visibility.Visible) CompactMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
+            if (mediaPeek && PeekMusicVisualizer.Visibility == Microsoft.UI.Xaml.Visibility.Visible) PeekMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
             if (overview) OutputMusicVisualizer.Update(level, audio.Peak.HasValue, accent, animate);
         }
     }

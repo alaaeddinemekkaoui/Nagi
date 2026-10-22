@@ -19,11 +19,11 @@ public sealed class MediaDesignTests
     [InlineData("Right edge", 18, 132)]
     [InlineData("Top edge", 132, 18)]
     [InlineData("Bottom edge", 132, 18)]
-    public void WaterDropTouchesEdgeAndTapersAtBothEnds(string edge, float width, float height)
+    public void NotchTouchesTheEdgeAndReachesItsFullDepthAtTheCenter(string edge, float width, float height)
     {
         var points = EdgeDropContour.Create(width, height, edge);
         Assert.All(points, point => { Assert.InRange(point.X, 0, width); Assert.InRange(point.Y, 0, height); });
-        var center = points[33];
+        var center = EdgeDropContour.BezierPoints(width, height, edge)[3];
         if (edge == "Left edge") { Assert.Equal(0, points[0].X); Assert.Equal(width, center.X); Assert.Equal(0, points[^1].X); }
         if (edge == "Right edge") { Assert.Equal(width, points[0].X); Assert.Equal(0, center.X); Assert.Equal(width, points[^1].X); }
         if (edge == "Top edge") { Assert.Equal(0, points[0].Y); Assert.Equal(height, center.Y); Assert.Equal(0, points[^1].Y); }

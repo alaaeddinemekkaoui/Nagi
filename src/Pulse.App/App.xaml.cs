@@ -12,6 +12,9 @@ public partial class App : Application
     private readonly EventWaitHandle _setupActivate;
     private RegisteredWaitHandle? _setupWait;
     internal NagiLaunchOptions LaunchOptions { get; }
+#if NAGI_DEVELOPMENT
+    internal DevelopmentLaunch Development { get; }
+#endif
     private RegisteredWaitHandle? _wait;
     private MainWindow? _window;
     private WelcomeWindow? _welcome;
@@ -19,7 +22,12 @@ public partial class App : Application
     private readonly DiagnosticLog _log;
     public App()
     {
+#if NAGI_DEVELOPMENT
+        Development = DevelopmentLaunch.Parse(Environment.GetCommandLineArgs().Skip(1));
+        LaunchOptions = DevelopmentLaunch.Isolate(NagiLaunchOptions.Parse(Development.Arguments));
+#else
         LaunchOptions = NagiLaunchOptions.Parse(Environment.GetCommandLineArgs().Skip(1));
+#endif
         if (LaunchOptions.WaitForExit is { } parentId) WaitForPreviousProcess(parentId);
         _log = new(LaunchOptions.DataDirectory);
         _mutex = new Mutex(true, LaunchOptions.Scope("Local\\Pulse.Desktop.SingleInstance.v1"), out var first);
@@ -50,6 +58,12 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         var settings = new SettingsService(LaunchOptions.DataDirectory);
+#if NAGI_DEVELOPMENT
+        if (!File.Exists(settings.FilePath))
+            await settings.SaveAsync(new PulseSettings { WelcomeCompleted = true, AutomaticUpdates = false, IndexFiles = false,
+                ObsEnabled = false, FpsEnabled = false, WeatherEnabled = false, CloseOnDeactivate = false,
+                Hotkey = new(15, 131), HideHotkey = new(15, 132), SearchHotkey = new(15, 133) });
+#endif
         var configuration = await settings.LoadAsync();
         L.Select(configuration.Language);
         _wait = ThreadPool.RegisterWaitForSingleObject(_activate, (_, _) =>
@@ -77,6 +91,9 @@ public partial class App : Application
         _window = new MainWindow(settings, configuration, _log);
         _window.Closed += (_, _) => ReleaseInstance();
         _window.ShowInitial();
+#if NAGI_DEVELOPMENT
+        _window.DispatcherQueue.TryEnqueue(() => _window.StartDevelopment(Development.Page, Development.RunChecks));
+#endif
         if (introduce) _window.DispatcherQueue.TryEnqueue(_window.BeginDockIntroduction);
         _log.Write("lifecycle", "Nagi started");
     }

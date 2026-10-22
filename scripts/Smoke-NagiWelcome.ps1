@@ -99,6 +99,15 @@ if($SkipWeather){Invoke-Nagi 'WelcomeSkip'}else{
  $nagiCity.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 200
  Save-NagiImage 'welcome-weather-city';Invoke-Nagi 'WelcomeNext';Write-Output 'Welcome live weather city selection: PASS'
 }
+Find-Nagi 'WelcomeProfilePicker'|Out-Null
+Set-NagiText 'WelcomeNewProfileName' 'Welcome custom'
+Invoke-Nagi 'WelcomeCreateProfile'
+$timerInput=(Find-Nagi 'WelcomeProfileTimerMinutes').FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::Edit))
+$timerInput.SetFocus();$timerInput.GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('12')
+(Find-Nagi 'WelcomeProfileTimerAutoStart').SetFocus()
+(Find-Nagi 'WelcomeProfileTimerAutoStart').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle()
+Save-NagiImage 'welcome-profiles'
+Invoke-Nagi 'WelcomeNext'
 Start-Sleep -Seconds 2;$script:nagiRoot=Get-NagiRoot
 if($nagiRoot.Current.Name -ne 'Nagi'){throw 'Welcome did not open the dock.'}
 $nagiIntro=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$nagiProcess.Id))|Where-Object {$_.Current.Name -like '*hello*'}|Select-Object -First 1
@@ -122,7 +131,13 @@ Write-Output ('Dock introduction / '+$IntroductionDismissal+' dismissal / cleanu
 if($IntroductionOnly){
  $nagiSaved=Get-Content -LiteralPath $nagiSettingsPath -Raw|ConvertFrom-Json
  if(!$nagiSaved.WelcomeCompleted -or $nagiSaved.UserName -ne 'Nagi QA'){throw 'First-run choices did not persist.'}
- Write-Output ('Welcome / introduction / saved choices: PASS; process '+$nagiProcess.Id);return
+ $welcomeCustom=$nagiSaved.CustomProfiles|Where-Object Name -eq 'Welcome custom'
+ $welcomeTimer=($nagiSaved.Workspaces|Where-Object Profile -eq $welcomeCustom.Id).Timer
+ if(!$welcomeTimer.AutoStart -or $welcomeTimer.Minutes -ne 12){throw 'Welcome profile timer choices did not persist.'}
+ Write-Output ('Welcome / introduction / saved choices: PASS; process '+$nagiProcess.Id)
+ $nagiProcess.CloseMainWindow()|Out-Null
+ if(!$nagiProcess.WaitForExit(5000)){$nagiProcess.Kill()}
+ return
 }
 
 $nagiHandle=[IntPtr]$nagiRoot.Current.NativeWindowHandle;$nagiScale=[NagiWelcomeNative]::GetDpiForWindow($nagiHandle)/96.0

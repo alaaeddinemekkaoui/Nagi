@@ -12,6 +12,16 @@ dotnet test Pulse.sln -c Release --no-build --logger trx
 
 ## Release outputs
 
+Production uses the `Release` configuration. For a matching development/production pair from the same source and version:
+
+```powershell
+./scripts/Publish-NagiVariants.ps1 -NoRestore
+```
+
+This creates **`Nagi-Dev-Portable.exe`** and **`Nagi-Portable.exe`** in the root, their SHA256 files, and separate `artifacts/Nagi-Dev-win-x64` / `artifacts/Nagi-win-x64` folders and ZIPs. Both keep the project version. Each payload includes `build-info.json` with its channel, configuration and shared source fingerprint. The helper rejects source changes while building the pair. The version is not incremented and no GitHub release is published by this command.
+
+For development alone, use `dotnet build src/Pulse.App/Pulse.App.csproj -c Development` or `./scripts/Publish-Nagi.ps1 -Development -NoRestore`. `Development` is an optimized configuration with portable symbols and a compile-time `NAGI_DEVELOPMENT` switch. Production does not compile the `Development*.cs` files or expose development commands. See [Developer tools](DEVELOPMENT.md) for the menu, previews and test runner.
+
 Every publish produces:
 
 - `artifacts/Nagi-win-x64/`: self-contained app folder, including XAML resources, assets, provider tools, licenses, docs and the update helper.

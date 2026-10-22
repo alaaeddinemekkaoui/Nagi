@@ -5,7 +5,7 @@ namespace Pulse.Infrastructure;
 
 public sealed record FileIndexSnapshot(SearchEntry[] Entries, string[] Roots, DateTimeOffset? Updated, bool Limited = false, int Unreadable = 0);
 
-public sealed class FileSearchIndex(string directory, int maximumEntries = FileSearchIndex.MaximumEntries)
+public sealed partial class FileSearchIndex(string directory, int maximumEntries = FileSearchIndex.MaximumEntries)
 {
     public const int MaximumEntries = 40000;
     private readonly int _maximumEntries = Math.Clamp(maximumEntries, 1, MaximumEntries);
@@ -32,6 +32,15 @@ public sealed class FileSearchIndex(string directory, int maximumEntries = FileS
                 || path.StartsWith(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex) when (ex is ArgumentException or IOException or NotSupportedException) { return false; }
+    }
+    public static bool WatchesPath(string path, string[] roots)
+    {
+        if (path.Length > 2048) return false;
+        var root = roots.FirstOrDefault(r => WithinRoot(path, r));
+        if (root is null) return false;
+        for (var current = path; current is not null && !current.Equals(root, StringComparison.OrdinalIgnoreCase); current = Path.GetDirectoryName(current))
+            if (Skipped.Contains(Path.GetFileName(current))) return false;
+        return true;
     }
 
     public async Task LoadAsync(string[] roots, CancellationToken token)
@@ -72,6 +81,77 @@ public sealed class FileSearchIndex(string directory, int maximumEntries = FileS
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         }
         finally { _gate.Release(); }
+    }
+    public async Task ApplyChangesAsync(string[] roots, IEnumerable<string> changes, CancellationToken token)
+    {
+        roots = NormalizeRoots(roots);
+        await _gate.WaitAsync(token);
+        try
+        {
+            var before = Snapshot;
+            if (!before.Roots.SequenceEqual(roots, StringComparer.OrdinalIgnoreCase)) return;
+            var entries = before.Entries.ToDictionary(e => e.Target, StringComparer.OrdinalIgnoreCase);
+            var dirty = changes.Where(p => roots.Any(r => WithinRoot(p, r)))
+                .Select(p => Path.TrimEndingDirectorySeparator(Path.GetFullPath(p))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // Remove affected entries in one pass, rather than scanning all 40,000 entries per event.
+            foreach (var key in entries.Keys.Where(p => HasChangedAncestor(p, dirty)).ToArray()) entries.Remove(key);
+            foreach (var path in dirty.Where(p => !HasChangedAncestor(Path.GetDirectoryName(p), dirty)))
+            {
+                token.ThrowIfCancellationRequested();
+                if (!Eligible(path, roots)) continue;
+                try
+                {
+                    var folder = Directory.Exists(path);
+                    if (!folder && !File.Exists(path)) continue;
+                    if (entries.Count < _maximumEntries && !roots.Contains(path, StringComparer.OrdinalIgnoreCase)) entries[path] = Entry(path, folder);
+                    if (folder)
+                        foreach (var entry in Scan([path], Math.Max(1, _maximumEntries - entries.Count), token).Entries)
+                            if (entries.Count < _maximumEntries) entries[entry.Target] = entry;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+            var next = new FileIndexSnapshot(entries.Values.ToArray(), roots, DateTimeOffset.Now, entries.Count >= _maximumEntries, before.Unreadable);
+            token.ThrowIfCancellationRequested();
+            // A UI scope change can clear the snapshot while this worker is running.
+            if (!Snapshot.Roots.SequenceEqual(roots, StringComparer.OrdinalIgnoreCase)) return;
+            Volatile.Write(ref _snapshot, next);
+            await SaveSnapshotAsync(next, token);
+        }
+        finally { _gate.Release(); }
+    }
+    private static bool HasChangedAncestor(string? path, HashSet<string> dirty)
+    {
+        for (var current = path; current is not null; current = Path.GetDirectoryName(current))
+            if (dirty.Contains(current)) return true;
+        return false;
+    }
+    private async Task SaveSnapshotAsync(FileIndexSnapshot snapshot, CancellationToken token)
+    {
+        try
+        {
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(CachePath + ".tmp", JsonSerializer.Serialize(snapshot), token);
+            File.Move(CachePath + ".tmp", CachePath, true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+    }
+    private static SearchEntry Entry(string path, bool folder) => new(path, Path.GetFileName(path), Path.GetDirectoryName(path) ?? path, folder ? SearchKind.Folder : SearchKind.File, path);
+    private static bool Eligible(string path, string[] roots)
+    {
+        if (path.Length > 2048) return false;
+        var root = roots.FirstOrDefault(r => WithinRoot(path, r));
+        if (root is null) return false;
+        try
+        {
+            for (var current = path; current is not null && WithinRoot(current, root); current = Path.GetDirectoryName(current))
+            {
+                if (Directory.Exists(current) && Skipped.Contains(Path.GetFileName(current))) return false;
+                if ((File.GetAttributes(current) & (FileAttributes.ReparsePoint | FileAttributes.System)) != 0) return false;
+                if (current.Equals(root, StringComparison.OrdinalIgnoreCase)) break;
+            }
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return false; }
     }
     private static FileIndexSnapshot Scan(string[] roots, int maximumEntries, CancellationToken token)
     {

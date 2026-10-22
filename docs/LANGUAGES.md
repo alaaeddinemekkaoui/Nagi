@@ -1,10 +1,10 @@
 # Languages and translation contributions
 
-Nagi includes English, French, Spanish, German, Russian and Arabic. All interface language files are UTF-8 JSON in [`languages/`](../languages). The app reads this folder when it starts; adding a language does not require changing or recompiling application code.
+Nagi v0.2 includes **40 language packs**, including Japanese, Simplified Chinese, Traditional Chinese, Korean, English, French, Spanish, German, Russian and Arabic. All interface language files are UTF-8 JSON in [`languages/`](../languages). The app reads this folder when it starts; adding a language does not require changing or recompiling application code.
 
 Welcome starts with an animated, hand-drawn **Nagi / ナギ** greeting. Continue to the language page before entering your name. **System default** selects your Windows display language, with a regional fallback: French (France) and French (Canada) both use `fr.json`. The page shows the current language by its native name. Selecting English immediately changes the welcome controls to English. Unsupported system languages use English.
 
-After setup, use **Settings → Language**, then **Restart Nagi**. Your profiles, theme, shortcuts and other preferences are preserved. Arabic content uses right-to-left layout; the dock stays attached to your chosen physical screen edge. Reduced motion and the Windows animation preference disable the handwriting animation.
+After setup, use **Settings → Language**, then **Restart Nagi**. Your profiles, theme, shortcuts and other preferences are preserved. Arabic, Hebrew, Persian and Urdu use right-to-left layout; the dock stays attached to your chosen physical screen edge. Chinese system locales use culture/script parents: `zh-CN` resolves to `zh-Hans`, while `zh-TW` and `zh-HK` resolve to `zh-Hant`. Reduced motion and the Windows animation preference disable the handwriting animation.
 
 ## Add your language
 
@@ -41,6 +41,53 @@ From a source checkout with the .NET SDK installed:
 dotnet test tests/Pulse.Tests/Pulse.Tests.csproj --filter FullyQualifiedName~LanguageTests
 ```
 
-The tests load the actual shipped files, validate placeholders, exercise regional and English fallback, check right-to-left selection and verify saved settings. The six supplied files cover the same source entries. The non-English packs began with machine translations; native-speaker corrections and wording improvements are welcome. Translations ship with the app and work offline. Nagi never sends user text to a translation service.
+The tests load all shipped files, validate placeholders, exercise regional/script and English fallback, check right-to-left selection and verify saved settings. All 40 files cover the current English source keys. The non-English packs began with machine translations; native-speaker corrections and wording improvements are welcome. Technical identifiers and the escaped diagnostic version/uptime format remain literal. Future or missing phrases fall back to English. Translations ship with the app and work offline. Nagi never sends user text to a translation service.
+
+Maintainers can generate initial drafts with `node scripts/Update-NagiTranslations.mjs ja zh-Hans`, using Node.js 22 or newer with network access. This explicit maintenance command sends only the public English UI phrases to Google Translate, preserves existing entries, protects format tokens and checkpoints in ignored `artifacts/translation-cache`. It is never invoked by the app or release build. Review output and run the language tests before committing it.
 
 When adding a new interface phrase in code, wrap it in `L.T("English phrase")`, or use `L.F($"Current language: {name}")` for formatted text, and add its English entry to `en.json`. Translators only need to edit JSON files. Do not translate saved identifiers such as `Light`, `Work`, app paths or user-entered names; only their displayed labels are translated.
+
+## Included languages
+
+| Language | Native name | File |
+| --- | --- | --- |
+| Arabic | العربية | [ar.json](../languages/ar.json) |
+| Bengali | বাংলা | [bn.json](../languages/bn.json) |
+| Bulgarian | Български | [bg.json](../languages/bg.json) |
+| Catalan | Català | [ca.json](../languages/ca.json) |
+| Chinese (Simplified) | 简体中文 | [zh-Hans.json](../languages/zh-Hans.json) |
+| Chinese (Traditional) | 繁體中文 | [zh-Hant.json](../languages/zh-Hant.json) |
+| Czech | Čeština | [cs.json](../languages/cs.json) |
+| Danish | Dansk | [da.json](../languages/da.json) |
+| Dutch | Nederlands | [nl.json](../languages/nl.json) |
+| English | English | [en.json](../languages/en.json) |
+| Filipino | Filipino | [fil.json](../languages/fil.json) |
+| Finnish | Suomi | [fi.json](../languages/fi.json) |
+| French | Français | [fr.json](../languages/fr.json) |
+| German | Deutsch | [de.json](../languages/de.json) |
+| Greek | Ελληνικά | [el.json](../languages/el.json) |
+| Hebrew | עברית | [he.json](../languages/he.json) |
+| Hindi | हिन्दी | [hi.json](../languages/hi.json) |
+| Hungarian | Magyar | [hu.json](../languages/hu.json) |
+| Indonesian | Bahasa Indonesia | [id.json](../languages/id.json) |
+| Italian | Italiano | [it.json](../languages/it.json) |
+| Japanese | 日本語 | [ja.json](../languages/ja.json) |
+| Korean | 한국어 | [ko.json](../languages/ko.json) |
+| Malay | Bahasa Melayu | [ms.json](../languages/ms.json) |
+| Norwegian Bokmål | Norsk bokmål | [nb.json](../languages/nb.json) |
+| Persian | فارسی | [fa.json](../languages/fa.json) |
+| Polish | Polski | [pl.json](../languages/pl.json) |
+| Portuguese | Português | [pt.json](../languages/pt.json) |
+| Romanian | Română | [ro.json](../languages/ro.json) |
+| Russian | Русский | [ru.json](../languages/ru.json) |
+| Slovak | Slovenčina | [sk.json](../languages/sk.json) |
+| Spanish | Español | [es.json](../languages/es.json) |
+| Swahili | Kiswahili | [sw.json](../languages/sw.json) |
+| Swedish | Svenska | [sv.json](../languages/sv.json) |
+| Tamil | தமிழ் | [ta.json](../languages/ta.json) |
+| Telugu | తెలుగు | [te.json](../languages/te.json) |
+| Thai | ไทย | [th.json](../languages/th.json) |
+| Turkish | Türkçe | [tr.json](../languages/tr.json) |
+| Ukrainian | Українська | [uk.json](../languages/uk.json) |
+| Urdu | اردو | [ur.json](../languages/ur.json) |
+| Vietnamese | Tiếng Việt | [vi.json](../languages/vi.json) |

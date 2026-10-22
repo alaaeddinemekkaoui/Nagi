@@ -35,19 +35,22 @@ public sealed partial class MainWindow
             try
             {
                 var settings = Volatile.Read(ref _pollSettings);
-                var gpu = _gpu.Sample(); var microphone = _microphone.Sample();
-                DispatcherQueue.TryEnqueue(() => { if (!_closed) { _gpuSnapshot = gpu; _microphoneSnapshot = microphone; RenderIntegrations(); } });
-                var temperature = Task.Run(_temperatures.Sample, token);
-                var fps = _fps.SampleAsync(settings.FpsEnabled, ViewModel.Foreground.ProcessId, token);
+                var demand = Volatile.Read(ref _runtimeDemand);
+                var gpu = demand.Gpu ? _gpu.Sample() : null;
+                var microphone = demand.Microphone ? _microphone.Sample(includePeak: false) : null;
+                if (gpu is not null || microphone is not null) DispatcherQueue.TryEnqueue(() =>
+                { if (!_closed) { if (gpu is not null) _gpuSnapshot = gpu; if (microphone is not null) _microphoneSnapshot = microphone; RenderIntegrations(); } });
+                var temperature = demand.Sensors ? Task.Run(_temperatures.Sample, token) : Task.FromResult(_temperatureSnapshot);
+                var fps = demand.Fps ? _fps.SampleAsync(true, demand.ProcessId, token) : Task.FromResult(_fpsSnapshot);
                 var obs = _obs.SampleAsync(settings.ObsEnabled, settings.ObsPort, Volatile.Read(ref _obsPassword), token);
                 await Task.WhenAll(temperature, fps, obs);
-                DispatcherQueue.TryEnqueue(() =>
+                if (demand.Sensors || demand.Fps || settings.ObsEnabled || _obsSnapshot.Connected) DispatcherQueue.TryEnqueue(() =>
                 {
                     if (_closed) return;
                     _temperatureSnapshot = temperature.Result; _fpsSnapshot = fps.Result; _obsSnapshot = obs.Result;
                     RenderIntegrations();
                 });
-                await Task.Delay(1500, token);
+                await _integrationWake.WaitAsync(1500, token);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
             catch (Exception ex)

@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory)][string]$ExecutablePath, [switch]$DocumentationImages, [ValidateSet("Horizontal","Vertical")][string]$Orientation="Horizontal")
+param([Parameter(Mandatory)][string]$ExecutablePath, [switch]$DocumentationImages, [ValidateSet("Horizontal","Vertical")][string]$Orientation="Horizontal", [ValidateSet("Top edge","Bottom edge","Left edge","Right edge")][string]$Anchor="Bottom edge")
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -23,7 +23,7 @@ $qaFile=Join-Path $qaDirectory 'settings.json'
 @{SchemaVersion=1;Theme='System';WelcomeCompleted=$true;UserName='friend';Position=@{Orientation='Horizontal';Anchor='Bottom edge';OffsetX=0;OffsetY=0};CloseOnDeactivate=$false;HideInFullscreen=$false;IndexFiles=$false;SearchFolders=@();FpsEnabled=$false;ObsEnabled=$false;AutomaticUpdates=$false;WeatherEnabled=$false;StartWithWindows=$false;LuaUiEnabled=$false;ReducedMotion=$true;Hotkey=@{Modifiers=7;Key=131};HideHotkey=@{Modifiers=7;Key=132};SearchHotkey=@{Modifiers=7;Key=133}}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $qaFile
 $qaConfiguration=Get-Content -LiteralPath $qaFile -Raw|ConvertFrom-Json -AsHashtable
 $qaConfiguration.Position.Orientation=$Orientation
-$qaConfiguration.Position.Anchor=if($Orientation -eq 'Horizontal'){'Bottom edge'}else{'Right edge'}
+$qaConfiguration.Position.Anchor=if($PSBoundParameters.ContainsKey('Anchor')){$Anchor}elseif($Orientation -eq 'Horizontal'){'Bottom edge'}else{'Right edge'}
 $qaConfiguration.LockedProfile='Work'
 $qaConfiguration.Workspaces=@(
  @{Profile='Work';Apps=@(@{Name='VS Code';Target='code';Kind='Suggested'},@{Name='Terminal';Target='terminal';Kind='Suggested'},@{Name='Browser';Target='browser';Kind='Suggested'},@{Name='Steam';Target='steam';Kind='Suggested'},@{Name='OBS Studio';Target='obs';Kind='Suggested'});Widgets=@('Performance','Media','Audio','Microphone','Battery')},
@@ -37,6 +37,10 @@ function Find([string]$Value,[switch]$Id,[switch]$Optional){
  for($i=0;$i -lt 30;$i++){$item=$script:root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new($property,$Value));if($item){return $item};if($Optional){return $null};Start-Sleep -Milliseconds 100};throw ('Missing '+$Value)
 }
 function Invoke([string]$Name){(Find $Name).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 450}
+function Activate-Workspace([string]$Name){
+ if(Find '← All profiles' -Optional){Invoke '← All profiles'}
+ Invoke ('Customize '+$Name);Invoke ('Activate '+$Name);Invoke '← All profiles'
+}
 function Select-Workspace([string]$Id,[string]$Value){
  $combos=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ComboBox))
  $combo=$combos|Where-Object {$_.Current.AutomationId -eq $Id -or $_.Current.Name -eq $Id}|Select-Object -First 1
@@ -52,6 +56,16 @@ function Snapshot([string]$Name){
  try{[WorkspaceSmokeNative]::PrintWindow($handle,$dc,2)|Out-Null}finally{$g.ReleaseHdc($dc)}
  $bitmap.Save((Join-Path $qaDirectory ($Name+'.png')));$g.Dispose();$bitmap.Dispose()
 }
+function Assert-FolderFits {
+ $bounds=$root.Current.BoundingRectangle
+ $buttons=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::Button))|Where-Object {$_.Current.Name.StartsWith('Folder app ')}
+ foreach($button in $buttons){
+  $box=$button.Current.BoundingRectangle
+  if($button.Current.IsOffscreen -or $box.Width -le 0 -or $box.Height -le 0 -or $box.Left -lt $bounds.Left -or $box.Right -gt $bounds.Right -or $box.Top -lt $bounds.Top -or $box.Bottom -gt $bounds.Bottom){throw ('Clipped folder app: '+$button.Current.Name)}
+ }
+ $scrolls=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsScrollPatternAvailableProperty,$true))
+ foreach($scroll in $scrolls){if(!$scroll.Current.IsOffscreen){$state=$scroll.GetCurrentPattern([Windows.Automation.ScrollPattern]::Pattern).Current;if($state.VerticallyScrollable -or $state.HorizontallyScrollable){throw 'Hover folder requires scrolling'}}}
+}
 try{
  for($i=0;$i -lt 100;$i++){$script:root=[Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty,$qaProcess.Id))|Where-Object {$_.Current.Name -eq 'Nagi' -and $_.Current.NativeWindowHandle -ne 0}|Select-Object -First 1;if($root){break};Start-Sleep -Milliseconds 100}
  if(!$root){throw 'No QA window'};$handle=[IntPtr]$root.Current.NativeWindowHandle
@@ -59,9 +73,17 @@ try{
  Start-Sleep -Milliseconds 500
  $drop=Find 'Reveal Nagi';Snapshot 'teardrop'
  $dropRect=$drop.Current.BoundingRectangle
- [WorkspaceSmokeNative]::SetCursorPos([int]($dropRect.Left+$dropRect.Width/2),[int]($dropRect.Top+$dropRect.Height/2))|Out-Null
+ $nearEdge=$qaConfiguration.Position.Anchor -in @('Top edge','Left edge')
+ $cutoutX=$dropRect.Left+$dropRect.Width*$(if($Orientation -eq 'Horizontal'){.05}elseif($nearEdge){.75}else{.25})
+ $cutoutY=$dropRect.Top+$dropRect.Height*$(if($Orientation -eq 'Vertical'){.05}elseif($nearEdge){.75}else{.25})
+ if(![WorkspaceSmokeNative]::SetCursorPos([int]$cutoutX,[int]$cutoutY)){throw 'The desktop pointer is unavailable for hover verification'}
+ Start-Sleep -Milliseconds 650
+ if((Find 'Reveal Nagi').Current.IsOffscreen){throw 'Hovering a notch cutout revealed the dock'}
+ if(![WorkspaceSmokeNative]::SetCursorPos([int]($dropRect.Left+$dropRect.Width/2),[int]($dropRect.Top+$dropRect.Height/2))){throw 'The desktop pointer is unavailable for hover verification'}
  Start-Sleep -Milliseconds 1000
  $folder=Find 'More workspace apps'
+ $earlyPreview=Find 'Nagi hover preview' -Optional
+ if($earlyPreview -and !$earlyPreview.Current.IsOffscreen){throw 'The notch reveal opened a widget preview before the pointer moved'}
  foreach($app in @('VS Code','Terminal','Browser')){if(Find ('Dock app '+$app) -Optional){throw 'Grouped apps still appear directly on the dock'}}
  if(Find 'Dock app Steam' -Optional){throw 'Fourth app was not grouped'}
  Snapshot 'dock'
@@ -77,19 +99,21 @@ try{
  Start-Sleep -Milliseconds 600
  if((Find 'Folder app Steam').Current.IsOffscreen){throw 'Folder closed while moving to its apps'}
  Snapshot 'app-folder'
+ Assert-FolderFits
  [WorkspaceSmokeNative]::SetCursorPos(30,30)|Out-Null;Start-Sleep -Milliseconds 1100
  Find 'Reveal Nagi'|Out-Null
  Invoke 'Reveal Nagi';$clickFolderRect=(Find 'More workspace apps').Current.BoundingRectangle;[WorkspaceSmokeNative]::SetCursorPos([int]($clickFolderRect.Left+$clickFolderRect.Width/2),[int]($clickFolderRect.Top+$clickFolderRect.Height/2))|Out-Null;Invoke 'More workspace apps'
  if((Find 'Folder app Steam').Current.IsOffscreen){throw 'Folder click did not open apps'}
  Invoke 'Open Nagi control center';Find 'Customize Work'|Out-Null
- Invoke 'Activate Gaming';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi';$clickFolderRect=(Find 'More workspace apps').Current.BoundingRectangle;[WorkspaceSmokeNative]::SetCursorPos([int]($clickFolderRect.Left+$clickFolderRect.Width/2),[int]($clickFolderRect.Top+$clickFolderRect.Height/2))|Out-Null;Invoke 'More workspace apps'
+ Activate-Workspace 'Gaming';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi';$clickFolderRect=(Find 'More workspace apps').Current.BoundingRectangle;[WorkspaceSmokeNative]::SetCursorPos([int]($clickFolderRect.Left+$clickFolderRect.Width/2),[int]($clickFolderRect.Top+$clickFolderRect.Height/2))|Out-Null;Invoke 'More workspace apps'
  Find 'Folder app Test app 4'|Out-Null;Snapshot 'sixteen-apps'
  Start-Sleep -Milliseconds 1800
  foreach($appNumber in 1..16){Find ('Folder app Test app '+$appNumber)|Out-Null}
  Find 'Folder app Test app 16'|Out-Null;Snapshot 'sixteen-apps'
- Invoke 'Open Nagi control center';Invoke 'Activate Default';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi'
+ Assert-FolderFits
+ Invoke 'Open Nagi control center';Activate-Workspace 'Default';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi'
  if(Find 'More workspace apps' -Optional){throw 'Empty Default profile still shows the folder'}
- Invoke 'Open Nagi control center';Invoke 'Activate Work';Invoke 'Customize Work'
+ Invoke 'Open Nagi control center';Activate-Workspace 'Work';Invoke 'Customize Work'
  Invoke 'Remove OBS Studio';Invoke 'Remove Steam';Invoke 'Remove Browser';Invoke '← All profiles'
  Invoke 'Overview';Invoke 'Collapse Nagi';Invoke 'Reveal Nagi'
  if(Find 'More workspace apps' -Optional){throw 'Folder remains after returning to two apps'}

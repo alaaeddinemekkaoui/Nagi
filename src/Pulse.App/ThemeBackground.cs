@@ -9,6 +9,8 @@ public sealed partial class MainWindow
     {
         var visible = _expanded && ViewModel.Settings.Theme == "Akeno" && !_themeAccessibility.HighContrast;
         AkenoDecor.Visibility = Visibility.Collapsed;
+        AkenoBackgroundImage.Opacity = ViewModel.Settings.GlassEnabled ? .18 : .58;
+        AkenoGradient.Opacity = ViewModel.Settings.GlassEnabled ? .35 : 1;
         AkenoBackgroundImage.Visibility = visible && ViewModel.Settings.AkenoBackground == "Samurai" ? Visibility.Visible : Visibility.Collapsed;
         AkenoGradient.Visibility = visible && ViewModel.Settings.AkenoBackground == "Gradient" ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -16,11 +18,12 @@ public sealed partial class MainWindow
     {
         if (_themeAccessibility.HighContrast)
         { WindowSurface.SetColor(((SolidColorBrush)ThemeBrush("CanvasBrush")).Color); return; }
-        var color = ((SolidColorBrush)ThemeBrush("SurfaceBrush")).Color;
-        if (_materialResting) { WindowSurface.SetColor(NotchColor); return; }
-        if (SystemBackdrop is not null && !ViewModel.Settings.LuaUiEnabled)
-            color.A = ViewModel.Settings.Theme == "Akeno" ? (byte)74 : Shell.ActualTheme == ElementTheme.Light ? (byte)160 : (byte)24;
-        else color.A = 255;
-        WindowSurface.SetColor(color);
+        var color = NotchColor;
+        color.A = Themes.AppAppearance.UsesGlass(ViewModel.Settings) && SystemBackdrop is not null
+            ? Themes.HaloAcrylicBackdrop.SurfaceAlpha(Shell.ActualTheme == ElementTheme.Light) : (byte)255;
+        _glass.SetSurfaceColor(color);
+        // One antialiased material edge. Painting the scrim again in XAML doubles
+        // fractional coverage and leaves a darker outline around the silhouette.
+        WindowSurface.SetColor(_glass.ContourMasked ? Microsoft.UI.Colors.Transparent : color);
     }
 }

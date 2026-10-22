@@ -20,6 +20,7 @@ public sealed class AppUpdateTests
     [Theory]
     [InlineData("v2", "2.0.0.0")]
     [InlineData("v0.1", "0.1.0.0")]
+    [InlineData("v0.2", "0.2.0.0")]
     [InlineData("v0.1.1", "0.1.1.0")]
     [InlineData("1.2.3", "1.2.3.0")]
     [InlineData("v1.2.3.4", "1.2.3.4")]

@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Pulse.Windows;
+using Pulse.Core;
+using Pulse.App.Themes;
 using Windows.Graphics;
 using Windows.System;
 using WinRT.Interop;
@@ -16,7 +18,7 @@ public sealed class DockIntroductionWindow : Window
     private readonly DockSpotlight _spotlight;
     private readonly Button _okay;
     private readonly HaloWindowManager _frame;
-    public DockIntroductionWindow(HaloFrame dock, string edge, ElementTheme theme, Action dismissed)
+    public DockIntroductionWindow(HaloFrame dock, string edge, ElementTheme theme, Action dismissed, PulseSettings settings)
     {
         Title = L.T("Nagi · hello");
         var content = new StackPanel { Spacing = 16, Padding = new(28), RequestedTheme = theme };
@@ -33,7 +35,12 @@ public sealed class DockIntroductionWindow : Window
         layout.Children.Add(new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         Grid.SetRow(_okay, 1); layout.Children.Add(_okay);
         layout.KeyDown += (_, args) => { if (args.Key == VirtualKey.Escape) { args.Handled = true; Close(); } };
-        var color = theme == ElementTheme.Light ? Microsoft.UI.ColorHelper.FromArgb(255, 246, 248, 253) : Microsoft.UI.ColorHelper.FromArgb(255, 25, 27, 36);
+        var contrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
+        var glass = new HaloAcrylicBackdrop(); glass.SetLight(theme == ElementTheme.Light); glass.SetAkeno(settings.Theme == "Akeno");
+        glass.SetTint(AppAppearance.Tint(settings));
+        SystemBackdrop = AppAppearance.UsesGlass(settings) && !contrast && HaloAcrylicBackdrop.IsSupported ? glass : null;
+        var color = contrast ? new global::Windows.UI.ViewManagement.UISettings().GetColorValue(global::Windows.UI.ViewManagement.UIColorType.Background)
+            : AppAppearance.Surface(settings, theme == ElementTheme.Light, SystemBackdrop is not null);
         Content = new Border { Child = layout, Background = new SolidColorBrush(color), RequestedTheme = theme };
         var presenter = (OverlappedPresenter)AppWindow.Presenter;
         presenter.SetBorderAndTitleBar(false, false); presenter.IsResizable = presenter.IsMaximizable = presenter.IsMinimizable = false; presenter.IsAlwaysOnTop = true;

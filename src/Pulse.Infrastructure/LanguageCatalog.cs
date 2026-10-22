@@ -50,7 +50,13 @@ public sealed class LanguageCatalog
         while (!string.IsNullOrEmpty(code))
         {
             if (_languages.TryGetValue(code, out var language)) { Selected = language; return; }
-            var separator = code.LastIndexOf('-'); code = separator < 0 ? "" : code[..separator];
+            // Culture parents include script variants: zh-CN → zh-Hans, zh-TW → zh-Hant.
+            string parent;
+            try { parent = CultureInfo.GetCultureInfo(code).Parent.Name; }
+            catch (CultureNotFoundException) { parent = ""; }
+            var separator = code.LastIndexOf('-');
+            code = parent.Length > 0 && !parent.Equals(code, StringComparison.OrdinalIgnoreCase)
+                ? parent : separator < 0 ? "" : code[..separator];
         }
         Selected = _languages["en"];
     }
