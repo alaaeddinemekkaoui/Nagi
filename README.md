@@ -88,9 +88,13 @@ Personalize colors, spacing, cards and labels through the native **Lua UI studio
 
 ### 06 · Settings, languages and updates
 
-**Utilities → Transfer Center** keeps up to 24 files ready for later. Drop files onto Nagi, add them with the picker, then copy them to a chosen folder with progress and cancellation. Originals stay in place and existing files are never overwritten. Update downloads share the center and a circular notch indicator.
+**Windows file transfers appear in the notch automatically.** Copy or move files normally in File Explorer; Nagi reads the accessible Windows progress dialog and shows its percentage in a circular notch indicator. Enable or disable this in **Settings → Integrations → Notifications → Show Windows file transfers in the notch**. Very short copies and tools without an accessible Windows progress dialog cannot be measured. You do not need to copy through Nagi.
 
-**Utilities → Notifications** collects Nagi alerts and can show other Windows apps' notifications through an opt-in Windows listener. External contents stay in memory and Focus hides their notch previews. Windows requires a packaged app and permission for this listener; the portable EXEs retain Nagi alerts and transfers. The [MSIX guide](docs/NOTIFICATIONS-AND-TRANSFERS.md) explains packaging and signing.
+**App notification banners can appear in the notch.** Open **Settings → Integrations → Notifications → Connect Windows notifications**. Portable builds enable **Mirror Windows notification banners**, which observes new visible Windows banners; Windows must allow banners for that app, and Do not disturb can prevent them from appearing. Focus mode hides external notch previews. Notification text stays in memory and is never logged or uploaded. Full Windows notification history still requires a signed packaged edition and Windows permission. [Step-by-step notification and transfer guide](docs/NOTIFICATIONS-AND-TRANSFERS.md).
+
+The optional **Utilities → Transfer Center** file shelf keeps up to 24 files for later, with its own copy picker and cancellation. Clearing the shelf preserves originals, and copying never overwrites existing destination files. App-update downloads also appear in the center and the notch.
+
+**Enable FPS:** turn on **Settings → Integrations → PresentMon FPS → Capture foreground app FPS**, keep Performance/FPS enabled in the Gaming profile, then focus your game. If Windows denies tracing, open **FPS help → Start FPS helper…** and approve Windows' request to elevate only the helper. Return to the game and wait a few seconds. Missing values stay hidden. [FPS setup and troubleshooting](docs/INTEGRATIONS.md#fps).
 
 A native **resizable Settings window**, with category cards and normal minimize/maximize/close controls. Closing it returns to the dock.
 
@@ -168,7 +172,7 @@ Windows 11 **22H2 or newer**, x64. Runtime included. Current builds are unsigned
 Built with **WinUI 3, Win2D and .NET**. [Build instructions](docs/BUILD.md) · [Architecture](docs/ARCHITECTURE.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Third-party notices](THIRD-PARTY-NOTICES.md).
 
 ```powershell
-./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.3
+./scripts/Publish-NagiVariants.ps1 -NoRestore -ReleaseTag v0.3.0
 ```
 
 Every release produces a fresh **Nagi-Portable.exe in the project root** and a matching **Nagi-Dev-Portable.exe**. Development includes a debug menu, direct pages, notch/notification previews, diagnostics and automated UI checks, with separate preferences and logs. Production excludes developer tools. [Developer guide](docs/DEVELOPMENT.md).

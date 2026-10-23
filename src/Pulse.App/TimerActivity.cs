@@ -112,8 +112,9 @@ public sealed partial class MainWindow
         var horizontal = ViewModel.Settings.Position.Orientation == "Horizontal";
         var changed = next != _restingActivity || _restingHorizontal != horizontal;
         // Tabular digits need a new measurement only when the formatted length changes.
-        if (!changed && (next != "timer" || _restingTextLength == _timer.Text.Length)) return;
-        _restingTextLength = _timer.Text.Length;
+        var contentLength = next == "timer" ? _timer.Text.Length : next is "notice" or "transfer" ? _notchStatusText.Text.Length : 0;
+        if (!changed && _restingTextLength == contentLength) return;
+        _restingTextLength = contentLength;
         _restingHorizontal = horizontal;
         _restingActivity = next;
         ConfigureRestingActivity(horizontal);

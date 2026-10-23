@@ -10,7 +10,8 @@ public sealed partial class MainWindow
     private readonly WindowsNotificationService _windowsNotices = new();
     private DesktopNotification[] _desktopNotices = [];
     private readonly HashSet<uint> _seenDesktopNotices = [];
-    private bool _notificationReadBusy, _notificationBaseline;
+    private bool _notificationReadBusy, _notificationBaseline, _notificationReadPending, _noticeIsExternal;
+    private DateTimeOffset _notificationConnectedAt = DateTimeOffset.UtcNow;
     private long _nextNotificationRead;
     private StackPanel? _notificationList;
     private string? _notificationUiKey;
@@ -23,7 +24,7 @@ public sealed partial class MainWindow
     private string _notchNotice = "";
     private bool _updateTransferBusy;
     private double _updateTransferPercent;
-    private string NotificationActivity => DateTimeOffset.UtcNow < _noticeUntil ? "notice" : _fileTransferBusy || _updateTransferBusy ? "transfer" : "";
+    private string NotificationActivity => DateTimeOffset.UtcNow < _noticeUntil ? "notice" : _fileTransferBusy || _updateTransferBusy || _windowsTransferActive ? "transfer" : "";
 
     private void InitializeNotifications()
     {
@@ -32,21 +33,23 @@ public sealed partial class MainWindow
         ViewModel.NoticePublished += (message, essential) => { if (ViewModel.Settings.Notifications || essential) ShowNotchNotice(message); RefreshNotificationList(); };
         _noticeTick.Tick += (_, _) => { if (DateTimeOffset.UtcNow >= _noticeUntil) { _noticeTick.Stop(); _notchNotice = ""; } RefreshTransferNotch(); };
         _windowsNotices.Changed += WindowsNoticesChanged;
+        InitializeDesktopActivity();
         if (ViewModel.Settings.WindowsNotificationsEnabled && _windowsNotices.Allowed) { _windowsNotices.Listen(); _ = ReadWindowsNoticesAsync(); }
     }
-    private void ShowNotchNotice(string message)
+    private void ShowNotchNotice(string message, bool external = false)
     {
         if (_closed) return;
-        _notchNotice = message; _noticeUntil = DateTimeOffset.UtcNow.AddSeconds(6); _noticeTick.Start();
+        _notchNotice = message; _noticeIsExternal = external; _noticeUntil = DateTimeOffset.UtcNow.AddSeconds(6); _noticeTick.Start();
         _restingActivity = ""; RefreshTransferNotch();
     }
     private void RefreshTransferNotch()
     {
         var activity = NotificationActivity;
         var progress = activity == "notice" ? 1 - Math.Clamp((_noticeUntil - DateTimeOffset.UtcNow).TotalSeconds / 6, 0, 1)
-            : (_fileTransferBusy ? _fileTransferProgress : _updateTransferPercent) / 100;
+            : (_fileTransferBusy ? _fileTransferProgress : _updateTransferBusy ? _updateTransferPercent : _windowsTransferPercent) / 100;
         _notchStatusRing.Update(progress, ThemeBrush("PulseAccentBrush"), ThemeBrush("MutedBrush"));
-        _notchStatusText.Text = activity == "notice" ? _notchNotice : L.F($"{progress * 100:0}%");
+        _notchStatusText.Text = activity == "notice" ? _notchNotice : _windowsTransferActive && !_fileTransferBusy && !_updateTransferBusy
+            ? L.F($"Windows · {progress * 100:0}%") : L.F($"{progress * 100:0}%");
         RefreshLiveActivity();
     }
     private void SetUpdateTransfer(double percent, bool busy)
@@ -54,20 +57,21 @@ public sealed partial class MainWindow
     private void WindowsNoticesChanged() => DispatcherQueue.TryEnqueue(async () => { if (!_closed) await ReadWindowsNoticesAsync(); });
     private async Task ReadWindowsNoticesAsync()
     {
-        if (_notificationReadBusy || !ViewModel.Settings.WindowsNotificationsEnabled) return;
+        if (!ViewModel.Settings.WindowsNotificationsEnabled) return;
+        if (_notificationReadBusy) { _notificationReadPending = true; return; }
         _notificationReadBusy = true; _nextNotificationRead = Environment.TickCount64 + 15000;
         try
         {
             var items = await _windowsNotices.ReadAsync(); if (_closed || !ViewModel.Settings.WindowsNotificationsEnabled) return;
             var snapshotKey = string.Join("|", items.Select(n => n.Id + n.Title + n.Body));
             if (snapshotKey != _desktopSnapshotKey) { _desktopSnapshotKey = snapshotKey; _desktopNoticeRevision++; }
-            var newest = _notificationBaseline ? items.FirstOrDefault(n => !_seenDesktopNotices.Contains(n.Id)) : null;
+            var newest = _notificationBaseline ? items.FirstOrDefault(n => !_seenDesktopNotices.Contains(n.Id)) : items.FirstOrDefault(n => n.Created >= _notificationConnectedAt);
             _desktopNotices = items; _seenDesktopNotices.Clear(); foreach (var item in items) _seenDesktopNotices.Add(item.Id); _notificationBaseline = true;
-            if (newest is not null && ViewModel.Settings.Notifications && Pulse.Core.ModePresets.For(ViewModel.Settings.Workspace(ViewModel.Profile)) != "Focus") ShowNotchNotice(newest.App + " · " + newest.Title);
+            if (newest is not null && ViewModel.Settings.Notifications && Pulse.Core.ModePresets.For(ViewModel.Settings.Workspace(ViewModel.Profile)) != "Focus") ShowNotchNotice(newest.App + " · " + newest.Title, external: true);
             RefreshNotificationList();
         }
         catch (Exception ex) { _log.Write("notifications", "Windows notification refresh failed: " + ex.GetType().Name); }
-        finally { _notificationReadBusy = false; }
+        finally { _notificationReadBusy = false; if (_notificationReadPending && !_closed && ViewModel.Settings.WindowsNotificationsEnabled) { _notificationReadPending = false; _ = ReadWindowsNoticesAsync(); } }
     }
     private void BuildNotificationCenter()
     {
@@ -85,7 +89,8 @@ public sealed partial class MainWindow
         if (key == _notificationUiKey) return; _notificationUiKey = key; _notificationList.Children.Clear();
         foreach (var alert in ViewModel.Activity.Take(8)) _notificationList.Children.Add(NotificationCard("Nagi", alert.Message, "", alert.Time));
         foreach (var alert in _desktopNotices) _notificationList.Children.Add(NotificationCard(alert.App, alert.Title, alert.Body, alert.Created));
-        if (ViewModel.Activity.Count == 0 && _desktopNotices.Length == 0) _notificationList.Children.Add(Note(L.T("All quiet. Your notifications will appear here.")));
+        foreach (var alert in _bannerNotices) _notificationList.Children.Add(NotificationCard(alert.App, alert.Title, alert.Body, alert.Created));
+        if (ViewModel.Activity.Count == 0 && _desktopNotices.Length == 0 && _bannerNotices.Count == 0) _notificationList.Children.Add(Note(L.T("All quiet. Your notifications will appear here.")));
         if (ViewModel.Settings.WindowsNotificationsEnabled) _notificationList.Children.Add(Note(L.T(_windowsNotices.Status)));
     }
     private Border NotificationCard(string source, string title, string body, DateTimeOffset created)
@@ -98,21 +103,26 @@ public sealed partial class MainWindow
     {
         var panel = SettingsCardHeader("Windows notifications", "Read other apps' notifications after Windows grants access.", "\uE7F4");
         panel.Children.Add(Note(L.T("Notification contents stay in memory. Nagi does not upload them, log them or dismiss them from Windows. Focus mode suppresses external notification previews.")));
-        if (!WindowsNotificationService.HasIdentity) panel.Children.Add(Note(L.T("Other apps' notifications require the packaged Nagi edition and Windows permission. Portable builds still show Nagi alerts and transfers.")));
-        panel.Children.Add(Note(L.T(_windowsNotices.Status)));
+        if (!WindowsNotificationService.HasIdentity) panel.Children.Add(Note(L.T("Portable Nagi can mirror visible Windows notification banners. Full notification history requires the packaged edition and Windows permission.")));
+        var banners = Toggle(L.T("Mirror Windows notification banners"), L.T("Show new visible Windows banners in the notch. Works with the portable app; Windows must allow notification banners. No notification database is read."),
+            ViewModel.Settings.WindowsNotificationBanners, (settings, enabled) => settings with { WindowsNotificationBanners = enabled });
+        AutomationProperties.SetAutomationId(banners, "WindowsNotificationBanners"); panel.Children.Add(banners);
+        panel.Children.Add(Note(L.T(ViewModel.Settings.WindowsNotificationBanners ? "Watching Windows notification banners" : _windowsNotices.Status)));
         var connect = Button(L.T("Connect Windows notifications"), async (_, _) =>
         {
-            if (await _windowsNotices.RequestAccessAsync()) { if (await CommitAsync(s => s with { WindowsNotificationsEnabled = true })) { _windowsNotices.Listen(); _notificationBaseline = false; await ReadWindowsNoticesAsync(); } }
+            if (!WindowsNotificationService.HasIdentity) { await CommitAsync(s => s with { WindowsNotificationBanners = true }); ConfigureDesktopActivity(); }
+            else if (await _windowsNotices.RequestAccessAsync()) { if (await CommitAsync(s => s with { WindowsNotificationsEnabled = true, WindowsNotificationBanners = false })) { _notificationConnectedAt = DateTimeOffset.UtcNow; _windowsNotices.Listen(); _notificationBaseline = false; await ReadWindowsNoticesAsync(); } }
             else ViewModel.Publish(L.T(_windowsNotices.Status), true);
             if (!_closed) BuildSettingsPage();
         }); AutomationProperties.SetAutomationId(connect, "ConnectWindowsNotifications"); panel.Children.Add(connect);
         panel.Children.Add(Button(L.T("Disconnect Windows notifications"), async (_, _) => {
-            if (!await CommitAsync(s => s with { WindowsNotificationsEnabled = false })) return;
+            if (!await CommitAsync(s => s with { WindowsNotificationsEnabled = false, WindowsNotificationBanners = false })) return;
             _windowsNotices.Stop(); _desktopNotices = []; _desktopSnapshotKey = ""; _desktopNoticeRevision++;
             _seenDesktopNotices.Clear(); _notificationBaseline = false; _notificationUiKey = null;
-            _noticeUntil = default; _notchNotice = ""; _noticeTick.Stop(); RefreshTransferNotch(); BuildSettingsPage();
+            _noticeUntil = default; _notchNotice = ""; _noticeTick.Stop(); ConfigureDesktopActivity(); RefreshTransferNotch(); BuildSettingsPage();
         }));
         panel.Children.Add(Button(L.T("Open Windows notification privacy"), (_, _) => { try { using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:privacy-notifications") { UseShellExecute = true }); } catch (Exception ex) { _log.Write("notifications", "Could not open Windows settings", ex); } }));
         SettingsPage.Children.Add(Card(panel));
+        BuildWindowsTransferCard(SettingsPage);
     }
 }

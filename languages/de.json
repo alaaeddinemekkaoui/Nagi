@@ -870,6 +870,22 @@
     "Copy cancelled. Completed files were kept.": "Copy cancelled. Completed files were kept.",
     "Copied {0} files": "Copied {0} files",
     "Copying files… {0:0}%": "Copying files… {0:0}%",
-    "Update download {0:0}%": "Update download {0:0}%"
+    "Update download {0:0}%": "Update download {0:0}%",
+    "Copy or move files in File Explorer. Nagi mirrors Windows progress automatically.": "Copy or move files in File Explorer. Nagi mirrors Windows progress automatically.",
+    "Keep the Windows copy/move progress dialog open. Very short transfers, command-line copies and other apps without an accessible progress dialog cannot be tracked.": "Keep the Windows copy/move progress dialog open. Very short transfers, command-line copies and other apps without an accessible progress dialog cannot be tracked.",
+    "Mirror Windows notification banners": "Windows-Benachrichtigungsbanner spiegeln",
+    "Notification contents stay in memory. Nagi does not upload them, log them or dismiss them from Windows. Focus mode suppresses external notification previews.": "Notification contents stay in memory. Nagi does not upload them, log them or dismiss them from Windows. Focus mode suppresses external notification previews.",
+    "Open Windows notification privacy": "Open Windows notification privacy",
+    "Portable Nagi can mirror visible Windows notification banners. Full notification history requires the packaged edition and Windows permission.": "Portable Nagi can mirror visible Windows notification banners. Full notification history requires the packaged edition and Windows permission.",
+    "Read Explorer's progress dialog without copying files through Nagi.": "Read Explorer's progress dialog without copying files through Nagi.",
+    "Show Windows file transfers in the notch": "Windows-Dateiübertragungen in der Notch anzeigen",
+    "Show new visible Windows banners in the notch. Works with the portable app; Windows must allow notification banners. No notification database is read.": "Show new visible Windows banners in the notch. Works with the portable app; Windows must allow notification banners. No notification database is read.",
+    "Waiting for a Windows file transfer": "Warten auf eine Windows-Dateiübertragung",
+    "Watching Windows notification banners": "Windows-Benachrichtigungsbanner werden beobachtet",
+    "Windows file transfer closed": "Windows-Dateiübertragung geschlossen",
+    "Windows file transfer complete": "Windows-Dateiübertragung abgeschlossen",
+    "Windows file transfers": "Windows-Dateiübertragungen",
+    "Windows file transfer {0:0}% · {1} active": "Windows-Dateiübertragung {0:0}% · {1} aktiv",
+    "Windows · {0:0}%": "Windows · {0:0}%"
   }
 }

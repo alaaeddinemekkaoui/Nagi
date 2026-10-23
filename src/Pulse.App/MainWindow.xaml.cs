@@ -463,6 +463,7 @@ public sealed partial class MainWindow : Window
             Animate(); _ = ReloadLuaUiAsync();
         }
         var metrics = ViewModel.Metrics;
+        ConfigureDesktopActivity(); RefreshWindowsTransferCard();
         if (ViewModel.Settings.WindowsNotificationsEnabled && Environment.TickCount64 >= _nextNotificationRead) _ = ReadWindowsNoticesAsync();
         RefreshNotificationList();
         UpdateTray();
@@ -708,7 +709,7 @@ public sealed partial class MainWindow : Window
         _timerTick.Stop();
         if (_closed) return;
         _closed = true;
-        _noticeTick.Stop(); _windowsNotices.Dispose(); _fileTransferCancellation?.Cancel();
+        _noticeTick.Stop(); _windowsNotices.Dispose(); _desktopActivity.Dispose(); _fileTransferCancellation?.Cancel();
         _notchSystemColors.ColorValuesChanged -= NotchColorsChanged;
         _localMedia?.ClosePlayer();
         DismissDockIntroduction(); _visibilityGeneration++; _volumeTimer.Stop(); _updateTimer.Stop(); _shutdown.Cancel();

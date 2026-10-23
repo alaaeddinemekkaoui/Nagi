@@ -47,6 +47,7 @@ public sealed partial class MainWindow
     }
     private void BuildTransferCenter()
     {
+        BuildWindowsTransferCard(UtilitiesPage);
         var panel = SettingsCardHeader("Transfer Center", "A file shelf and live download progress, together.", "\uE898");
         AutomationProperties.SetAutomationId(panel, "TransferCenter");
         panel.Children.Add(Note(L.T("Drop files onto Nagi or add them below. The shelf keeps references to up to 24 files. Copying preserves originals and never overwrites an existing file.")));

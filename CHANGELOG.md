@@ -1,12 +1,17 @@
 # Changelog
 
-## Nagi v0.3 — 2026-10-22
+## Nagi v0.3.0 — 2026-10-23
+
+- Mirror visible Windows app notification banners into the notch with an opt-in portable accessibility bridge. Keep contents in memory, deduplicate repeated banners, clear them on disconnect and respect Focus mode. Packaged builds retain the permission-based Windows notification listener; fix queued notification refreshes and first-arrival handling.
+- Observe accessible Windows Shell copy/move progress dialogs and show real progress in the notch without copying through Nagi. Provide a separate toggle and Utilities status. Do not treat a closed or cancelled dialog as a confirmed successful copy, and do not infer progress for copies without an accessible dialog.
+- Resize notification/transfer notch content when its displayed length changes. Add README setup instructions for app notification banners, Windows file transfers and PresentMon FPS permissions.
+- Replace the previous v0.3 release with v0.3.0. Both use internal version 0.3.0, so users of the previous v0.3 build should close Nagi and download this replacement manually; older versions can use the normal updater.
 
 - Publish the current Nagi feature set as the v0.3 milestone, with matching Production and Development portable executables, a Windows installer and SHA256 checksums. The internal app version is 0.3.0.
 - Includes connected Gaming, Developer, Creator and Focus profiles; PresentMon FPS; GitHub notifications and builds; OBS controls; microphone levels; and .ics calendar meetings.
-- Includes the Transfer Center file shelf, download progress, Nagi notification cards and optional Windows notification integration. Other apps' notifications require a trusted, signed packaged edition and explicit Windows permission; the optional MSIX asset remains unsigned.
+- Includes the Transfer Center file shelf, download progress, Nagi notification cards and optional Windows notification integration. Full notification history requires a trusted, signed packaged edition and explicit Windows permission; the optional MSIX asset remains unsigned.
 - Includes theme-aware notch and dock activity, timers, media controls, 40 language packs, responsive integration/settings cards, optional search and the hover/search dismissal fixes documented in v0.2.2.
-- Update release defaults and in-app version detection to v0.3. Existing profiles and preferences are retained when updating from v0.2.2.
+- Update release defaults and in-app version detection to v0.3.0. Existing profiles and preferences are retained when updating from v0.2.2.
 
 ## Nagi v0.2.2 — 2026-10-22
 

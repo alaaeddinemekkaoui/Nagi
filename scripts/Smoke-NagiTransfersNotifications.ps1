@@ -35,8 +35,12 @@ try {
  Invoke 'Notification settings' -Name;Find 'ConnectWindowsNotifications'|Out-Null;Invoke 'ConnectWindowsNotifications'
  $saved=Get-Content (Join-Path $qaDirectory 'settings.json') -Raw|ConvertFrom-Json
  if($saved.WindowsNotificationsEnabled){throw 'Portable notification connection reported false success'}
+ if(!$saved.WindowsNotificationBanners){throw 'Portable banner mirroring was not enabled'}
  $texts=$root.FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::Text))
  if(!($texts|Where-Object {$_.Current.Name -like '*packaged*'})){throw 'Portable package requirement is not explained'}
+ Invoke 'Disconnect Windows notifications' -Name
+ $saved=Get-Content (Join-Path $qaDirectory 'settings.json') -Raw|ConvertFrom-Json
+ if($saved.WindowsNotificationBanners -or $saved.WindowsNotificationsEnabled){throw 'Disconnect did not disable Windows observation'}
  Invoke 'UtilitiesTab';Find 'Clear Nagi alerts' -Name|Out-Null;Invoke 'Clear Nagi alerts' -Name
  @{Passed=$true;ShelfRestored=$true;ClearPreservesOriginal=$true;ShelfSaved=$true;NotificationCards=$true;PortablePermissionExplained=$true;Data=$qaDirectory}|ConvertTo-Json|Set-Content (Join-Path $qaDirectory 'result.json')
  Get-Content (Join-Path $qaDirectory 'result.json')

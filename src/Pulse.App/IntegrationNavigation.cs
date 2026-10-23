@@ -43,7 +43,7 @@ public sealed partial class MainWindow
         "GitHub" => !ViewModel.Settings.GitHubEnabled ? L.T("Off") : _githubCredential.Exists || ViewModel.Settings.PinnedRepositories.Length > 0 ? L.T("Connected") : L.T("Needs setup"),
         "Calendar" => !ViewModel.Settings.CalendarEnabled ? L.T("Off") : _calendarCredential.Exists ? L.T("Connected") : L.T("Needs setup"),
         "OBS Studio" => !ViewModel.Settings.ObsEnabled ? L.T("Off") : _obsSnapshot.Connected ? L.T("Connected") : L.T("Check connection"),
-        "Notifications" => ViewModel.Settings.WindowsNotificationsEnabled && _windowsNotices.Allowed ? L.T("Connected") : L.T("Needs setup"),
+        "Notifications" => ViewModel.Settings.WindowsNotificationBanners || ViewModel.Settings.WindowsNotificationsEnabled && _windowsNotices.Allowed ? L.T("Connected") : L.T("Needs setup"),
         _ => ""
     };
 

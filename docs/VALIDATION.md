@@ -1,5 +1,13 @@
 # Nagi validation
 
+## v0.3.0 Windows activity replacement
+
+Read-only desktop observation is covered by native Windows accessibility and parser tests, including a real progress control, localized percentages, toast boundaries and history rejection. The full suite passes 345 core/infrastructure tests and 92 Windows tests (437 total). A real Windows Shell copy of 512 owned files (1 GB) showed visible resting-notch samples from 6% to 98%, with no Nagi copy operation. Evidence: `artifacts/validation/windows-copy-20261022-230529/result.json`. The fixtures were removed after the operation; diagnostic evidence remains.
+
+The test toast did not expose an accessible banner on this desktop. Banner parsing and privacy behavior are tested with owned fixtures, but real app banner delivery is not certified here. Windows must allow visible banners; the optional full notification listener still requires a trusted signed package and permission. Actual elevated game FPS remains environment-dependent. This replacement uses the same internal 0.3.0 version as the earlier v0.3 release, so that earlier build needs a manual replacement download. NuGet vulnerability-feed retrieval still reports NU1900.
+
+Final Production and Development packages share source fingerprint `20e9676add3872d79c37fe13dfd7c43767c092f62139db0b9544c6a0d83076ea`. All 53 built-in Development checks and Production exclusion of developer tools pass (`development-20261023-090502`). Production banner connect/disconnect and shelf controls pass (`transfers-notifications-20261023-090548`); another real 1 GB Windows Shell copy produces visible notch samples from 21% to 99% (`windows-copy-20261023-090558`). The installer and optional unsigned MSIX were rebuilt from this Production package. No certificate trust or Developer Mode setting was changed.
+
 ## v0.3 release checks
 
 The v0.3 milestone uses internal app version 0.3.0. All 345 core/infrastructure tests, 78 Windows tests and eight website checks pass after the version update. NuGet vulnerability-feed retrieval still reports NU1900; this is not a successful vulnerability scan. Production and Development packages are built together from a shared source fingerprint. The optional MSIX remains unsigned, and no certificate trust or Developer Mode setting is changed.
