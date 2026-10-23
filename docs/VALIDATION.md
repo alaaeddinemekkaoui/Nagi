@@ -8,13 +8,15 @@ The test toast did not expose an accessible banner on this desktop. Banner parsi
 
 Final Production and Development packages share source fingerprint `20e9676add3872d79c37fe13dfd7c43767c092f62139db0b9544c6a0d83076ea`. All 53 built-in Development checks and Production exclusion of developer tools pass (`development-20261023-090502`). Production banner connect/disconnect and shelf controls pass (`transfers-notifications-20261023-090548`); another real 1 GB Windows Shell copy produces visible notch samples from 21% to 99% (`windows-copy-20261023-090558`). The installer and optional unsigned MSIX were rebuilt from this Production package. No certificate trust or Developer Mode setting was changed.
 
-## v0.3 release checks
+Published `v0.3.0` targets commit `4f4c8588e989cd71eeeb2220eb2cbfa6e27db2f3`; all 13 GitHub assets match the local sizes and SHA256 digests. The superseded `v0.3` release and tag have been removed. A real GitHub update from 0.2.2 to 0.3.0 passes automatic detection, changelog display, Later without exit, verified download, explicit installation, process restart, the installed-version UI and preserved preferences. Evidence: `artifacts/validation/live-update-20261023-103609/evidence.json`. The live website check confirms its version badge and Windows download automatically resolve to `v0.3.0`; no website deployment was needed.
+
+## Earlier v0.3 release checks (superseded)
 
 The v0.3 milestone uses internal app version 0.3.0. All 345 core/infrastructure tests, 78 Windows tests and eight website checks pass after the version update. NuGet vulnerability-feed retrieval still reports NU1900; this is not a successful vulnerability scan. Production and Development packages are built together from a shared source fingerprint. The optional MSIX remains unsigned, and no certificate trust or Developer Mode setting is changed.
 
 Both final packages share source fingerprint `9926c8f225e7d4eaa2284542bc1ba410dbcc47c12186afbaba503f61c09e8571`. All 53 built-in Development UI checks pass, including notch notifications, diagnostic exports and Production exclusion of the developer tools. Evidence: `artifacts/validation/development-20261022-212300`. MakeAppx validates the optional unsigned MSIX.
 
-Published tag `v0.3` points to `fdf46d4e25f246d68d8f7b4a4d83af1fb6689a9c`; all 13 GitHub assets match local sizes and SHA256 digests. A real GitHub update from 0.2.2 to 0.3.0 passes automatic detection, changelog display, Later without exit, verified download, explicit installation, process restart, the installed-version UI and preserved preferences. Evidence: `artifacts/validation/live-update-20261022-214136/evidence.json`. The deployed website automatically resolves its version badge and Windows download to v0.3; no website deployment was needed.
+The earlier, now-removed tag `v0.3` pointed to `fdf46d4e25f246d68d8f7b4a4d83af1fb6689a9c`; all 13 GitHub assets matched local sizes and SHA256 digests. A real GitHub update from 0.2.2 to 0.3.0 passed automatic detection, changelog display, Later without exit, verified download, explicit installation, process restart, the installed-version UI and preserved preferences. Evidence: `artifacts/validation/live-update-20261022-214136/evidence.json`. The deployed website automatically resolved its version badge and Windows download to v0.3; no website deployment was needed.
 
 ## Automated checks
 
